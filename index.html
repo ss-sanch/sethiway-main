@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sethiway | Finance, Tech & Lifestyle</title>
+    <title>Sethiway | Finance, Tech & Engineering</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased">
 
-    <nav class="flex justify-between items-center py-6 px-10 bg-white shadow-sm sticky top-0 z-50">
-        <div class="text-2xl font-black tracking-tighter">SETHIWAY.</div>
+    <nav class="flex justify-between items-center py-6 px-6 md:px-10 bg-white shadow-sm sticky top-0 z-50">
+        <a href="#" class="flex items-center">
+            <img src="logo.png" alt="Sethiway Logo" class="h-10 w-auto">
+        </a>
         <div class="hidden md:flex space-x-8 text-sm font-semibold uppercase tracking-wide">
             <a href="#about" class="hover:text-blue-600 transition">About</a>
             <a href="#pillars" class="hover:text-blue-600 transition">Pillars</a>
@@ -24,56 +26,145 @@
             <span class="text-blue-600">Finance & Engineering.</span>
         </h1>
         <p class="text-xl text-gray-500 mb-10 max-w-2xl font-light">
-            Welcome to my digital hub. I build robust tech tools, analyze market data, and engineer strategic solutions.
+            Welcome to my digital hub. I engineer robust tools, quantitative models, and technical solutions across maths, stats, finance, and engineering.
         </p>
-        <div class="flex space-x-4">
-            <a href="#portfolio" class="px-8 py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition shadow-lg">
-                View My Work
-            </a>
-            <a href="https://sethistock.sethiway.com" target="_blank" class="px-8 py-3 bg-white border-2 border-gray-200 text-gray-900 font-semibold rounded-lg hover:border-gray-900 transition shadow-sm">
+        
+        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+            <a href="https://sethistock.sethiway.com" target="_blank" class="px-8 py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition shadow-lg flex items-center justify-center">
                 Launch SethiStock
             </a>
+            <button disabled class="px-8 py-3 bg-white border-2 border-gray-200 text-gray-400 font-semibold rounded-lg shadow-sm cursor-not-allowed flex items-center justify-center">
+                Finance Trackr (Coming Soon...)
+            </button>
         </div>
     </header>
-    <section id="pillars" class="py-20 bg-white px-6 md:px-10 max-w-7xl mx-auto">
-        <div class="text-center mb-16">
-            <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight text-gray-900 mb-4">Core Pillars.</h2>
-            <p class="text-lg text-gray-500 max-w-2xl mx-auto font-light">
-                The foundation of my work, balancing market analysis with technical engineering.
-            </p>
-        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-            <div class="p-8 border border-gray-100 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-6">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+    <section id="about" class="py-20 bg-white px-6 md:px-10 border-t border-gray-100">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center md:items-start gap-12">
+            <div class="w-48 h-48 md:w-64 md:h-64 flex-shrink-0 rounded-full bg-gray-100 border-4 border-white shadow-xl overflow-hidden">
                 </div>
-                <h3 class="text-2xl font-bold mb-3">Finance & Trading</h3>
-                <p class="text-gray-600 font-light leading-relaxed">
-                    Deep fundamental analysis, valuation modeling, and technical trading. Translating raw market data into actionable investment strategies.
-                </p>
-            </div>
-
-            <div class="p-8 border border-gray-100 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                <div class="w-14 h-14 bg-gray-900 text-white rounded-xl flex items-center justify-center mb-6">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+            
+            <div class="text-center md:text-left">
+                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight text-gray-900 mb-6">Hi, I'm Sanchit.</h2>
+                <div class="space-y-4 text-lg text-gray-600 font-light leading-relaxed">
+                    <p>
+                        I am a builder, analyst, and strategist. My work bridges the gap between complex mathematical frameworks and actionable financial insights. 
+                    </p>
+                    <p>
+                        Whether I am engineering a Reverse DCF algorithm for <strong>SethiStock</strong>, analyzing statistical market trends, or developing automated tracking bots, I focus on creating systems that process raw data into clear, strategic advantages.
+                    </p>
+                    <p>
+                        Beyond the terminal and the trading desk, I am passionate about continuous personal growth, expanding my technical toolkit, and maintaining discipline through fitness.
+                    </p>
                 </div>
-                <h3 class="text-2xl font-bold mb-3">Tech & Engineering</h3>
-                <p class="text-gray-600 font-light leading-relaxed">
-                    Building robust software architectures. From backend Python data engines (like SethiStock) to polished, responsive frontend user interfaces.
-                </p>
-            </div>
-
-            <div class="p-8 border border-gray-100 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-6">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div>
-                <h3 class="text-2xl font-bold mb-3">Lifestyle & Growth</h3>
-                <p class="text-gray-600 font-light leading-relaxed">
-                    Continuous learning and discipline outside the IDE. Balancing professional ambition with personal development, networking, and fitness.
-                </p>
             </div>
         </div>
     </section>
+
+    <section id="pillars" class="py-20 bg-gray-50 px-6 md:px-10">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight text-gray-900 mb-4">Core Pillars.</h2>
+                <p class="text-lg text-gray-500 max-w-2xl mx-auto font-light">
+                    The foundation of my work, balancing market analysis with technical engineering.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div class="p-8 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3">Finance & Trading</h3>
+                    <p class="text-gray-600 font-light leading-relaxed">
+                        Deep fundamental analysis, valuation modelling, and technical trading. Translating raw market data into actionable investment strategies.
+                    </p>
+                </div>
+
+                <div class="p-8 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div class="w-14 h-14 bg-gray-900 text-white rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3">Tech & Engineering</h3>
+                    <p class="text-gray-600 font-light leading-relaxed">
+                        Building robust software architectures. From backend Python data engines to polished, responsive frontend user interfaces.
+                    </p>
+                </div>
+
+                <div class="p-8 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3">Lifestyle & Growth</h3>
+                    <p class="text-gray-600 font-light leading-relaxed">
+                        Continuous learning and discipline outside the IDE. Balancing professional ambition with personal development, networking, and fitness.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="portfolio" class="py-20 bg-white px-6 md:px-10 border-t border-gray-100">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight text-gray-900 mb-4">The Portfolio Vault.</h2>
+                <p class="text-lg text-gray-500 max-w-2xl mx-auto font-light">
+                    A showcase of my deployed SaaS applications, engineered systems, and data analytics tools.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div class="bg-gray-50 rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col">
+                    <div class="h-48 bg-gray-900 flex items-center justify-center text-white relative">
+                        <span class="text-3xl font-black tracking-tighter">SETHISTOCK.</span>
+                    </div>
+                    <div class="p-8 flex flex-col flex-grow">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-2xl font-bold">SethiStock Analytics</h3>
+                            <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold uppercase rounded-full tracking-wide">Live</span>
+                        </div>
+                        <p class="text-gray-600 font-light leading-relaxed mb-6 flex-grow">
+                            An elite, data-driven financial analysis SaaS. Features real-time API routing, dynamic Plotly charting, and a custom Two-Way binding Reverse DCF valuation engine.
+                        </p>
+                        <a href="https://sethistock.sethiway.com" target="_blank" class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
+                            Launch Application 
+                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col">
+                    <div class="h-48 bg-gray-200 flex items-center justify-center text-gray-400 relative">
+                        <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <div class="p-8 flex flex-col flex-grow">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-2xl font-bold">Finance Trackr Bot</h3>
+                            <span class="px-3 py-1 bg-gray-200 text-gray-600 text-xs font-bold uppercase rounded-full tracking-wide">In Development</span>
+                        </div>
+                        <p class="text-gray-600 font-light leading-relaxed mb-6 flex-grow">
+                            An automated tracking protocol designed to parse, analyze, and deliver customized market alerts. Engineered for speed and precision.
+                        </p>
+                        <button disabled class="inline-flex items-center justify-center px-6 py-3 bg-gray-300 text-gray-500 font-semibold rounded-lg cursor-not-allowed">
+                            Coming Soon...
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-900 text-white py-12 px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-6 md:mb-0 flex items-center">
+                <img src="logo.png" alt="Sethiway Logo" class="h-8 w-auto brightness-0 invert opacity-90">
+            </div>
+            <div class="text-gray-400 font-light text-sm text-center md:text-right">
+                &copy; 2026 Sethiway. All rights reserved. <br>
+                <a href="#" class="hover:text-white transition">Privacy Policy</a> | <a href="#" class="hover:text-white transition">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
 </body>
 </html>

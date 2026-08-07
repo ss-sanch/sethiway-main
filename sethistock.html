@@ -81,8 +81,7 @@
         </div>
 
         <h3 class="text-2xl font-black mt-10 mb-2 border-b pb-4">Key Financial Metrics</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="individual-charts-container">
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="individual-charts-container"></div>
 
         <h3 class="text-2xl font-black mt-10 mb-2 border-b pb-4">Margin Profile</h3>
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
@@ -134,7 +133,6 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.detail);
 
-                // Populate Stats Matrix
                 document.getElementById('display-ticker').innerText = data.ticker;
                 document.getElementById('display-price').innerText = `$${data.current_price.toFixed(2)}`;
                 
@@ -156,17 +154,33 @@
                 state.fcf = data.fcf; state.shares = data.shares; state.price = data.current_price;
                 calculateDCF();
 
-                // 1. UNHIDE the Dashboard (So Plotly can see the boxes)
+                // GHOST YEAR GUILLOTINE: Remove years where revenue is exactly 0
+                let cleanFin = { years: [], revenue: [], operating: [], net: [], gross_margin: [], op_margin: [], net_margin: [], fcf: [], ocf: [], capex: [], cash: [], debt: [], shares: [] };
+                for(let i=0; i<data.financials.years.length; i++) {
+                    if (data.financials.revenue[i] !== 0) {
+                        cleanFin.years.push(data.financials.years[i]);
+                        cleanFin.revenue.push(data.financials.revenue[i]);
+                        cleanFin.operating.push(data.financials.operating[i]);
+                        cleanFin.net.push(data.financials.net[i]);
+                        cleanFin.gross_margin.push(data.financials.gross_margin[i]);
+                        cleanFin.op_margin.push(data.financials.op_margin[i]);
+                        cleanFin.net_margin.push(data.financials.net_margin[i]);
+                        cleanFin.fcf.push(data.financials.fcf[i]);
+                        cleanFin.ocf.push(data.financials.ocf[i]);
+                        cleanFin.capex.push(data.financials.capex[i]);
+                        cleanFin.cash.push(data.financials.cash[i]);
+                        cleanFin.debt.push(data.financials.debt[i]);
+                        cleanFin.shares.push(data.financials.shares[i]);
+                    }
+                }
+
                 dash.classList.remove('hidden');
+                injectFinancialHTML(cleanFin);
 
-                // 2. INJECT HTML for the 9 Matrix Cards
-                injectFinancialHTML(data.financials);
-
-                // 3. WAIT 150ms for Browser to physically paint the DOM
                 setTimeout(async () => {
                     await fetchChart();
-                    drawFinancials(data.financials);
-                    dash.classList.add('opacity-100'); // Fade it in beautifully
+                    drawFinancials(cleanFin);
+                    dash.classList.add('opacity-100'); 
                 }, 150);
 
             } catch (err) {
@@ -179,9 +193,7 @@
 
         function getCAGR(data) {
             if (!data || data.length < 2) return { '1Y': '-', '2Y': '-', '3Y': '-', 'MAX': '-' };
-            // Ensure data contains numbers before calculating
             if (data.every(val => val === 0)) return { '1Y': '-', '2Y': '-', '3Y': '-', 'MAX': '-' };
-            
             const latest = data[data.length - 1];
             const calc = (past, current, years) => {
                 if (past <= 0) return 'N/A'; 
@@ -198,7 +210,6 @@
             };
         }
 
-        // Helper function to build the 9 cards before plotting
         function injectFinancialHTML(fin) {
             const indMetrics = [
                 { id: 'ind-rev', title: 'Revenue' }, { id: 'ind-op', title: 'Operating Income' }, { id: 'ind-net', title: 'Net Income' },
@@ -234,7 +245,6 @@
             document.getElementById('individual-charts-container').innerHTML = cardsHTML;
         }
 
-        // Bulletproof Plotly Drawer
         function drawFinancials(fin) {
             if (!fin.years || !fin.years.length) return;
             const layoutBase = { margin: {t: 10, b: 20, l: 30, r: 10}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent', showlegend: false, autosize: true };
@@ -242,15 +252,13 @@
 
             const safePlot = (id, data, color, type='bar') => {
                 if (data && data.length > 0 && !data.every(v => v === 0)) {
-                    const trace = type === 'bar' ? { x: fin.years, y: data, type: 'bar', marker: {color: color, borderRadius: 4} } 
-                                                 : { x: fin.years, y: data, type: 'scatter', mode: 'lines+markers', line: {color: color, width: 3} };
-                    Plotly.newPlot(id, [trace], layoutBase, cfg);
+                    Plotly.newPlot(id, [{ x: fin.years, y: data, type: type, marker: {color: color, borderRadius: 4} }], layoutBase, cfg);
                 } else {
                     document.getElementById(id).innerHTML = `<div class="flex h-full items-center justify-center text-gray-400 font-bold text-sm">Data Unavailable</div>`;
                 }
             };
 
-            // 1. Plot the 9 Individual 3x3 Charts
+            // Shares are now a Bar Chart natively
             safePlot('ind-rev', fin.revenue, '#3b82f6');
             safePlot('ind-op', fin.operating, '#8b5cf6');
             safePlot('ind-net', fin.net, '#a855f7');
@@ -259,9 +267,8 @@
             safePlot('ind-capex', fin.capex, '#ef4444');
             safePlot('ind-cash', fin.cash, '#0ea5e9');
             safePlot('ind-debt', fin.debt, '#f97316');
-            safePlot('ind-shares', fin.shares, '#64748b', 'scatter');
+            safePlot('ind-shares', fin.shares, '#64748b', 'bar'); 
 
-            // 2. Margins Chart
             if (fin.gross_margin.length > 0 && !fin.gross_margin.every(v => v === 0)) {
                 Plotly.newPlot('margin-chart', [
                     { x: fin.years, y: fin.gross_margin, name: 'Gross Margin (%)', type: 'scatter', mode: 'lines+markers', line: {color: '#8b5cf6', width: 3} },
@@ -270,7 +277,6 @@
                 ], {...layoutBase, margin: {t: 50, b: 30, l: 40, r: 10}, showlegend: true, legend: {orientation: 'h', xanchor: 'center', x: 0.5, y: 1.15}}, cfg);
             }
 
-            // 3. Comparisons
             const safeCompPlot = (id, data1, name1, color1, data2, name2, color2) => {
                  if (data1.length > 0 && !data1.every(v => v === 0) && data2.length > 0) {
                      Plotly.newPlot(id, [
@@ -281,14 +287,12 @@
                      document.getElementById(id).innerHTML = `<div class="flex h-full items-center justify-center text-gray-400 font-bold text-sm">Data Unavailable</div>`;
                  }
             }
-
             safeCompPlot('comp-rev-net', fin.revenue, 'Rev', '#94a3b8', fin.net, 'Net', '#3b82f6');
             safeCompPlot('comp-cash-debt', fin.cash, 'Cash', '#0ea5e9', fin.debt, 'Debt', '#f97316');
             safeCompPlot('comp-fcf-ocf', fin.ocf, 'OCF', '#10b981', fin.fcf, 'FCF', '#059669');
             safeCompPlot('comp-ocf-capex', fin.ocf, 'OCF', '#10b981', fin.capex, 'CapEx', '#ef4444');
         }
 
-        // Listeners for Top Chart
         document.querySelectorAll('.tf-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
@@ -322,6 +326,7 @@
             } else {
                 trace = { x: state.chartData.dates, y: state.chartData.closes, type: 'scatter', mode: 'lines', line: {color: '#2563eb', width: 2.5}, fill: 'tozeroy', fillcolor: 'rgba(37, 99, 235, 0.05)' };
             }
+            // DYNAMIC Y-AXIS FIX: Removed tozero, auto-scales perfectly now
             const layout = { margin: {t: 10, b: 30, l: 40, r: 10}, xaxis: {showgrid: false, rangeslider: {visible: false}}, yaxis: {showgrid: true, gridcolor: '#f1f5f9'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent', autosize: true };
             Plotly.newPlot('price-chart', [trace], layout, {displayModeBar: false, responsive: true});
         }

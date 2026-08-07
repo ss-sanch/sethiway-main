@@ -65,13 +65,17 @@
 
             <div class="xl:col-span-1 bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col">
                 <h3 class="text-2xl font-black mb-6 border-b pb-4">Insights & Stats</h3>
-                <div class="grid grid-cols-2 gap-y-10 gap-x-6 mt-4">
-                    <div class="flex flex-col"><span class="text-xs text-gray-400 font-bold tracking-widest uppercase">P/E Ratio</span><span id="stat-pe" class="text-3xl font-black mt-1">0</span></div>
-                    <div class="flex flex-col"><span class="text-xs text-gray-400 font-bold tracking-widest uppercase">P/B Ratio</span><span id="stat-pb" class="text-3xl font-black mt-1">0</span></div>
-                    <div class="flex flex-col"><span class="text-xs text-gray-400 font-bold tracking-widest uppercase">EPS</span><span id="stat-eps" class="text-3xl font-black mt-1">0</span></div>
-                    <div class="flex flex-col"><span class="text-xs text-gray-400 font-bold tracking-widest uppercase">ROE</span><span id="stat-roe" class="text-3xl font-black mt-1 text-blue-600">0%</span></div>
-                    <div class="flex flex-col"><span class="text-xs text-gray-400 font-bold tracking-widest uppercase">Net Margin</span><span id="stat-margin" class="text-3xl font-black mt-1 text-blue-600">0%</span></div>
-                    <div class="flex flex-col"><span class="text-xs text-gray-400 font-bold tracking-widest uppercase">Debt/Eq</span><span id="stat-debt" class="text-3xl font-black mt-1 text-red-600">0</span></div>
+                <div class="grid grid-cols-2 gap-y-8 gap-x-6 mt-2">
+                    <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">Market Cap</span><span id="stat-mkt" class="text-3xl font-black mt-1 text-blue-600">0</span></div>
+                    <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">EV/EBITDA</span><span id="stat-ev" class="text-3xl font-black mt-1">0</span></div>
+                    <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">P/E Ratio (TTM)</span><span id="stat-pe" class="text-3xl font-black mt-1">0</span></div>
+                    <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">P/B Ratio (TTM)</span><span id="stat-pb" class="text-3xl font-black mt-1">0</span></div>
+                    <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">EPS (TTM)</span><span id="stat-eps" class="text-3xl font-black mt-1">0</span></div>
+                    <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">Dividend Yield</span><span id="stat-div" class="text-3xl font-black mt-1 text-green-600">0%</span></div>
+                </div>
+                <div class="mt-8 pt-6 border-t border-gray-100 flex flex-col items-center justify-center">
+                    <span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">FCF Yield</span>
+                    <span id="stat-fcfy" class="text-5xl font-black mt-2 text-green-600">0%</span>
                 </div>
             </div>
         </div>
@@ -141,12 +145,13 @@
                 changeEl.className = data.change >= 0 ? "text-xl font-semibold text-green-600" : "text-xl font-semibold text-red-600";
                 pctEl.className = data.change >= 0 ? "px-3 py-1 text-sm font-bold text-white rounded-full bg-green-500" : "px-3 py-1 text-sm font-bold text-white rounded-full bg-red-500";
 
+                document.getElementById('stat-mkt').innerText = data.stats.mkt_cap;
+                document.getElementById('stat-ev').innerText = data.stats.ev_ebitda;
                 document.getElementById('stat-pe').innerText = data.stats.pe;
                 document.getElementById('stat-pb').innerText = data.stats.pb;
                 document.getElementById('stat-eps').innerText = data.stats.eps;
-                document.getElementById('stat-roe').innerText = data.stats.roe !== "N/A" ? data.stats.roe + "%" : "N/A";
-                document.getElementById('stat-margin').innerText = data.stats.profit_margin !== "N/A" ? data.stats.profit_margin + "%" : "N/A";
-                document.getElementById('stat-debt').innerText = data.stats.debt_to_eq;
+                document.getElementById('stat-div').innerText = data.stats.div_yield;
+                document.getElementById('stat-fcfy').innerText = data.stats.fcf_yield;
 
                 state.fcf = data.fcf; state.shares = data.shares; state.price = data.current_price;
                 calculateDCF();
@@ -174,6 +179,9 @@
 
         function getCAGR(data) {
             if (!data || data.length < 2) return { '1Y': '-', '2Y': '-', '3Y': '-', 'MAX': '-' };
+            // Ensure data contains numbers before calculating
+            if (data.every(val => val === 0)) return { '1Y': '-', '2Y': '-', '3Y': '-', 'MAX': '-' };
+            
             const latest = data[data.length - 1];
             const calc = (past, current, years) => {
                 if (past <= 0) return 'N/A'; 
@@ -200,7 +208,6 @@
 
             let cardsHTML = '';
             indMetrics.forEach(m => {
-                // Find matching data to calculate CAGR string
                 let dataMatch = [];
                 if(m.id==='ind-rev') dataMatch = fin.revenue; else if(m.id==='ind-op') dataMatch = fin.operating;
                 else if(m.id==='ind-net') dataMatch = fin.net; else if(m.id==='ind-ocf') dataMatch = fin.ocf;
@@ -227,50 +234,58 @@
             document.getElementById('individual-charts-container').innerHTML = cardsHTML;
         }
 
-        // Plotly Drawer
+        // Bulletproof Plotly Drawer
         function drawFinancials(fin) {
             if (!fin.years || !fin.years.length) return;
             const layoutBase = { margin: {t: 10, b: 20, l: 30, r: 10}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent', showlegend: false, autosize: true };
             const cfg = {displayModeBar: false, responsive: true};
 
+            const safePlot = (id, data, color, type='bar') => {
+                if (data && data.length > 0 && !data.every(v => v === 0)) {
+                    const trace = type === 'bar' ? { x: fin.years, y: data, type: 'bar', marker: {color: color, borderRadius: 4} } 
+                                                 : { x: fin.years, y: data, type: 'scatter', mode: 'lines+markers', line: {color: color, width: 3} };
+                    Plotly.newPlot(id, [trace], layoutBase, cfg);
+                } else {
+                    document.getElementById(id).innerHTML = `<div class="flex h-full items-center justify-center text-gray-400 font-bold text-sm">Data Unavailable</div>`;
+                }
+            };
+
             // 1. Plot the 9 Individual 3x3 Charts
-            Plotly.newPlot('ind-rev', [{ x: fin.years, y: fin.revenue, type: 'bar', marker: {color: '#3b82f6', borderRadius: 4} }], layoutBase, cfg);
-            Plotly.newPlot('ind-op', [{ x: fin.years, y: fin.operating, type: 'bar', marker: {color: '#8b5cf6', borderRadius: 4} }], layoutBase, cfg);
-            Plotly.newPlot('ind-net', [{ x: fin.years, y: fin.net, type: 'bar', marker: {color: '#a855f7', borderRadius: 4} }], layoutBase, cfg);
-            Plotly.newPlot('ind-ocf', [{ x: fin.years, y: fin.ocf, type: 'bar', marker: {color: '#10b981', borderRadius: 4} }], layoutBase, cfg);
-            Plotly.newPlot('ind-fcf', [{ x: fin.years, y: fin.fcf, type: 'bar', marker: {color: '#059669', borderRadius: 4} }], layoutBase, cfg);
-            Plotly.newPlot('ind-capex', [{ x: fin.years, y: fin.capex, type: 'bar', marker: {color: '#ef4444', borderRadius: 4} }], layoutBase, cfg);
-            Plotly.newPlot('ind-cash', [{ x: fin.years, y: fin.cash, type: 'bar', marker: {color: '#0ea5e9', borderRadius: 4} }], layoutBase, cfg);
-            Plotly.newPlot('ind-debt', [{ x: fin.years, y: fin.debt, type: 'bar', marker: {color: '#f97316', borderRadius: 4} }], layoutBase, cfg);
-            Plotly.newPlot('ind-shares', [{ x: fin.years, y: fin.shares, type: 'scatter', mode: 'lines+markers', line: {color: '#64748b', width: 3} }], layoutBase, cfg);
+            safePlot('ind-rev', fin.revenue, '#3b82f6');
+            safePlot('ind-op', fin.operating, '#8b5cf6');
+            safePlot('ind-net', fin.net, '#a855f7');
+            safePlot('ind-ocf', fin.ocf, '#10b981');
+            safePlot('ind-fcf', fin.fcf, '#059669');
+            safePlot('ind-capex', fin.capex, '#ef4444');
+            safePlot('ind-cash', fin.cash, '#0ea5e9');
+            safePlot('ind-debt', fin.debt, '#f97316');
+            safePlot('ind-shares', fin.shares, '#64748b', 'scatter');
 
             // 2. Margins Chart
-            Plotly.newPlot('margin-chart', [
-                { x: fin.years, y: fin.gross_margin, name: 'Gross Margin (%)', type: 'scatter', mode: 'lines+markers', line: {color: '#8b5cf6', width: 3} },
-                { x: fin.years, y: fin.op_margin, name: 'Operating Margin (%)', type: 'scatter', mode: 'lines+markers', line: {color: '#22c55e', width: 3} },
-                { x: fin.years, y: fin.net_margin, name: 'Net Margin (%)', type: 'scatter', mode: 'lines+markers', line: {color: '#3b82f6', width: 3} }
-            ], {...layoutBase, margin: {t: 50, b: 30, l: 40, r: 10}, showlegend: true, legend: {orientation: 'h', xanchor: 'center', x: 0.5, y: 1.15}}, cfg);
+            if (fin.gross_margin.length > 0 && !fin.gross_margin.every(v => v === 0)) {
+                Plotly.newPlot('margin-chart', [
+                    { x: fin.years, y: fin.gross_margin, name: 'Gross Margin (%)', type: 'scatter', mode: 'lines+markers', line: {color: '#8b5cf6', width: 3} },
+                    { x: fin.years, y: fin.op_margin, name: 'Operating Margin (%)', type: 'scatter', mode: 'lines+markers', line: {color: '#22c55e', width: 3} },
+                    { x: fin.years, y: fin.net_margin, name: 'Net Margin (%)', type: 'scatter', mode: 'lines+markers', line: {color: '#3b82f6', width: 3} }
+                ], {...layoutBase, margin: {t: 50, b: 30, l: 40, r: 10}, showlegend: true, legend: {orientation: 'h', xanchor: 'center', x: 0.5, y: 1.15}}, cfg);
+            }
 
             // 3. Comparisons
-            Plotly.newPlot('comp-rev-net', [
-                { x: fin.years, y: fin.revenue, name: 'Rev', type: 'bar', marker: {color: '#94a3b8'} },
-                { x: fin.years, y: fin.net, name: 'Net', type: 'bar', marker: {color: '#3b82f6'} }
-            ], {...layoutBase, barmode: 'group'}, cfg);
+            const safeCompPlot = (id, data1, name1, color1, data2, name2, color2) => {
+                 if (data1.length > 0 && !data1.every(v => v === 0) && data2.length > 0) {
+                     Plotly.newPlot(id, [
+                        { x: fin.years, y: data1, name: name1, type: 'bar', marker: {color: color1} },
+                        { x: fin.years, y: data2, name: name2, type: 'bar', marker: {color: color2} }
+                    ], {...layoutBase, barmode: 'group'}, cfg);
+                 } else {
+                     document.getElementById(id).innerHTML = `<div class="flex h-full items-center justify-center text-gray-400 font-bold text-sm">Data Unavailable</div>`;
+                 }
+            }
 
-            Plotly.newPlot('comp-cash-debt', [
-                { x: fin.years, y: fin.cash, name: 'Cash', type: 'bar', marker: {color: '#0ea5e9'} },
-                { x: fin.years, y: fin.debt, name: 'Debt', type: 'bar', marker: {color: '#f97316'} }
-            ], {...layoutBase, barmode: 'group'}, cfg);
-
-            Plotly.newPlot('comp-fcf-ocf', [
-                { x: fin.years, y: fin.ocf, name: 'OCF', type: 'bar', marker: {color: '#10b981'} },
-                { x: fin.years, y: fin.fcf, name: 'FCF', type: 'bar', marker: {color: '#059669'} }
-            ], {...layoutBase, barmode: 'group'}, cfg);
-
-            Plotly.newPlot('comp-ocf-capex', [
-                { x: fin.years, y: fin.ocf, name: 'OCF', type: 'bar', marker: {color: '#10b981'} },
-                { x: fin.years, y: fin.capex, name: 'CapEx', type: 'bar', marker: {color: '#ef4444'} }
-            ], {...layoutBase, barmode: 'group'}, cfg);
+            safeCompPlot('comp-rev-net', fin.revenue, 'Rev', '#94a3b8', fin.net, 'Net', '#3b82f6');
+            safeCompPlot('comp-cash-debt', fin.cash, 'Cash', '#0ea5e9', fin.debt, 'Debt', '#f97316');
+            safeCompPlot('comp-fcf-ocf', fin.ocf, 'OCF', '#10b981', fin.fcf, 'FCF', '#059669');
+            safeCompPlot('comp-ocf-capex', fin.ocf, 'OCF', '#10b981', fin.capex, 'CapEx', '#ef4444');
         }
 
         // Listeners for Top Chart

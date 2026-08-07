@@ -27,7 +27,7 @@
         <p id="error-message" class="text-red-500 mt-4 hidden font-semibold"></p>
     </header>
 
-    <section id="dashboard" class="hidden px-6 md:px-10 w-full max-w-[1600px] mx-auto space-y-8">
+    <section id="dashboard" class="hidden px-6 md:px-10 w-full max-w-[1600px] mx-auto space-y-8 opacity-0 transition-opacity duration-300">
         
         <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
             <div class="xl:col-span-2 bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col">
@@ -77,7 +77,7 @@
         </div>
 
         <h3 class="text-2xl font-black mt-10 mb-2 border-b pb-4">Key Financial Metrics</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6" id="individual-charts-container">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="individual-charts-container">
             </div>
 
         <h3 class="text-2xl font-black mt-10 mb-2 border-b pb-4">Margin Profile</h3>
@@ -118,16 +118,19 @@
             state.ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
             
             const btn = document.getElementById('search-btn');
+            const dash = document.getElementById('dashboard');
             btn.innerHTML = 'Analysing...'; btn.disabled = true;
             document.getElementById('error-message').classList.add('hidden');
-            document.getElementById('dashboard').classList.add('hidden');
+            
+            dash.classList.add('hidden');
+            dash.classList.remove('opacity-100');
 
             try {
                 const res = await fetch(`${API_URL}/api/stock/${state.ticker}`);
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.detail);
 
-                // Populate Header
+                // Populate Stats Matrix
                 document.getElementById('display-ticker').innerText = data.ticker;
                 document.getElementById('display-price').innerText = `$${data.current_price.toFixed(2)}`;
                 
@@ -138,7 +141,6 @@
                 changeEl.className = data.change >= 0 ? "text-xl font-semibold text-green-600" : "text-xl font-semibold text-red-600";
                 pctEl.className = data.change >= 0 ? "px-3 py-1 text-sm font-bold text-white rounded-full bg-green-500" : "px-3 py-1 text-sm font-bold text-white rounded-full bg-red-500";
 
-                // Populate Stats Matrix
                 document.getElementById('stat-pe').innerText = data.stats.pe;
                 document.getElementById('stat-pb').innerText = data.stats.pb;
                 document.getElementById('stat-eps').innerText = data.stats.eps;
@@ -146,17 +148,21 @@
                 document.getElementById('stat-margin').innerText = data.stats.profit_margin !== "N/A" ? data.stats.profit_margin + "%" : "N/A";
                 document.getElementById('stat-debt').innerText = data.stats.debt_to_eq;
 
-                // Set DCF State
                 state.fcf = data.fcf; state.shares = data.shares; state.price = data.current_price;
                 calculateDCF();
 
-                // DOM Collision Fix: Unhide first, then plot
-                document.getElementById('dashboard').classList.remove('hidden');
+                // 1. UNHIDE the Dashboard (So Plotly can see the boxes)
+                dash.classList.remove('hidden');
 
+                // 2. INJECT HTML for the 9 Matrix Cards
+                injectFinancialHTML(data.financials);
+
+                // 3. WAIT 150ms for Browser to physically paint the DOM
                 setTimeout(async () => {
                     await fetchChart();
                     drawFinancials(data.financials);
-                }, 50);
+                    dash.classList.add('opacity-100'); // Fade it in beautifully
+                }, 150);
 
             } catch (err) {
                 document.getElementById('error-message').innerText = err.message;
@@ -166,12 +172,11 @@
             }
         });
 
-        // Dynamic CAGR Calculator Logic
         function getCAGR(data) {
             if (!data || data.length < 2) return { '1Y': '-', '2Y': '-', '3Y': '-', 'MAX': '-' };
             const latest = data[data.length - 1];
             const calc = (past, current, years) => {
-                if (past <= 0) return 'N/A'; // Math strictly requires positive base
+                if (past <= 0) return 'N/A'; 
                 const cagr = (Math.pow(current / past, 1 / years) - 1) * 100;
                 if (isNaN(cagr)) return 'N/A';
                 return (cagr > 0 ? '+' : '') + cagr.toFixed(2) + '%';
@@ -185,31 +190,31 @@
             };
         }
 
-        // Master Graphing Function
-        function drawFinancials(fin) {
-            if (!fin.years || !fin.years.length) return;
-
-            // 1. Build the Individual Matrix & Generate CAGR Pills dynamically
+        // Helper function to build the 9 cards before plotting
+        function injectFinancialHTML(fin) {
             const indMetrics = [
-                { id: 'ind-rev', title: 'Revenue', data: fin.revenue, color: '#3b82f6' },
-                { id: 'ind-net', title: 'Net Income', data: fin.net, color: '#8b5cf6' },
-                { id: 'ind-ocf', title: 'Operating Cash Flow', data: fin.ocf, color: '#10b981' },
-                { id: 'ind-fcf', title: 'Free Cash Flow', data: fin.fcf, color: '#059669' },
-                { id: 'ind-capex', title: 'Capital Expenditure', data: fin.capex, color: '#ef4444' },
-                { id: 'ind-cash', title: 'Cash Equivalents', data: fin.cash, color: '#0ea5e9' },
-                { id: 'ind-debt', title: 'Total Debt', data: fin.debt, color: '#f97316' },
-                { id: 'ind-shares', title: 'Shares Outstanding', data: fin.shares, color: '#64748b' }
+                { id: 'ind-rev', title: 'Revenue' }, { id: 'ind-op', title: 'Operating Income' }, { id: 'ind-net', title: 'Net Income' },
+                { id: 'ind-ocf', title: 'Operating Cash Flow' }, { id: 'ind-fcf', title: 'Free Cash Flow' }, { id: 'ind-capex', title: 'Capital Expenditure' },
+                { id: 'ind-cash', title: 'Cash Equivalents' }, { id: 'ind-debt', title: 'Total Debt' }, { id: 'ind-shares', title: 'Shares Outstanding' }
             ];
 
             let cardsHTML = '';
             indMetrics.forEach(m => {
-                const cagrs = getCAGR(m.data);
+                // Find matching data to calculate CAGR string
+                let dataMatch = [];
+                if(m.id==='ind-rev') dataMatch = fin.revenue; else if(m.id==='ind-op') dataMatch = fin.operating;
+                else if(m.id==='ind-net') dataMatch = fin.net; else if(m.id==='ind-ocf') dataMatch = fin.ocf;
+                else if(m.id==='ind-fcf') dataMatch = fin.fcf; else if(m.id==='ind-capex') dataMatch = fin.capex;
+                else if(m.id==='ind-cash') dataMatch = fin.cash; else if(m.id==='ind-debt') dataMatch = fin.debt;
+                else if(m.id==='ind-shares') dataMatch = fin.shares;
+
+                const cagrs = getCAGR(dataMatch);
                 const colorCode = (val) => val === 'N/A' || val === '-' ? 'text-gray-400' : (val.includes('-') ? 'text-red-500' : 'text-green-500');
                 
                 cardsHTML += `
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col">
                         <h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">${m.title}</h4>
-                        <div id="${m.id}" class="h-48 w-full mt-auto mb-2"></div>
+                        <div id="${m.id}" class="h-56 w-full mt-auto mb-2"></div>
                         <div class="flex justify-around mt-4 pt-4 border-t border-gray-100">
                             <div class="text-center"><p class="text-[10px] text-gray-400 font-bold uppercase">1Y CAGR</p><p class="font-semibold text-sm ${colorCode(cagrs['1Y'])}">${cagrs['1Y']}</p></div>
                             <div class="text-center"><p class="text-[10px] text-gray-400 font-bold uppercase">2Y CAGR</p><p class="font-semibold text-sm ${colorCode(cagrs['2Y'])}">${cagrs['2Y']}</p></div>
@@ -220,23 +225,33 @@
                 `;
             });
             document.getElementById('individual-charts-container').innerHTML = cardsHTML;
+        }
 
+        // Plotly Drawer
+        function drawFinancials(fin) {
+            if (!fin.years || !fin.years.length) return;
             const layoutBase = { margin: {t: 10, b: 20, l: 30, r: 10}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent', showlegend: false, autosize: true };
             const cfg = {displayModeBar: false, responsive: true};
 
-            // Plot all Individual Charts
-            indMetrics.forEach(m => {
-                Plotly.newPlot(m.id, [{ x: fin.years, y: m.data, type: 'bar', marker: {color: m.color, borderRadius: 4} }], layoutBase, cfg);
-            });
+            // 1. Plot the 9 Individual 3x3 Charts
+            Plotly.newPlot('ind-rev', [{ x: fin.years, y: fin.revenue, type: 'bar', marker: {color: '#3b82f6', borderRadius: 4} }], layoutBase, cfg);
+            Plotly.newPlot('ind-op', [{ x: fin.years, y: fin.operating, type: 'bar', marker: {color: '#8b5cf6', borderRadius: 4} }], layoutBase, cfg);
+            Plotly.newPlot('ind-net', [{ x: fin.years, y: fin.net, type: 'bar', marker: {color: '#a855f7', borderRadius: 4} }], layoutBase, cfg);
+            Plotly.newPlot('ind-ocf', [{ x: fin.years, y: fin.ocf, type: 'bar', marker: {color: '#10b981', borderRadius: 4} }], layoutBase, cfg);
+            Plotly.newPlot('ind-fcf', [{ x: fin.years, y: fin.fcf, type: 'bar', marker: {color: '#059669', borderRadius: 4} }], layoutBase, cfg);
+            Plotly.newPlot('ind-capex', [{ x: fin.years, y: fin.capex, type: 'bar', marker: {color: '#ef4444', borderRadius: 4} }], layoutBase, cfg);
+            Plotly.newPlot('ind-cash', [{ x: fin.years, y: fin.cash, type: 'bar', marker: {color: '#0ea5e9', borderRadius: 4} }], layoutBase, cfg);
+            Plotly.newPlot('ind-debt', [{ x: fin.years, y: fin.debt, type: 'bar', marker: {color: '#f97316', borderRadius: 4} }], layoutBase, cfg);
+            Plotly.newPlot('ind-shares', [{ x: fin.years, y: fin.shares, type: 'scatter', mode: 'lines+markers', line: {color: '#64748b', width: 3} }], layoutBase, cfg);
 
-            // 2. The Combined Margins Chart
+            // 2. Margins Chart
             Plotly.newPlot('margin-chart', [
                 { x: fin.years, y: fin.gross_margin, name: 'Gross Margin (%)', type: 'scatter', mode: 'lines+markers', line: {color: '#8b5cf6', width: 3} },
                 { x: fin.years, y: fin.op_margin, name: 'Operating Margin (%)', type: 'scatter', mode: 'lines+markers', line: {color: '#22c55e', width: 3} },
                 { x: fin.years, y: fin.net_margin, name: 'Net Margin (%)', type: 'scatter', mode: 'lines+markers', line: {color: '#3b82f6', width: 3} }
             ], {...layoutBase, margin: {t: 50, b: 30, l: 40, r: 10}, showlegend: true, legend: {orientation: 'h', xanchor: 'center', x: 0.5, y: 1.15}}, cfg);
 
-            // 3. The Comparison Charts
+            // 3. Comparisons
             Plotly.newPlot('comp-rev-net', [
                 { x: fin.years, y: fin.revenue, name: 'Rev', type: 'bar', marker: {color: '#94a3b8'} },
                 { x: fin.years, y: fin.net, name: 'Net', type: 'bar', marker: {color: '#3b82f6'} }
@@ -258,7 +273,7 @@
             ], {...layoutBase, barmode: 'group'}, cfg);
         }
 
-        // Timeframe & Type Listeners
+        // Listeners for Top Chart
         document.querySelectorAll('.tf-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));

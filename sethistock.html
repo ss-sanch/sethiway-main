@@ -83,11 +83,6 @@
         <h3 class="text-2xl font-black mt-10 mb-2 border-b pb-4">Key Financial Metrics</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="individual-charts-container"></div>
 
-        <h3 class="text-2xl font-black mt-10 mb-2 border-b pb-4">Margin Profile</h3>
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-            <div id="margin-chart" class="h-[400px] w-full"></div>
-        </div>
-
         <h3 class="text-2xl font-black mt-10 mb-2 border-b pb-4">Financial Comparisons</h3>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200"><h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">Revenue vs Net Income</h4><div id="comp-rev-net" class="h-64 w-full"></div></div>
@@ -154,13 +149,11 @@
                 state.fcf = data.fcf; state.shares = data.shares; state.price = data.current_price;
                 calculateDCF();
 
-                // GHOST YEAR GUILLOTINE: Remove years where revenue is exactly 0
-                let cleanFin = { years: [], revenue: [], operating: [], net: [], gross_margin: [], op_margin: [], net_margin: [], fcf: [], ocf: [], capex: [], cash: [], debt: [], shares: [] };
+                let cleanFin = { years: [], revenue: [], net: [], gross_margin: [], op_margin: [], net_margin: [], fcf: [], ocf: [], capex: [], cash: [], debt: [], shares: [] };
                 for(let i=0; i<data.financials.years.length; i++) {
                     if (data.financials.revenue[i] !== 0) {
                         cleanFin.years.push(data.financials.years[i]);
                         cleanFin.revenue.push(data.financials.revenue[i]);
-                        cleanFin.operating.push(data.financials.operating[i]);
                         cleanFin.net.push(data.financials.net[i]);
                         cleanFin.gross_margin.push(data.financials.gross_margin[i]);
                         cleanFin.op_margin.push(data.financials.op_margin[i]);
@@ -211,8 +204,9 @@
         }
 
         function injectFinancialHTML(fin) {
+            // Replaced Operating Income with Margin Profile
             const indMetrics = [
-                { id: 'ind-rev', title: 'Revenue' }, { id: 'ind-op', title: 'Operating Income' }, { id: 'ind-net', title: 'Net Income' },
+                { id: 'ind-rev', title: 'Revenue' }, { id: 'ind-net', title: 'Net Income' }, { id: 'ind-margins', title: 'Margin Profile' },
                 { id: 'ind-ocf', title: 'Operating Cash Flow' }, { id: 'ind-fcf', title: 'Free Cash Flow' }, { id: 'ind-capex', title: 'Capital Expenditure' },
                 { id: 'ind-cash', title: 'Cash Equivalents' }, { id: 'ind-debt', title: 'Total Debt' }, { id: 'ind-shares', title: 'Shares Outstanding' }
             ];
@@ -220,11 +214,11 @@
             let cardsHTML = '';
             indMetrics.forEach(m => {
                 let dataMatch = [];
-                if(m.id==='ind-rev') dataMatch = fin.revenue; else if(m.id==='ind-op') dataMatch = fin.operating;
-                else if(m.id==='ind-net') dataMatch = fin.net; else if(m.id==='ind-ocf') dataMatch = fin.ocf;
-                else if(m.id==='ind-fcf') dataMatch = fin.fcf; else if(m.id==='ind-capex') dataMatch = fin.capex;
-                else if(m.id==='ind-cash') dataMatch = fin.cash; else if(m.id==='ind-debt') dataMatch = fin.debt;
-                else if(m.id==='ind-shares') dataMatch = fin.shares;
+                if(m.id==='ind-rev') dataMatch = fin.revenue; else if(m.id==='ind-net') dataMatch = fin.net;
+                else if(m.id==='ind-margins') dataMatch = fin.net_margin; // CAGR will track Net Margin
+                else if(m.id==='ind-ocf') dataMatch = fin.ocf; else if(m.id==='ind-fcf') dataMatch = fin.fcf; 
+                else if(m.id==='ind-capex') dataMatch = fin.capex; else if(m.id==='ind-cash') dataMatch = fin.cash; 
+                else if(m.id==='ind-debt') dataMatch = fin.debt; else if(m.id==='ind-shares') dataMatch = fin.shares;
 
                 const cagrs = getCAGR(dataMatch);
                 const colorCode = (val) => val === 'N/A' || val === '-' ? 'text-gray-400' : (val.includes('-') ? 'text-red-500' : 'text-green-500');
@@ -258,23 +252,24 @@
                 }
             };
 
-            // Shares are now a Bar Chart natively
             safePlot('ind-rev', fin.revenue, '#3b82f6');
-            safePlot('ind-op', fin.operating, '#8b5cf6');
             safePlot('ind-net', fin.net, '#a855f7');
             safePlot('ind-ocf', fin.ocf, '#10b981');
             safePlot('ind-fcf', fin.fcf, '#059669');
             safePlot('ind-capex', fin.capex, '#ef4444');
             safePlot('ind-cash', fin.cash, '#0ea5e9');
             safePlot('ind-debt', fin.debt, '#f97316');
-            safePlot('ind-shares', fin.shares, '#64748b', 'bar'); 
+            safePlot('ind-shares', fin.shares, '#64748b', 'bar'); // Shares swapped to Bar Chart
 
+            // Multi-Line Margin Profile exactly in the 3x3 Grid
             if (fin.gross_margin.length > 0 && !fin.gross_margin.every(v => v === 0)) {
-                Plotly.newPlot('margin-chart', [
-                    { x: fin.years, y: fin.gross_margin, name: 'Gross Margin (%)', type: 'scatter', mode: 'lines+markers', line: {color: '#8b5cf6', width: 3} },
-                    { x: fin.years, y: fin.op_margin, name: 'Operating Margin (%)', type: 'scatter', mode: 'lines+markers', line: {color: '#22c55e', width: 3} },
-                    { x: fin.years, y: fin.net_margin, name: 'Net Margin (%)', type: 'scatter', mode: 'lines+markers', line: {color: '#3b82f6', width: 3} }
-                ], {...layoutBase, margin: {t: 50, b: 30, l: 40, r: 10}, showlegend: true, legend: {orientation: 'h', xanchor: 'center', x: 0.5, y: 1.15}}, cfg);
+                Plotly.newPlot('ind-margins', [
+                    { x: fin.years, y: fin.gross_margin, name: 'Gross (%)', type: 'scatter', mode: 'lines+markers', line: {color: '#8b5cf6', width: 2} },
+                    { x: fin.years, y: fin.op_margin, name: 'Op (%)', type: 'scatter', mode: 'lines+markers', line: {color: '#22c55e', width: 2} },
+                    { x: fin.years, y: fin.net_margin, name: 'Net (%)', type: 'scatter', mode: 'lines+markers', line: {color: '#3b82f6', width: 2} }
+                ], {...layoutBase, margin: {t: 20, b: 30, l: 30, r: 10}, showlegend: true, legend: {orientation: 'h', xanchor: 'center', x: 0.5, y: -0.15}}, cfg);
+            } else {
+                document.getElementById('ind-margins').innerHTML = `<div class="flex h-full items-center justify-center text-gray-400 font-bold text-sm">Data Unavailable</div>`;
             }
 
             const safeCompPlot = (id, data1, name1, color1, data2, name2, color2) => {
@@ -324,9 +319,9 @@
             if (state.type === 'candlestick') {
                 trace = { x: state.chartData.dates, open: state.chartData.opens, high: state.chartData.highs, low: state.chartData.lows, close: state.chartData.closes, type: 'candlestick', increasing: {line: {color: '#22c55e'}}, decreasing: {line: {color: '#ef4444'}} };
             } else {
-                trace = { x: state.chartData.dates, y: state.chartData.closes, type: 'scatter', mode: 'lines', line: {color: '#2563eb', width: 2.5}, fill: 'tozeroy', fillcolor: 'rgba(37, 99, 235, 0.05)' };
+                // Shading removed, allowing Plotly to natively scale the Y-axis to the exact high/low of the period
+                trace = { x: state.chartData.dates, y: state.chartData.closes, type: 'scatter', mode: 'lines', line: {color: '#2563eb', width: 2.5} };
             }
-            // DYNAMIC Y-AXIS FIX: Removed tozero, auto-scales perfectly now
             const layout = { margin: {t: 10, b: 30, l: 40, r: 10}, xaxis: {showgrid: false, rangeslider: {visible: false}}, yaxis: {showgrid: true, gridcolor: '#f1f5f9'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent', autosize: true };
             Plotly.newPlot('price-chart', [trace], layout, {displayModeBar: false, responsive: true});
         }

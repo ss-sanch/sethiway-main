@@ -7,40 +7,40 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Custom Button Styling */
+        .tf-btn.active, .type-btn.active {
+            background-color: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased pb-20">
 
     <nav class="flex justify-between items-center py-6 px-6 md:px-10 bg-white shadow-sm sticky top-0 z-50">
-        <a href="index.html" class="flex items-center">
-            <img src="logo.png" alt="Sethiway Logo" class="h-10 w-auto invert">
-        </a>
-        <div class="hidden md:flex space-x-8 text-sm font-semibold uppercase tracking-wide">
-            <a href="index.html" class="hover:text-blue-600 transition">Back to Hub</a>
-        </div>
+        <a href="index.html" class="flex items-center"><img src="logo.png" alt="Sethiway Logo" class="h-10 w-auto invert"></a>
+        <div class="hidden md:flex space-x-8 text-sm font-semibold uppercase tracking-wide"><a href="index.html" class="hover:text-blue-600 transition">Back to Hub</a></div>
     </nav>
 
     <header class="pt-16 pb-10 flex flex-col justify-center items-center text-center px-6">
-        <h1 class="text-4xl md:text-6xl font-black tracking-tight mb-4 text-gray-900">
-            SETHISTOCK.
-        </h1>
+        <h1 class="text-4xl md:text-6xl font-black tracking-tight mb-4 text-gray-900">SETHISTOCK.</h1>
         <form id="search-form" class="w-full max-w-md flex shadow-xl rounded-lg overflow-hidden mt-6">
-            <input type="text" id="ticker-input" required placeholder="Enter Ticker (e.g. AAPL)" class="w-full px-6 py-4 text-lg border-none focus:outline-none focus:ring-2 focus:ring-blue-600 uppercase font-bold text-gray-700">
-            <button type="submit" id="search-btn" class="px-8 bg-blue-600 text-white font-bold hover:bg-blue-700 transition flex items-center justify-center min-w-[120px]">
-                Search
-            </button>
+            <input type="text" id="ticker-input" required placeholder="Enter Ticker (e.g. AAPL)" class="w-full px-6 py-4 text-lg border-none focus:outline-none uppercase font-bold text-gray-700">
+            <button type="submit" id="search-btn" class="px-8 bg-blue-600 text-white font-bold hover:bg-blue-700 transition">Search</button>
         </form>
         <p id="error-message" class="text-red-500 mt-4 hidden font-semibold"></p>
     </header>
 
-    <section id="dashboard" class="hidden px-6 md:px-10 max-w-5xl mx-auto">
+    <section id="dashboard" class="hidden px-6 md:px-10 max-w-6xl mx-auto space-y-8">
         
-        <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 mb-8 flex flex-col md:flex-row justify-between items-center md:items-end">
+        <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col md:flex-row justify-between items-center md:items-end">
             <div>
-                <h2 id="display-ticker" class="text-5xl font-black text-gray-900 tracking-tighter">AAPL</h2>
+                <h2 id="display-ticker" class="text-5xl font-black tracking-tighter">AAPL</h2>
                 <p class="text-sm font-bold text-gray-400 uppercase tracking-widest mt-1">Live Market Data</p>
             </div>
             <div class="text-right mt-6 md:mt-0">
-                <h1 id="display-price" class="text-6xl font-light text-gray-900 mb-2">$0.00</h1>
+                <h1 id="display-price" class="text-6xl font-light mb-2">$0.00</h1>
                 <div class="flex items-center justify-end space-x-3">
                     <span id="display-change" class="text-xl font-semibold">0.00</span>
                     <span id="display-pct" class="px-3 py-1 text-sm font-bold text-white rounded-full">0.00%</span>
@@ -48,176 +48,212 @@
             </div>
         </div>
 
-        <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 mb-8">
-            <h3 class="text-lg font-bold text-gray-900 mb-4">1-Year Price Action</h3>
-            <div id="price-chart" class="w-full h-80"></div>
+        <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+            <div class="flex flex-col lg:flex-row justify-between items-center mb-6 space-y-4 lg:space-y-0">
+                <h3 class="text-lg font-bold">Price Action Engine</h3>
+                
+                <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg border border-gray-200" id="timeframe-controls">
+                    <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="1d" data-interval="5m">1D</button>
+                    <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="5d" data-interval="15m">1W</button>
+                    <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="1mo" data-interval="1d">1M</button>
+                    <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="3mo" data-interval="1d">3M</button>
+                    <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="ytd" data-interval="1d">YTD</button>
+                    <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition active" data-period="1y" data-interval="1d">1Y</button>
+                    <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="5y" data-interval="1wk">5Y</button>
+                    <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="max" data-interval="1mo">MAX</button>
+                </div>
+
+                <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg border border-gray-200" id="type-controls">
+                    <button class="type-btn active px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-type="line">Line</button>
+                    <button class="type-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-type="candlestick">Candle</button>
+                </div>
+            </div>
+            
+            <div id="price-chart" class="w-full h-[550px]"></div>
+        </div>
+
+        <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+            <h3 class="text-2xl font-black mb-6 border-b pb-4">Insights & Stats</h3>
+            
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-6 mb-10">
+                <div class="flex flex-col"><span class="text-xs text-gray-400 font-bold tracking-widest uppercase">P/E Ratio</span><span id="stat-pe" class="text-2xl font-black">0</span></div>
+                <div class="flex flex-col"><span class="text-xs text-gray-400 font-bold tracking-widest uppercase">P/B Ratio</span><span id="stat-pb" class="text-2xl font-black">0</span></div>
+                <div class="flex flex-col"><span class="text-xs text-gray-400 font-bold tracking-widest uppercase">EPS</span><span id="stat-eps" class="text-2xl font-black">0</span></div>
+                <div class="flex flex-col"><span class="text-xs text-gray-400 font-bold tracking-widest uppercase">ROE</span><span id="stat-roe" class="text-2xl font-black">0%</span></div>
+                <div class="flex flex-col"><span class="text-xs text-gray-400 font-bold tracking-widest uppercase">Net Margin</span><span id="stat-margin" class="text-2xl font-black">0%</span></div>
+                <div class="flex flex-col"><span class="text-xs text-gray-400 font-bold tracking-widest uppercase">Debt/Eq</span><span id="stat-debt" class="text-2xl font-black">0</span></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-2 text-center">Revenue & Net Income</h4>
+                    <div id="fin-chart-1" class="h-64 w-full"></div>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-2 text-center">Operating Efficiency</h4>
+                    <div id="fin-chart-2" class="h-64 w-full"></div>
+                </div>
+            </div>
         </div>
 
         <div class="bg-gray-900 p-8 md:p-12 rounded-2xl shadow-xl text-white">
             <h3 class="text-2xl font-black tracking-tight mb-8 text-center">Reverse DCF Engine</h3>
-            
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
-                <div class="flex flex-col">
-                    <label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Proj Years</label>
-                    <input type="number" id="proj-num" min="1" max="20" value="5" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700 focus:border-blue-500" oninput="document.getElementById('proj-sld').value = this.value; calculateDCF();">
-                    <input type="range" id="proj-sld" min="1" max="20" value="5" class="w-full accent-blue-500" oninput="document.getElementById('proj-num').value = this.value; calculateDCF();">
-                </div>
-                <div class="flex flex-col">
-                    <label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Growth (%)</label>
-                    <input type="number" id="grow-num" min="1" max="100" value="15" step="0.5" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700 focus:border-blue-500" oninput="document.getElementById('grow-sld').value = this.value; calculateDCF();">
-                    <input type="range" id="grow-sld" min="1" max="100" value="15" step="0.5" class="w-full accent-blue-500" oninput="document.getElementById('grow-num').value = this.value; calculateDCF();">
-                </div>
-                <div class="flex flex-col">
-                    <label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Discount (%)</label>
-                    <input type="number" id="disc-num" min="1" max="50" value="10" step="0.5" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700 focus:border-blue-500" oninput="document.getElementById('disc-sld').value = this.value; calculateDCF();">
-                    <input type="range" id="disc-sld" min="1" max="50" value="10" step="0.5" class="w-full accent-blue-500" oninput="document.getElementById('disc-num').value = this.value; calculateDCF();">
-                </div>
-                <div class="flex flex-col">
-                    <label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Exit Mult</label>
-                    <input type="number" id="exit-num" min="1" max="100" value="15" step="1" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700 focus:border-blue-500" oninput="document.getElementById('exit-sld').value = this.value; calculateDCF();">
-                    <input type="range" id="exit-sld" min="1" max="100" value="15" step="1" class="w-full accent-blue-500" oninput="document.getElementById('exit-num').value = this.value; calculateDCF();">
-                </div>
+                <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Proj Years</label><input type="number" id="proj-num" value="5" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none" oninput="document.getElementById('proj-sld').value=this.value; calculateDCF();"><input type="range" id="proj-sld" min="1" max="20" value="5" class="w-full accent-blue-500" oninput="document.getElementById('proj-num').value=this.value; calculateDCF();"></div>
+                <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Growth (%)</label><input type="number" id="grow-num" value="15" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none" oninput="document.getElementById('grow-sld').value=this.value; calculateDCF();"><input type="range" id="grow-sld" min="1" max="100" value="15" class="w-full accent-blue-500" oninput="document.getElementById('grow-num').value=this.value; calculateDCF();"></div>
+                <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Discount (%)</label><input type="number" id="disc-num" value="10" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none" oninput="document.getElementById('disc-sld').value=this.value; calculateDCF();"><input type="range" id="disc-sld" min="1" max="50" value="10" class="w-full accent-blue-500" oninput="document.getElementById('disc-num').value=this.value; calculateDCF();"></div>
+                <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Exit Mult</label><input type="number" id="exit-num" value="15" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none" oninput="document.getElementById('exit-sld').value=this.value; calculateDCF();"><input type="range" id="exit-sld" min="1" max="100" value="15" class="w-full accent-blue-500" oninput="document.getElementById('exit-num').value=this.value; calculateDCF();"></div>
             </div>
-
-            <div class="flex flex-col md:flex-row justify-around items-center bg-gray-800 p-8 rounded-xl border border-gray-700 shadow-inner">
-                <div class="text-center mb-6 md:mb-0">
-                    <p class="text-gray-400 font-bold text-sm tracking-widest uppercase">Target Entry Price</p>
-                    <h1 id="target-price" class="text-5xl md:text-6xl font-light text-white mt-2">$0.00</h1>
-                </div>
-                <div class="text-center">
-                    <p class="text-gray-400 font-bold text-sm tracking-widest uppercase">Margin of Safety</p>
-                    <h1 id="mos" class="text-5xl md:text-6xl font-bold mt-2">0.00%</h1>
-                </div>
+            <div class="flex flex-col md:flex-row justify-around items-center bg-gray-800 p-8 rounded-xl border border-gray-700">
+                <div class="text-center mb-6 md:mb-0"><p class="text-gray-400 font-bold text-sm tracking-widest uppercase">Target Entry Price</p><h1 id="target-price" class="text-5xl md:text-6xl font-light mt-2">$0.00</h1></div>
+                <div class="text-center"><p class="text-gray-400 font-bold text-sm tracking-widest uppercase">Margin of Safety</p><h1 id="mos" class="text-5xl md:text-6xl font-bold mt-2">0.00%</h1></div>
             </div>
-            <p id="dcf-warning" class="text-red-400 text-center mt-6 hidden font-bold tracking-wide">Insufficient Cash Flow or Shares Data to run DCF Valuation.</p>
+            <p id="dcf-warning" class="text-red-400 text-center mt-6 hidden font-bold">Insufficient Cash Flow data to run DCF Valuation.</p>
         </div>
-
     </section>
 
     <script>
-        // Global variables to hold the math constants
-        window.baseFCF = 0;
-        window.baseShares = 0;
-        window.basePrice = 0;
+        const API_URL = "https://sethistock-api.onrender.com";
+        let state = { ticker: "", period: "1y", interval: "1d", type: "line", fcf: 0, shares: 0, price: 0, chartData: null };
 
-        const form = document.getElementById('search-form');
-        const input = document.getElementById('ticker-input');
-        const btn = document.getElementById('search-btn');
-        const dashboard = document.getElementById('dashboard');
-        const errorMsg = document.getElementById('error-message');
-
-        form.addEventListener('submit', async function(e) {
+        document.getElementById('search-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const ticker = input.value.trim().toUpperCase();
+            state.ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
             
-            btn.innerHTML = 'Loading Engine...';
-            btn.disabled = true;
-            errorMsg.classList.add('hidden');
-            dashboard.classList.add('hidden');
+            const btn = document.getElementById('search-btn');
+            btn.innerHTML = 'Analyzing...'; btn.disabled = true;
+            document.getElementById('error-message').classList.add('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
 
             try {
-                // Fetch Data from your Render Server
-                const response = await fetch(`https://sethistock-api.onrender.com/api/stock/${ticker}`);
-                const data = await response.json();
+                // Fetch Base Data & Financials
+                const res = await fetch(`${API_URL}/api/stock/${state.ticker}`);
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail);
 
-                if (!response.ok) throw new Error(data.detail || "Ticker not found.");
-
-                // 1. Inject Pricing Data
+                // Populate Header
                 document.getElementById('display-ticker').innerText = data.ticker;
                 document.getElementById('display-price').innerText = `$${data.current_price.toFixed(2)}`;
                 
                 const changeEl = document.getElementById('display-change');
                 const pctEl = document.getElementById('display-pct');
-                const changeStr = data.change > 0 ? `+${data.change.toFixed(2)}` : data.change.toFixed(2);
-                const pctStr = data.change > 0 ? `+${data.pct_change.toFixed(2)}%` : `${data.pct_change.toFixed(2)}%`;
-                changeEl.innerText = changeStr;
-                pctEl.innerText = pctStr;
+                changeEl.innerText = data.change > 0 ? `+${data.change.toFixed(2)}` : data.change.toFixed(2);
+                pctEl.innerText = data.change > 0 ? `+${data.pct_change.toFixed(2)}%` : `${data.pct_change.toFixed(2)}%`;
+                changeEl.className = data.change >= 0 ? "text-xl font-semibold text-green-600" : "text-xl font-semibold text-red-600";
+                pctEl.className = data.change >= 0 ? "px-3 py-1 text-sm font-bold text-white rounded-full bg-green-500" : "px-3 py-1 text-sm font-bold text-white rounded-full bg-red-500";
 
-                if (data.change >= 0) {
-                    changeEl.className = "text-xl font-semibold text-green-600";
-                    pctEl.className = "px-3 py-1 text-sm font-bold text-white rounded-full bg-green-500";
-                } else {
-                    changeEl.className = "text-xl font-semibold text-red-600";
-                    pctEl.className = "px-3 py-1 text-sm font-bold text-white rounded-full bg-red-500";
-                }
+                // Populate Stats
+                document.getElementById('stat-pe').innerText = data.stats.pe;
+                document.getElementById('stat-pb').innerText = data.stats.pb;
+                document.getElementById('stat-eps').innerText = data.stats.eps;
+                document.getElementById('stat-roe').innerText = data.stats.roe !== "N/A" ? data.stats.roe + "%" : "N/A";
+                document.getElementById('stat-margin').innerText = data.stats.profit_margin !== "N/A" ? data.stats.profit_margin + "%" : "N/A";
+                document.getElementById('stat-debt').innerText = data.stats.debt_to_eq;
 
-                // 2. Draw Plotly Chart
-                if(data.chart_dates.length > 0) {
-                    const trace = {
-                        x: data.chart_dates,
-                        y: data.chart_closes,
-                        type: 'scatter',
-                        mode: 'lines',
-                        line: {color: '#2563eb', width: 2.5},
-                        fill: 'tozeroy',
-                        fillcolor: 'rgba(37, 99, 235, 0.05)'
-                    };
-                    const layout = {
-                        margin: {t: 10, b: 30, l: 40, r: 10},
-                        xaxis: {showgrid: false, fixedrange: true},
-                        yaxis: {showgrid: true, gridcolor: '#f1f5f9', fixedrange: true},
-                        plot_bgcolor: 'transparent',
-                        paper_bgcolor: 'transparent'
-                    };
-                    Plotly.newPlot('price-chart', [trace], layout, {displayModeBar: false, responsive: true});
-                }
+                // Draw Financial Charts
+                drawFinancials(data.financials);
 
-                // 3. Initialize DCF Math
-                window.baseFCF = data.fcf;
-                window.baseShares = data.shares;
-                window.basePrice = data.current_price;
-                calculateDCF(); // Run the math immediately
+                // Set DCF State
+                state.fcf = data.fcf; state.shares = data.shares; state.price = data.current_price;
+                calculateDCF();
 
-                dashboard.classList.remove('hidden');
-
-            } catch (error) {
-                errorMsg.innerText = error.message;
-                errorMsg.classList.remove('hidden');
+                // Fetch Chart Data
+                await fetchChart();
+                document.getElementById('dashboard').classList.remove('hidden');
+            } catch (err) {
+                document.getElementById('error-message').innerText = err.message;
+                document.getElementById('error-message').classList.remove('hidden');
             } finally {
-                btn.innerHTML = 'Search';
-                btn.disabled = false;
+                btn.innerHTML = 'Search'; btn.disabled = false;
             }
         });
 
-        // Instant DCF Math Engine
-        function calculateDCF() {
-            const projYears = parseInt(document.getElementById('proj-num').value);
-            const growthRate = parseFloat(document.getElementById('grow-num').value) / 100;
-            const discountRate = parseFloat(document.getElementById('disc-num').value) / 100;
-            const exitMult = parseFloat(document.getElementById('exit-num').value);
+        // Timeframe Button Listeners
+        document.querySelectorAll('.tf-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                state.period = e.target.dataset.period;
+                state.interval = e.target.dataset.interval;
+                await fetchChart();
+            });
+        });
+
+        // Chart Type Listeners
+        document.querySelectorAll('.type-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                state.type = e.target.dataset.type;
+                drawPriceChart();
+            });
+        });
+
+        // Fetch & Draw Master Chart
+        async function fetchChart() {
+            try {
+                const res = await fetch(`${API_URL}/api/chart/${state.ticker}?period=${state.period}&interval=${state.interval}`);
+                state.chartData = await res.json();
+                drawPriceChart();
+            } catch (err) { console.error("Chart Error", err); }
+        }
+
+        function drawPriceChart() {
+            if (!state.chartData || state.chartData.dates.length === 0) return;
             
+            let trace = {};
+            if (state.type === 'candlestick') {
+                trace = { x: state.chartData.dates, open: state.chartData.opens, high: state.chartData.highs, low: state.chartData.lows, close: state.chartData.closes, type: 'candlestick', increasing: {line: {color: '#22c55e'}}, decreasing: {line: {color: '#ef4444'}} };
+            } else {
+                trace = { x: state.chartData.dates, y: state.chartData.closes, type: 'scatter', mode: 'lines', line: {color: '#2563eb', width: 2.5}, fill: 'tozeroy', fillcolor: 'rgba(37, 99, 235, 0.05)' };
+            }
+
+            // The exact fix for the "Squeezed" candlestick issue (rangeslider: false)
+            const layout = { margin: {t: 10, b: 30, l: 40, r: 10}, xaxis: {showgrid: false, rangeslider: {visible: false}}, yaxis: {showgrid: true, gridcolor: '#f1f5f9'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent' };
+            Plotly.newPlot('price-chart', [trace], layout, {displayModeBar: false, responsive: true});
+        }
+
+        // Draw Financials
+        function drawFinancials(fin) {
+            if (!fin.years.length) return;
+            
+            // Bar Chart
+            const revTrace = { x: fin.years, y: fin.revenue, name: 'Revenue', type: 'bar', marker: {color: '#94a3b8'} };
+            const netTrace = { x: fin.years, y: fin.net, name: 'Net Income', type: 'bar', marker: {color: '#2563eb'} };
+            Plotly.newPlot('fin-chart-1', [revTrace, netTrace], { barmode: 'group', margin: {t: 10, b: 30, l: 40, r: 10}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent', showlegend: false }, {displayModeBar: false});
+
+            // Line Chart
+            const opTrace = { x: fin.years, y: fin.operating, name: 'Operating Income', type: 'scatter', mode: 'lines+markers', line: {color: '#22c55e', width: 3} };
+            Plotly.newPlot('fin-chart-2', [opTrace], { margin: {t: 10, b: 30, l: 40, r: 10}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent', showlegend: false }, {displayModeBar: false});
+        }
+
+        // DCF Engine
+        function calculateDCF() {
             const warning = document.getElementById('dcf-warning');
             const targetEl = document.getElementById('target-price');
             const mosEl = document.getElementById('mos');
 
-            if (window.baseFCF <= 0 || window.baseShares <= 0 || window.basePrice <= 0) {
+            if (state.fcf <= 0 || state.shares <= 0 || state.price <= 0) {
                 warning.classList.remove('hidden');
-                targetEl.innerText = "N/A";
-                mosEl.innerText = "N/A";
-                mosEl.className = "text-5xl md:text-6xl font-bold mt-2 text-gray-500";
-                return;
+                targetEl.innerText = "N/A"; mosEl.innerText = "N/A"; mosEl.className = "text-5xl md:text-6xl font-bold mt-2 text-gray-500"; return;
             }
             warning.classList.add('hidden');
 
-            let fcf_n = window.baseFCF;
-            let target_price_sum = 0;
+            const py = parseInt(document.getElementById('proj-num').value);
+            const gr = parseFloat(document.getElementById('grow-num').value)/100;
+            const dr = parseFloat(document.getElementById('disc-num').value)/100;
+            const em = parseFloat(document.getElementById('exit-num').value);
             
-            for(let t=1; t<=projYears; t++){
-                fcf_n = fcf_n * (1 + growthRate);
-                target_price_sum += fcf_n / Math.pow((1 + discountRate), t);
-            }
+            let fcf_n = state.fcf; let sum = 0;
+            for(let t=1; t<=py; t++){ fcf_n *= (1+gr); sum += fcf_n / Math.pow((1+dr), t); }
+            sum += (fcf_n * em) / Math.pow((1+dr), py);
             
-            let tv = fcf_n * exitMult;
-            target_price_sum += tv / Math.pow((1 + discountRate), projYears);
+            let target = sum / state.shares;
+            let mos = ((target - state.price) / state.price) * 100;
             
-            let target_price_per_share = target_price_sum / window.baseShares;
-            let margin_of_safety = ((target_price_per_share - window.basePrice) / window.basePrice) * 100;
-            
-            targetEl.innerText = '$' + target_price_per_share.toFixed(2);
-            mosEl.innerText = margin_of_safety.toFixed(2) + '%';
-            mosEl.className = margin_of_safety > 0 
-                ? "text-5xl md:text-6xl font-bold mt-2 text-green-500" 
-                : "text-5xl md:text-6xl font-bold mt-2 text-red-500";
+            targetEl.innerText = '$' + target.toFixed(2);
+            mosEl.innerText = mos.toFixed(2) + '%';
+            mosEl.className = mos > 0 ? "text-5xl md:text-6xl font-bold mt-2 text-green-500" : "text-5xl md:text-6xl font-bold mt-2 text-red-500";
         }
     </script>
 </body>

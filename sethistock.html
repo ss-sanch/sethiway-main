@@ -45,15 +45,18 @@
                     </div>
                 </div>
                 <div class="flex flex-col lg:flex-row justify-between items-center mb-4 space-y-4 lg:space-y-0">
-                    <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg border border-gray-200" id="timeframe-controls">
-                        <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="1d" data-interval="5m">1D</button>
-                        <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="5d" data-interval="15m">1W</button>
-                        <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="1mo" data-interval="1d">1M</button>
-                        <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="3mo" data-interval="1d">3M</button>
-                        <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="ytd" data-interval="1d">YTD</button>
-                        <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition active" data-period="1y" data-interval="1d">1Y</button>
-                        <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="5y" data-interval="1wk">5Y</button>
-                        <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="max" data-interval="1mo">MAX</button>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg border border-gray-200" id="timeframe-controls">
+                            <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="1d" data-interval="5m">1D</button>
+                            <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="5d" data-interval="15m">1W</button>
+                            <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="1mo" data-interval="1d">1M</button>
+                            <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="3mo" data-interval="1d">3M</button>
+                            <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="ytd" data-interval="1d">YTD</button>
+                            <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition active" data-period="1y" data-interval="1d">1Y</button>
+                            <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="5y" data-interval="1wk">5Y</button>
+                            <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="max" data-interval="1mo">MAX</button>
+                        </div>
+                        <span id="period-pct-pill" class="hidden px-3 py-1 text-sm font-bold text-white rounded-full shadow-sm">0.00%</span>
                     </div>
                     <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg border border-gray-200" id="type-controls">
                         <button class="type-btn active px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-type="line">Line</button>
@@ -82,6 +85,11 @@
 
         <h3 class="text-2xl font-black mt-10 mb-2 border-b pb-4">Key Financial Metrics</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="individual-charts-container"></div>
+
+        <h3 class="text-2xl font-black mt-10 mb-2 border-b pb-4">Margin Profile</h3>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+            <div id="margin-chart" class="h-[400px] w-full"></div>
+        </div>
 
         <h3 class="text-2xl font-black mt-10 mb-2 border-b pb-4">Financial Comparisons</h3>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -204,7 +212,6 @@
         }
 
         function injectFinancialHTML(fin) {
-            // Replaced Operating Income with Margin Profile
             const indMetrics = [
                 { id: 'ind-rev', title: 'Revenue' }, { id: 'ind-net', title: 'Net Income' }, { id: 'ind-margins', title: 'Margin Profile' },
                 { id: 'ind-ocf', title: 'Operating Cash Flow' }, { id: 'ind-fcf', title: 'Free Cash Flow' }, { id: 'ind-capex', title: 'Capital Expenditure' },
@@ -215,7 +222,7 @@
             indMetrics.forEach(m => {
                 let dataMatch = [];
                 if(m.id==='ind-rev') dataMatch = fin.revenue; else if(m.id==='ind-net') dataMatch = fin.net;
-                else if(m.id==='ind-margins') dataMatch = fin.net_margin; // CAGR will track Net Margin
+                else if(m.id==='ind-margins') dataMatch = fin.net_margin; 
                 else if(m.id==='ind-ocf') dataMatch = fin.ocf; else if(m.id==='ind-fcf') dataMatch = fin.fcf; 
                 else if(m.id==='ind-capex') dataMatch = fin.capex; else if(m.id==='ind-cash') dataMatch = fin.cash; 
                 else if(m.id==='ind-debt') dataMatch = fin.debt; else if(m.id==='ind-shares') dataMatch = fin.shares;
@@ -259,9 +266,8 @@
             safePlot('ind-capex', fin.capex, '#ef4444');
             safePlot('ind-cash', fin.cash, '#0ea5e9');
             safePlot('ind-debt', fin.debt, '#f97316');
-            safePlot('ind-shares', fin.shares, '#64748b', 'bar'); // Shares swapped to Bar Chart
+            safePlot('ind-shares', fin.shares, '#64748b', 'bar'); 
 
-            // Multi-Line Margin Profile exactly in the 3x3 Grid
             if (fin.gross_margin.length > 0 && !fin.gross_margin.every(v => v === 0)) {
                 Plotly.newPlot('ind-margins', [
                     { x: fin.years, y: fin.gross_margin, name: 'Gross (%)', type: 'scatter', mode: 'lines+markers', line: {color: '#8b5cf6', width: 2} },
@@ -309,6 +315,23 @@
             try {
                 const res = await fetch(`${API_URL}/api/chart/${state.ticker}?period=${state.period}&interval=${state.interval}`);
                 state.chartData = await res.json();
+                
+                // Dynamic Period Percentage Change Logic
+                if (state.chartData && state.chartData.closes.length > 0) {
+                    const first = state.chartData.closes[0];
+                    const last = state.chartData.closes[state.chartData.closes.length - 1];
+                    const pct = ((last - first) / first) * 100;
+                    
+                    const pill = document.getElementById('period-pct-pill');
+                    pill.innerText = (pct > 0 ? '+' : '') + pct.toFixed(2) + '%';
+                    pill.className = pct >= 0 
+                        ? "px-3 py-1 text-sm font-bold text-white rounded-full bg-green-500 shadow-sm transition-colors duration-300" 
+                        : "px-3 py-1 text-sm font-bold text-white rounded-full bg-red-500 shadow-sm transition-colors duration-300";
+                    pill.classList.remove('hidden');
+                } else {
+                    document.getElementById('period-pct-pill').classList.add('hidden');
+                }
+
                 drawPriceChart();
             } catch (err) { console.error("Chart Error", err); }
         }
@@ -319,7 +342,6 @@
             if (state.type === 'candlestick') {
                 trace = { x: state.chartData.dates, open: state.chartData.opens, high: state.chartData.highs, low: state.chartData.lows, close: state.chartData.closes, type: 'candlestick', increasing: {line: {color: '#22c55e'}}, decreasing: {line: {color: '#ef4444'}} };
             } else {
-                // Shading removed, allowing Plotly to natively scale the Y-axis to the exact high/low of the period
                 trace = { x: state.chartData.dates, y: state.chartData.closes, type: 'scatter', mode: 'lines', line: {color: '#2563eb', width: 2.5} };
             }
             const layout = { margin: {t: 10, b: 30, l: 40, r: 10}, xaxis: {showgrid: false, rangeslider: {visible: false}}, yaxis: {showgrid: true, gridcolor: '#f1f5f9'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent', autosize: true };

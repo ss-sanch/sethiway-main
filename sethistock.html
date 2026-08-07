@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SethiStock | Advanced Analytics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased">
+
+    <nav class="flex justify-between items-center py-6 px-6 md:px-10 bg-white shadow-sm sticky top-0 z-50">
+        <a href="index.html" class="flex items-center">
+            <img src="logo.png" alt="Sethiway Logo" class="h-10 w-auto invert">
+        </a>
+        <div class="hidden md:flex space-x-8 text-sm font-semibold uppercase tracking-wide">
+            <a href="index.html" class="hover:text-blue-600 transition">Back to Hub</a>
+        </div>
+    </nav>
+
+    <header class="pt-16 pb-10 flex flex-col justify-center items-center text-center px-6">
+        <h1 class="text-4xl md:text-6xl font-black tracking-tight mb-4 text-gray-900">
+            SETHISTOCK.
+        </h1>
+        <p class="text-lg text-gray-500 mb-8 max-w-xl font-light">
+            Real-time equity data engine and valuation modeling.
+        </p>
+        
+        <form id="search-form" class="w-full max-w-md flex shadow-xl rounded-lg overflow-hidden">
+            <input type="text" id="ticker-input" required placeholder="Enter Ticker (e.g. AAPL)" class="w-full px-6 py-4 text-lg border-none focus:outline-none focus:ring-2 focus:ring-blue-600 uppercase font-bold text-gray-700">
+            <button type="submit" id="search-btn" class="px-8 bg-blue-600 text-white font-bold hover:bg-blue-700 transition flex items-center justify-center min-w-[120px]">
+                Search
+            </button>
+        </form>
+        <p id="error-message" class="text-red-500 mt-4 hidden font-semibold"></p>
+    </header>
+
+    <section id="dashboard" class="hidden py-10 px-6 md:px-10 max-w-5xl mx-auto">
+        
+        <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 mb-8 flex flex-col md:flex-row justify-between items-center md:items-end">
+            <div>
+                <h2 id="display-ticker" class="text-5xl font-black text-gray-900 tracking-tighter">AAPL</h2>
+                <p class="text-sm font-bold text-gray-400 uppercase tracking-widest mt-1">Live Market Data</p>
+            </div>
+            <div class="text-right mt-6 md:mt-0">
+                <h1 id="display-price" class="text-6xl font-light text-gray-900 mb-2">$0.00</h1>
+                <div class="flex items-center justify-end space-x-3">
+                    <span id="display-change" class="text-xl font-semibold">0.00</span>
+                    <span id="display-pct" class="px-3 py-1 text-sm font-bold text-white rounded-full">0.00%</span>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <script>
+        const form = document.getElementById('search-form');
+        const input = document.getElementById('ticker-input');
+        const btn = document.getElementById('search-btn');
+        const dashboard = document.getElementById('dashboard');
+        const errorMsg = document.getElementById('error-message');
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const ticker = input.value.trim().toUpperCase();
+            
+            // UI Loading State
+            btn.innerHTML = 'Loading...';
+            btn.disabled = true;
+            errorMsg.classList.add('hidden');
+            dashboard.classList.add('hidden');
+
+            try {
+                // IMPORTANT: Pointing directly to your Render API
+                const response = await fetch(`https://sethistock-api.onrender.com/api/stock/${ticker}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || "Ticker not found.");
+                }
+
+                // Inject Data into HTML
+                document.getElementById('display-ticker').innerText = data.ticker;
+                document.getElementById('display-price').innerText = `$${data.current_price.toFixed(2)}`;
+                
+                const changeEl = document.getElementById('display-change');
+                const pctEl = document.getElementById('display-pct');
+                
+                const changeStr = data.change > 0 ? `+${data.change.toFixed(2)}` : data.change.toFixed(2);
+                const pctStr = data.change > 0 ? `+${data.pct_change.toFixed(2)}%` : `${data.pct_change.toFixed(2)}%`;
+                
+                changeEl.innerText = changeStr;
+                pctEl.innerText = pctStr;
+
+                // Color Logic
+                if (data.change >= 0) {
+                    changeEl.className = "text-xl font-semibold text-green-600";
+                    pctEl.className = "px-3 py-1 text-sm font-bold text-white rounded-full bg-green-500";
+                } else {
+                    changeEl.className = "text-xl font-semibold text-red-600";
+                    pctEl.className = "px-3 py-1 text-sm font-bold text-white rounded-full bg-red-500";
+                }
+
+                // Reveal Dashboard
+                dashboard.classList.remove('hidden');
+
+            } catch (error) {
+                errorMsg.innerText = error.message;
+                errorMsg.classList.remove('hidden');
+            } finally {
+                // Reset Button
+                btn.innerHTML = 'Search';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

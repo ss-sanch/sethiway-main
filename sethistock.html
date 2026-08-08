@@ -234,12 +234,15 @@
                 <p class="text-gray-400">Let's build it together. Drop your details below and I'll get back to you.</p>
             </div>
             
-            <form class="flex flex-col gap-4 w-full md:w-2/3" onsubmit="event.preventDefault(); alert('Thanks for reaching out! (Backend connection pending)');">
+            <form action="https://api.web3forms.com/submit" method="POST" class="flex flex-col gap-4 w-full md:w-2/3">
+                
+                <input type="hidden" name="access_key" value="cd2ce7dc-37bf-4573-9c3b-680d8ccf17aa">
+                
                 <div class="flex flex-col sm:flex-row gap-4">
-                    <input type="text" required placeholder="Your Name" class="px-6 py-3 rounded-xl bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500 w-full placeholder-gray-500">
-                    <input type="email" required placeholder="your@email.com" class="px-6 py-3 rounded-xl bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500 w-full placeholder-gray-500">
+                    <input type="text" name="name" required placeholder="Your Name" class="px-6 py-3 rounded-xl bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500 w-full placeholder-gray-500">
+                    <input type="email" name="email" required placeholder="your@email.com" class="px-6 py-3 rounded-xl bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500 w-full placeholder-gray-500">
                 </div>
-                <textarea required placeholder="Tell me about your idea..." rows="3" class="px-6 py-3 rounded-xl bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500 w-full placeholder-gray-500 resize-none"></textarea>
+                <textarea name="message" required placeholder="Tell me about your idea..." rows="3" class="px-6 py-3 rounded-xl bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500 w-full placeholder-gray-500 resize-none"></textarea>
                 
                 <button type="submit" class="px-8 py-3 mt-2 bg-white text-gray-900 font-bold rounded-xl hover:bg-gray-200 transition shadow-lg w-full sm:w-auto self-end">
                     Submit Idea &rarr;

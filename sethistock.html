@@ -391,4 +391,59 @@
                     const last = state.chartData.closes[state.chartData.closes.length - 1];
                     const pct = ((last - first) / first) * 100;
                     
-                    const pill = document
+                    const pill = document.getElementById('period-pct-pill');
+                    pill.innerText = (pct > 0 ? '+' : '') + pct.toFixed(2) + '%';
+                    pill.className = pct >= 0 
+                        ? "px-3 py-1 text-sm font-bold text-white rounded-full bg-green-500 shadow-sm transition-colors duration-300" 
+                        : "px-3 py-1 text-sm font-bold text-white rounded-full bg-red-500 shadow-sm transition-colors duration-300";
+                    pill.classList.remove('hidden');
+                } else {
+                    document.getElementById('period-pct-pill').classList.add('hidden');
+                }
+
+                drawPriceChart();
+            } catch (err) { console.error("Chart Error", err); }
+        }
+
+        function drawPriceChart() {
+            if (!state.chartData || state.chartData.dates.length === 0) return;
+            let trace = {};
+            if (state.type === 'candlestick') {
+                trace = { x: state.chartData.dates, open: state.chartData.opens, high: state.chartData.highs, low: state.chartData.lows, close: state.chartData.closes, type: 'candlestick', increasing: {line: {color: '#22c55e'}}, decreasing: {line: {color: '#ef4444'}} };
+            } else {
+                trace = { x: state.chartData.dates, y: state.chartData.closes, type: 'scatter', mode: 'lines', line: {color: '#2563eb', width: 2.5} };
+            }
+            const layout = { margin: {t: 10, b: 30, l: 40, r: 10}, xaxis: {showgrid: false, rangeslider: {visible: false}}, yaxis: {showgrid: true, gridcolor: '#f1f5f9'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent', autosize: true };
+            Plotly.newPlot('price-chart', [trace], layout, {displayModeBar: false, responsive: true});
+        }
+
+        function calculateDCF() {
+            const warning = document.getElementById('dcf-warning');
+            const targetEl = document.getElementById('target-price');
+            const mosEl = document.getElementById('mos');
+
+            if (state.fcf <= 0 || state.shares <= 0 || state.price <= 0) {
+                warning.classList.remove('hidden');
+                targetEl.innerText = "N/A"; mosEl.innerText = "N/A"; mosEl.className = "text-5xl md:text-6xl font-bold mt-2 text-gray-500"; return;
+            }
+            warning.classList.add('hidden');
+
+            const py = parseInt(document.getElementById('proj-num').value);
+            const gr = parseFloat(document.getElementById('grow-num').value)/100;
+            const dr = parseFloat(document.getElementById('disc-num').value)/100;
+            const em = parseFloat(document.getElementById('exit-num').value);
+            
+            let fcf_n = state.fcf; let sum = 0;
+            for(let t=1; t<=py; t++){ fcf_n *= (1+gr); sum += fcf_n / Math.pow((1+dr), t); }
+            sum += (fcf_n * em) / Math.pow((1+dr), py);
+            
+            let target = sum / state.shares;
+            let mos = ((target - state.price) / state.price) * 100;
+            
+            targetEl.innerText = '$' + target.toFixed(2);
+            mosEl.innerText = mos.toFixed(2) + '%';
+            mosEl.className = mos > 0 ? "text-5xl md:text-6xl font-bold mt-2 text-green-500" : "text-5xl md:text-6xl font-bold mt-2 text-red-500";
+        }
+    </script>
+</body>
+</html>

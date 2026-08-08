@@ -10,19 +10,6 @@
     <style>
         .tf-btn.active, .type-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
         .modal-active { overflow: hidden; }
-        
-        /* THE TEAR SHEET CSS - Controls what happens when user prints/saves to PDF */
-        @media print {
-            body { background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            nav, header form, #timeframe-controls, #type-controls, button[onclick^="toggleModal"], #watchlist-bar, .no-print { display: none !important; }
-            .print-header { display: flex !important; align-items: center; justify-content: space-between; border-bottom: 4px solid #111827; padding-bottom: 20px; margin-bottom: 20px; }
-            #dashboard { display: block !important; opacity: 1 !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important;}
-            .bg-white, .bg-gray-900 { box-shadow: none !important; border: 1px solid #e5e7eb !important; page-break-inside: avoid; }
-            .bg-gray-900 * { color: black !important; }
-            /* Force plots to print well */
-            .js-plotly-plot { width: 100% !important; }
-        }
-        .print-header { display: none; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased pb-20">
@@ -34,8 +21,7 @@
 
     <div class="bg-white border-b border-gray-200 px-6 py-3 w-full overflow-x-auto whitespace-nowrap hidden md:flex items-center space-x-4" id="watchlist-ribbon">
         <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">My Watchlist:</span>
-        <div id="watchlist-container" class="flex space-x-2">
-            </div>
+        <div id="watchlist-container" class="flex space-x-2"></div>
     </div>
 
     <header class="pt-12 pb-8 flex flex-col justify-center items-center text-center px-6">
@@ -49,31 +35,32 @@
 
     <section id="dashboard" class="hidden px-6 md:px-10 w-full max-w-[1600px] mx-auto space-y-8 opacity-0 transition-opacity duration-300">
         
-        <div class="print-header">
-            <div>
-                <h1 class="text-4xl font-black">SETHISTOCK TEAR SHEET</h1>
-                <p class="text-gray-500 font-bold tracking-widest uppercase text-sm mt-1">Proprietary Investment Analysis</p>
-            </div>
-            <img src="logo.png" alt="Sethiway Logo" class="h-10 w-auto invert">
-        </div>
-
         <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
             <div class="xl:col-span-2 bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col">
                 <div class="flex flex-col md:flex-row justify-between items-center md:items-end mb-8 border-b pb-6">
                     <div>
                         <div class="flex items-center space-x-4">
                             <h2 id="display-ticker" class="text-5xl font-black tracking-tighter">AAPL</h2>
-                            <button id="watchlist-btn" onclick="toggleWatchlist()" class="no-print px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full border border-gray-200 text-gray-400 hover:text-yellow-500 hover:border-yellow-500 transition-colors">
+                            <button id="watchlist-btn" onclick="toggleWatchlist()" class="px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full border border-gray-200 text-gray-400 hover:text-yellow-500 hover:border-yellow-500 transition-colors">
                                 ☆ Save
                             </button>
                         </div>
                         <p class="text-sm font-bold text-gray-400 uppercase tracking-widest mt-1">Live Market Data</p>
                     </div>
                     <div class="text-right mt-6 md:mt-0 flex items-center space-x-6">
+                        
                         <div class="flex flex-col items-center justify-center p-3 bg-gray-50 rounded-xl border border-gray-200 hidden md:flex">
-                            <span class="text-[10px] text-gray-400 font-bold tracking-widest uppercase">Sethi Score</span>
+                            <div class="flex items-center space-x-1">
+                                <span class="text-[10px] text-gray-400 font-bold tracking-widest uppercase">Sethi Score</span>
+                                <button onclick="toggleModal('score-modal')" class="text-gray-400 hover:text-blue-600 transition-colors" title="Learn about the Sethi Score">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </button>
+                            </div>
                             <span id="sethi-score" class="text-3xl font-black mt-1">0/100</span>
                         </div>
+                        
                         <div>
                             <h1 id="display-price" class="text-6xl font-light mb-2">$0.00</h1>
                             <div class="flex items-center justify-end space-x-3">
@@ -108,14 +95,22 @@
             <div class="xl:col-span-1 bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col relative">
                 <div class="flex justify-between items-center mb-6 border-b pb-4">
                     <h3 class="text-2xl font-black">Insights & Stats</h3>
-                    <button onclick="toggleModal('stats-modal')" class="text-gray-400 hover:text-blue-600 transition-colors no-print" title="Learn about these metrics">
+                    <button onclick="toggleModal('stats-modal')" class="text-gray-400 hover:text-blue-600 transition-colors" title="Learn about these metrics">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </button>
                 </div>
+
                 <div class="flex md:hidden justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6">
-                    <span class="text-xs text-gray-500 font-bold uppercase">Sethi Score</span>
+                    <div class="flex items-center space-x-1">
+                        <span class="text-xs text-gray-500 font-bold uppercase">Sethi Score</span>
+                        <button onclick="toggleModal('score-modal')" class="text-gray-400 hover:text-blue-600 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </button>
+                    </div>
                     <span id="sethi-score-mobile" class="text-xl font-black">0/100</span>
                 </div>
                 
@@ -134,36 +129,28 @@
             </div>
         </div>
 
-        <div class="flex justify-between items-end mt-10 mb-2 border-b pb-4">
-            <h3 class="text-2xl font-black">Key Financial Metrics</h3>
-            <button onclick="window.print()" class="no-print flex items-center space-x-2 text-sm font-bold text-gray-600 hover:text-blue-600 transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <span>Export Tear Sheet</span>
-            </button>
-        </div>
+        <h3 class="text-2xl font-black mt-10 mb-2 border-b pb-4">Key Financial Metrics</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="individual-charts-container"></div>
 
         <h3 class="text-2xl font-black mt-10 mb-2 border-b pb-4">Financial Comparisons</h3>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 break-inside-avoid"><h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">Revenue vs Net Income</h4><div id="comp-rev-net" class="h-64 w-full"></div></div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 break-inside-avoid"><h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">Cash vs Total Debt</h4><div id="comp-cash-debt" class="h-64 w-full"></div></div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 break-inside-avoid"><h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">Operating CF vs Free Cash Flow</h4><div id="comp-fcf-ocf" class="h-64 w-full"></div></div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 break-inside-avoid"><h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">Operating CF vs CapEx</h4><div id="comp-ocf-capex" class="h-64 w-full"></div></div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200"><h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">Revenue vs Net Income</h4><div id="comp-rev-net" class="h-64 w-full"></div></div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200"><h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">Cash vs Total Debt</h4><div id="comp-cash-debt" class="h-64 w-full"></div></div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200"><h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">Operating CF vs Free Cash Flow</h4><div id="comp-fcf-ocf" class="h-64 w-full"></div></div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200"><h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">Operating CF vs CapEx</h4><div id="comp-ocf-capex" class="h-64 w-full"></div></div>
         </div>
 
-        <div class="bg-gray-900 p-8 md:p-12 rounded-2xl shadow-xl text-white mt-12 relative break-inside-avoid">
+        <div class="bg-gray-900 p-8 md:p-12 rounded-2xl shadow-xl text-white mt-12 relative">
             <div class="flex justify-center items-center mb-8 relative">
                 <h3 class="text-2xl font-black tracking-tight text-center">DCF Calculator</h3>
-                <button onclick="toggleModal('dcf-modal')" class="no-print absolute right-0 text-gray-500 hover:text-blue-400 transition-colors" title="Learn about DCF Valuation">
+                <button onclick="toggleModal('dcf-modal')" class="absolute right-0 text-gray-500 hover:text-blue-400 transition-colors" title="Learn about DCF Valuation">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </button>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10 no-print">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
                 <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Proj Years</label><input type="number" id="proj-num" value="5" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700 focus:border-blue-500" oninput="document.getElementById('proj-sld').value=this.value; calculateDCF();"><input type="range" id="proj-sld" min="1" max="20" value="5" class="w-full accent-blue-500" oninput="document.getElementById('proj-num').value=this.value; calculateDCF();"></div>
                 <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Growth (%)</label><input type="number" id="grow-num" value="15" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700 focus:border-blue-500" oninput="document.getElementById('grow-sld').value=this.value; calculateDCF();"><input type="range" id="grow-sld" min="1" max="100" value="15" class="w-full accent-blue-500" oninput="document.getElementById('grow-num').value=this.value; calculateDCF();"></div>
                 <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Discount (%)</label><input type="number" id="disc-num" value="10" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700 focus:border-blue-500" oninput="document.getElementById('disc-sld').value=this.value; calculateDCF();"><input type="range" id="disc-sld" min="1" max="50" value="10" class="w-full accent-blue-500" oninput="document.getElementById('disc-num').value=this.value; calculateDCF();"></div>
@@ -176,6 +163,37 @@
             <p id="dcf-warning" class="text-red-400 text-center mt-6 hidden font-bold">Insufficient Cash Flow data to run DCF Valuation.</p>
         </div>
     </section>
+
+    <div id="score-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-2xl font-black text-gray-900">The Sethi Score</h2>
+                <button onclick="toggleModal('score-modal')" class="text-gray-400 hover:text-red-500 text-3xl leading-none">&times;</button>
+            </div>
+            <p class="text-gray-600 text-sm mb-4">The Sethi Score is a proprietary algorithmic grading system out of 100. It quickly evaluates a stock's fundamental health based on 10 strict Wall Street financial metrics.</p>
+            <div class="space-y-2 text-gray-700 text-sm leading-relaxed mb-6 bg-gray-50 p-5 rounded-lg border border-gray-200">
+                <ul class="list-disc pl-5 space-y-2">
+                    <li><strong class="font-bold">Positive Net Income:</strong> Company is currently profitable.</li>
+                    <li><strong class="font-bold">Consistent Revenue Growth:</strong> Revenue has increased year-over-year.</li>
+                    <li><strong class="font-bold">Positive Free Cash Flow:</strong> Generating real cash after capital expenditures.</li>
+                    <li><strong class="font-bold">Return on Equity (ROE) > 15%:</strong> Highly efficient at generating profits from shareholder equity.</li>
+                    <li><strong class="font-bold">Net Profit Margin > 10%:</strong> Keeping a healthy percentage of total revenue as profit.</li>
+                    <li><strong class="font-bold">Debt-to-Equity Ratio < 1.0:</strong> Conservative leverage with manageable debt levels.</li>
+                    <li><strong class="font-bold">Free Cash Flow Yield > 5%:</strong> Attractive cash generation relative to its valuation.</li>
+                    <li><strong class="font-bold">P/E Ratio < 25:</strong> Trading at a reasonable valuation compared to its earnings.</li>
+                    <li><strong class="font-bold">P/B Ratio < 5:</strong> Trading at a reasonable valuation relative to its book value.</li>
+                    <li><strong class="font-bold">Pays a Dividend:</strong> Returns cash directly to shareholders.</li>
+                </ul>
+            </div>
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-2">
+                <p class="text-xs text-red-700 font-bold uppercase tracking-widest mb-1">Disclaimer</p>
+                <p class="text-xs text-red-800">The Sethi Score is generated algorithmically for educational and informational purposes only. It does not constitute financial or investment advice. Always conduct your own due diligence or consult a certified financial advisor before making investment decisions.</p>
+            </div>
+            <div class="mt-8 pt-4 text-center">
+                <button onclick="toggleModal('score-modal')" class="bg-gray-900 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition">Close</button>
+            </div>
+        </div>
+    </div>
 
     <div id="stats-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
         <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 overflow-y-auto max-h-[90vh]">
@@ -222,7 +240,6 @@
         let state = { ticker: "", period: "1y", interval: "1d", type: "line", fcf: 0, shares: 0, price: 0, chartData: null };
         let watchlist = JSON.parse(localStorage.getItem('sethiWatchlist')) || [];
 
-        // Initialize Watchlist on Load
         renderWatchlist();
 
         function toggleModal(id) {
@@ -311,7 +328,6 @@
                 document.getElementById('stat-div').innerText = data.stats.div_yield;
                 document.getElementById('stat-fcfy').innerText = data.stats.fcf_yield;
 
-                // SETHI SCORE INJECTION
                 const score = data.stats.sethi_score;
                 const scoreEls = [document.getElementById('sethi-score'), document.getElementById('sethi-score-mobile')];
                 scoreEls.forEach(el => {
@@ -398,10 +414,10 @@
                 const colorCode = (val) => val === 'N/A' || val === '-' ? 'text-gray-400' : (val.includes('-') ? 'text-red-500' : 'text-green-500');
                 
                 cardsHTML += `
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col break-inside-avoid">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col">
                         <h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">${m.title}</h4>
                         <div id="${m.id}" class="h-56 w-full mt-auto mb-2"></div>
-                        <div class="flex justify-around mt-4 pt-4 border-t border-gray-100 no-print">
+                        <div class="flex justify-around mt-4 pt-4 border-t border-gray-100">
                             <div class="text-center"><p class="text-[10px] text-gray-400 font-bold uppercase">1Y CAGR</p><p class="font-semibold text-sm ${colorCode(cagrs['1Y'])}">${cagrs['1Y']}</p></div>
                             <div class="text-center"><p class="text-[10px] text-gray-400 font-bold uppercase">2Y CAGR</p><p class="font-semibold text-sm ${colorCode(cagrs['2Y'])}">${cagrs['2Y']}</p></div>
                             <div class="text-center"><p class="text-[10px] text-gray-400 font-bold uppercase">3Y CAGR</p><p class="font-semibold text-sm ${colorCode(cagrs['3Y'])}">${cagrs['3Y']}</p></div>

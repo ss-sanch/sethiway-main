@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="style.css">
     <style>
         .tf-btn.active, .type-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
+        .modal-active { overflow: hidden; } /* Prevents background scrolling when modal is open */
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased pb-20">
@@ -66,8 +67,15 @@
                 <div id="price-chart" class="w-full h-[500px] mt-auto"></div>
             </div>
 
-            <div class="xl:col-span-1 bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col">
-                <h3 class="text-2xl font-black mb-6 border-b pb-4">Insights & Stats</h3>
+            <div class="xl:col-span-1 bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col relative">
+                <div class="flex justify-between items-center mb-6 border-b pb-4">
+                    <h3 class="text-2xl font-black">Insights & Stats</h3>
+                    <button onclick="toggleModal('stats-modal')" class="text-gray-400 hover:text-blue-600 transition-colors" title="Learn about these metrics">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
+                </div>
                 <div class="grid grid-cols-2 gap-y-8 gap-x-6 mt-2">
                     <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">Market Cap</span><span id="stat-mkt" class="text-3xl font-black mt-1 text-blue-600">0</span></div>
                     <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">EV/EBITDA</span><span id="stat-ev" class="text-3xl font-black mt-1">0</span></div>
@@ -86,11 +94,6 @@
         <h3 class="text-2xl font-black mt-10 mb-2 border-b pb-4">Key Financial Metrics</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="individual-charts-container"></div>
 
-        <h3 class="text-2xl font-black mt-10 mb-2 border-b pb-4">Margin Profile</h3>
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-            <div id="margin-chart" class="h-[400px] w-full"></div>
-        </div>
-
         <h3 class="text-2xl font-black mt-10 mb-2 border-b pb-4">Financial Comparisons</h3>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200"><h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">Revenue vs Net Income</h4><div id="comp-rev-net" class="h-64 w-full"></div></div>
@@ -99,8 +102,16 @@
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200"><h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">Operating CF vs CapEx</h4><div id="comp-ocf-capex" class="h-64 w-full"></div></div>
         </div>
 
-        <div class="bg-gray-900 p-8 md:p-12 rounded-2xl shadow-xl text-white mt-12">
-            <h3 class="text-2xl font-black tracking-tight mb-8 text-center">Reverse DCF Engine</h3>
+        <div class="bg-gray-900 p-8 md:p-12 rounded-2xl shadow-xl text-white mt-12 relative">
+            <div class="flex justify-center items-center mb-8 relative">
+                <h3 class="text-2xl font-black tracking-tight text-center">DCF Calculator</h3>
+                <button onclick="toggleModal('dcf-modal')" class="absolute right-0 text-gray-500 hover:text-blue-400 transition-colors" title="Learn about DCF Valuation">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </button>
+            </div>
+            
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
                 <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Proj Years</label><input type="number" id="proj-num" value="5" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700 focus:border-blue-500" oninput="document.getElementById('proj-sld').value=this.value; calculateDCF();"><input type="range" id="proj-sld" min="1" max="20" value="5" class="w-full accent-blue-500" oninput="document.getElementById('proj-num').value=this.value; calculateDCF();"></div>
                 <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Growth (%)</label><input type="number" id="grow-num" value="15" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700 focus:border-blue-500" oninput="document.getElementById('grow-sld').value=this.value; calculateDCF();"><input type="range" id="grow-sld" min="1" max="100" value="15" class="w-full accent-blue-500" oninput="document.getElementById('grow-num').value=this.value; calculateDCF();"></div>
@@ -115,9 +126,68 @@
         </div>
     </section>
 
+    <div id="stats-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-2xl font-black text-gray-900">Understanding Core Metrics</h2>
+                <button onclick="toggleModal('stats-modal')" class="text-gray-400 hover:text-red-500 text-3xl leading-none">&times;</button>
+            </div>
+            <div class="space-y-5 text-gray-700 text-sm leading-relaxed">
+                <p><strong class="text-blue-600 font-black">Market Cap:</strong> The total market value of a company's outstanding shares. It helps categorise companies by size and risk profile.</p>
+                <p><strong class="text-blue-600 font-black">EV/EBITDA:</strong> Enterprise Value to Earnings Before Interest, Taxes, Depreciation, and Amortisation. A comprehensive valuation metric that compares a company's total value (including debt) to its cash earnings.</p>
+                <p><strong class="text-blue-600 font-black">P/E Ratio (TTM):</strong> Price-to-Earnings Ratio (Trailing Twelve Months). Compares the current share price to its per-share earnings. Used to gauge if a stock is over or undervalued relative to its peers.</p>
+                <p><strong class="text-blue-600 font-black">P/B Ratio (TTM):</strong> Price-to-Book Ratio. Compares the market valuation to the company's actual net asset value (book value). Useful for identifying undervalued companies.</p>
+                <p><strong class="text-blue-600 font-black">EPS (TTM):</strong> Earnings Per Share. The portion of a company's profit allocated to each outstanding share, serving as a primary indicator of profitability.</p>
+                <p><strong class="text-blue-600 font-black">Dividend Yield:</strong> The financial ratio that shows how much a company pays out in dividends each year relative to its share price. A key metric for income-focused investors.</p>
+                <p><strong class="text-blue-600 font-black">FCF Yield:</strong> Free Cash Flow Yield. Compares the free cash flow per share with the market price per share. A high yield often indicates a company is generating plenty of cash relative to its valuation.</p>
+            </div>
+            <div class="mt-8 pt-4 text-center">
+                <button onclick="toggleModal('stats-modal')" class="bg-gray-900 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dcf-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-2xl font-black text-gray-900">How the DCF Calculator Works</h2>
+                <button onclick="toggleModal('dcf-modal')" class="text-gray-400 hover:text-red-500 text-3xl leading-none">&times;</button>
+            </div>
+            <p class="text-gray-600 text-sm mb-6">A Discounted Cash Flow (DCF) model attempts to determine the intrinsic value of a company today, based on projections of how much cash it will generate in the future. Adjust the parameters below to see how they impact the target entry price.</p>
+            <div class="space-y-5 text-gray-700 text-sm leading-relaxed">
+                <p><strong class="text-blue-600 font-black">Projection Years:</strong> The timeframe over which you are estimating the company's future cash flows. Typically 5 to 10 years, depending on the predictability of the business.</p>
+                <p><strong class="text-blue-600 font-black">Growth (%):</strong> The expected annual growth rate of the company's Free Cash Flow. Overestimating this is a common trap; it should reflect realistic, sustainable business expansion.</p>
+                <p><strong class="text-blue-600 font-black">Discount (%):</strong> Your required rate of return. It reflects the risk of the investment and the time value of money—essentially, how much future cash is worth to you today.</p>
+                <p><strong class="text-blue-600 font-black">Exit Multiple:</strong> A terminal value metric representing what the business could be sold for at the end of the projection period, usually based on historic Price-to-FCF or EV/EBITDA multiples.</p>
+            </div>
+            <div class="mt-8 pt-4 text-center">
+                <button onclick="toggleModal('dcf-modal')" class="bg-gray-900 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_URL = "https://sethistock-api.onrender.com";
         let state = { ticker: "", period: "1y", interval: "1d", type: "line", fcf: 0, shares: 0, price: 0, chartData: null };
+
+        // Modal Toggle Function
+        function toggleModal(id) {
+            const modal = document.getElementById(id);
+            const content = modal.firstElementChild;
+            if(modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                document.body.classList.add('modal-active');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    content.classList.remove('scale-95', 'opacity-0');
+                }, 10);
+            } else {
+                modal.classList.add('opacity-0');
+                content.classList.add('scale-95', 'opacity-0');
+                document.body.classList.remove('modal-active');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
 
         document.getElementById('search-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -316,65 +386,9 @@
                 const res = await fetch(`${API_URL}/api/chart/${state.ticker}?period=${state.period}&interval=${state.interval}`);
                 state.chartData = await res.json();
                 
-                // Dynamic Period Percentage Change Logic
                 if (state.chartData && state.chartData.closes.length > 0) {
                     const first = state.chartData.closes[0];
                     const last = state.chartData.closes[state.chartData.closes.length - 1];
                     const pct = ((last - first) / first) * 100;
                     
-                    const pill = document.getElementById('period-pct-pill');
-                    pill.innerText = (pct > 0 ? '+' : '') + pct.toFixed(2) + '%';
-                    pill.className = pct >= 0 
-                        ? "px-3 py-1 text-sm font-bold text-white rounded-full bg-green-500 shadow-sm transition-colors duration-300" 
-                        : "px-3 py-1 text-sm font-bold text-white rounded-full bg-red-500 shadow-sm transition-colors duration-300";
-                    pill.classList.remove('hidden');
-                } else {
-                    document.getElementById('period-pct-pill').classList.add('hidden');
-                }
-
-                drawPriceChart();
-            } catch (err) { console.error("Chart Error", err); }
-        }
-
-        function drawPriceChart() {
-            if (!state.chartData || state.chartData.dates.length === 0) return;
-            let trace = {};
-            if (state.type === 'candlestick') {
-                trace = { x: state.chartData.dates, open: state.chartData.opens, high: state.chartData.highs, low: state.chartData.lows, close: state.chartData.closes, type: 'candlestick', increasing: {line: {color: '#22c55e'}}, decreasing: {line: {color: '#ef4444'}} };
-            } else {
-                trace = { x: state.chartData.dates, y: state.chartData.closes, type: 'scatter', mode: 'lines', line: {color: '#2563eb', width: 2.5} };
-            }
-            const layout = { margin: {t: 10, b: 30, l: 40, r: 10}, xaxis: {showgrid: false, rangeslider: {visible: false}}, yaxis: {showgrid: true, gridcolor: '#f1f5f9'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent', autosize: true };
-            Plotly.newPlot('price-chart', [trace], layout, {displayModeBar: false, responsive: true});
-        }
-
-        function calculateDCF() {
-            const warning = document.getElementById('dcf-warning');
-            const targetEl = document.getElementById('target-price');
-            const mosEl = document.getElementById('mos');
-
-            if (state.fcf <= 0 || state.shares <= 0 || state.price <= 0) {
-                warning.classList.remove('hidden');
-                targetEl.innerText = "N/A"; mosEl.innerText = "N/A"; mosEl.className = "text-5xl md:text-6xl font-bold mt-2 text-gray-500"; return;
-            }
-            warning.classList.add('hidden');
-
-            const py = parseInt(document.getElementById('proj-num').value);
-            const gr = parseFloat(document.getElementById('grow-num').value)/100;
-            const dr = parseFloat(document.getElementById('disc-num').value)/100;
-            const em = parseFloat(document.getElementById('exit-num').value);
-            
-            let fcf_n = state.fcf; let sum = 0;
-            for(let t=1; t<=py; t++){ fcf_n *= (1+gr); sum += fcf_n / Math.pow((1+dr), t); }
-            sum += (fcf_n * em) / Math.pow((1+dr), py);
-            
-            let target = sum / state.shares;
-            let mos = ((target - state.price) / state.price) * 100;
-            
-            targetEl.innerText = '$' + target.toFixed(2);
-            mosEl.innerText = mos.toFixed(2) + '%';
-            mosEl.className = mos > 0 ? "text-5xl md:text-6xl font-bold mt-2 text-green-500" : "text-5xl md:text-6xl font-bold mt-2 text-red-500";
-        }
-    </script>
-</body>
-</html>
+                    const pill = document

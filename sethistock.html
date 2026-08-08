@@ -123,6 +123,13 @@
                     <span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">FCF Yield</span>
                     <span id="stat-fcfy" class="text-5xl font-black mt-2 text-green-600">0%</span>
                 </div>
+                <div class="mt-6 pt-6 border-t border-gray-100">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span class="text-[11px] text-gray-500 font-bold tracking-widest uppercase">Company Overview</span>
+                    </div>
+                    <p id="company-summary" class="text-sm text-gray-600 leading-relaxed">Loading profile...</p>
+                </div>
             </div>
         </div>
 
@@ -188,6 +195,14 @@
             </div>
             
             <p id="dcf-warning" class="text-red-500 text-center font-bold hidden">Insufficient Cash Flow or Estimates to run full Valuation Engine.</p>
+        </div>
+
+        <div id="intel" class="mt-12 scroll-mt-24">
+            <h3 class="text-2xl font-black mb-6 border-b border-gray-200 pb-4">Latest Press & Earnings Intel</h3>
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+                <div id="news-container" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    </div>
+            </div>
         </div>
 
         <div id="extra" class="grid grid-cols-1 xl:grid-cols-2 gap-8 mt-12 mb-12 scroll-mt-24">
@@ -447,6 +462,23 @@
                     el.className = score >= 70 ? "text-3xl font-black mt-1 text-green-600" : (score >= 40 ? "text-3xl font-black mt-1 text-yellow-500" : "text-3xl font-black mt-1 text-red-500");
                     if(el.id === 'sethi-score-mobile') el.className = el.className.replace('text-3xl', 'text-xl');
                 });
+
+                document.getElementById('company-summary').innerText = data.summary || "Summary not available.";
+
+                // Inject News/Earnings Intel
+                let newsHtml = '';
+                if(data.news && data.news.length > 0) {
+                    data.news.forEach(n => {
+                        newsHtml += `<a href="${n.link}" target="_blank" class="block p-5 border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition bg-gray-50 group">
+                            <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">${n.publisher}</p>
+                            <h5 class="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors">${n.title}</h5>
+                        </a>`;
+                    });
+                } else {
+                    newsHtml = `<p class="text-sm text-gray-500 italic col-span-3">No recent news or earnings reports found for this ticker.</p>`;
+                }
+                document.getElementById('news-container').innerHTML = newsHtml;
+
 
                 state.fcf = data.fcf; state.shares = data.shares; state.price = data.current_price; 
                 state.stats = data.stats;

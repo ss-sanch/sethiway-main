@@ -41,26 +41,20 @@
                     <div>
                         <div class="flex items-center space-x-4">
                             <h2 id="display-ticker" class="text-5xl font-black tracking-tighter">AAPL</h2>
-                            <button id="watchlist-btn" onclick="toggleWatchlist()" class="px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full border border-gray-200 text-gray-400 hover:text-yellow-500 hover:border-yellow-500 transition-colors">
-                                ☆ Save
-                            </button>
+                            <button id="watchlist-btn" onclick="toggleWatchlist()" class="px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full border border-gray-200 text-gray-400 hover:text-yellow-500 hover:border-yellow-500 transition-colors">☆ Save</button>
                         </div>
                         <p class="text-sm font-bold text-gray-400 uppercase tracking-widest mt-1">Live Market Data</p>
                     </div>
                     <div class="text-right mt-6 md:mt-0 flex items-center space-x-6">
-                        
                         <div class="flex flex-col items-center justify-center p-3 bg-gray-50 rounded-xl border border-gray-200 hidden md:flex">
                             <div class="flex items-center space-x-1">
                                 <span class="text-[10px] text-gray-400 font-bold tracking-widest uppercase">Sethi Score</span>
                                 <button onclick="toggleModal('score-modal')" class="text-gray-400 hover:text-blue-600 transition-colors" title="Learn about the Sethi Score">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                 </button>
                             </div>
                             <span id="sethi-score" class="text-3xl font-black mt-1">0/100</span>
                         </div>
-                        
                         <div>
                             <h1 id="display-price" class="text-6xl font-light mb-2">$0.00</h1>
                             <div class="flex items-center justify-end space-x-3">
@@ -96,19 +90,14 @@
                 <div class="flex justify-between items-center mb-6 border-b pb-4">
                     <h3 class="text-2xl font-black">Insights & Stats</h3>
                     <button onclick="toggleModal('stats-modal')" class="text-gray-400 hover:text-blue-600 transition-colors" title="Learn about these metrics">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </button>
                 </div>
-
                 <div class="flex md:hidden justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6">
                     <div class="flex items-center space-x-1">
                         <span class="text-xs text-gray-500 font-bold uppercase">Sethi Score</span>
                         <button onclick="toggleModal('score-modal')" class="text-gray-400 hover:text-blue-600 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </button>
                     </div>
                     <span id="sethi-score-mobile" class="text-xl font-black">0/100</span>
@@ -142,26 +131,77 @@
 
         <div class="bg-gray-900 p-8 md:p-12 rounded-2xl shadow-xl text-white mt-12 relative">
             <div class="flex justify-center items-center mb-8 relative">
-                <h3 class="text-2xl font-black tracking-tight text-center">DCF Calculator</h3>
+                <h3 class="text-2xl font-black tracking-tight text-center">Advanced Valuation Engine</h3>
                 <button onclick="toggleModal('dcf-modal')" class="absolute right-0 text-gray-500 hover:text-blue-400 transition-colors" title="Learn about DCF Valuation">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 </button>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
-                <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Proj Years</label><input type="number" id="proj-num" value="5" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700 focus:border-blue-500" oninput="document.getElementById('proj-sld').value=this.value; calculateDCF();"><input type="range" id="proj-sld" min="1" max="20" value="5" class="w-full accent-blue-500" oninput="document.getElementById('proj-num').value=this.value; calculateDCF();"></div>
-                <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Growth (%)</label><input type="number" id="grow-num" value="15" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700 focus:border-blue-500" oninput="document.getElementById('grow-sld').value=this.value; calculateDCF();"><input type="range" id="grow-sld" min="1" max="100" value="15" class="w-full accent-blue-500" oninput="document.getElementById('grow-num').value=this.value; calculateDCF();"></div>
-                <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Discount (%)</label><input type="number" id="disc-num" value="10" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700 focus:border-blue-500" oninput="document.getElementById('disc-sld').value=this.value; calculateDCF();"><input type="range" id="disc-sld" min="1" max="50" value="10" class="w-full accent-blue-500" oninput="document.getElementById('disc-num').value=this.value; calculateDCF();"></div>
-                <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Exit Mult</label><input type="number" id="exit-num" value="15" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700 focus:border-blue-500" oninput="document.getElementById('exit-sld').value=this.value; calculateDCF();"><input type="range" id="exit-sld" min="1" max="100" value="15" class="w-full accent-blue-500" oninput="document.getElementById('exit-num').value=this.value; calculateDCF();"></div>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-10">
+                <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Proj Years</label><input type="number" id="proj-num" value="5" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700" oninput="document.getElementById('proj-sld').value=this.value; calculateDCF();"><input type="range" id="proj-sld" min="1" max="20" value="5" class="w-full accent-blue-500" oninput="document.getElementById('proj-num').value=this.value; calculateDCF();"></div>
+                <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">FCF Growth (%)</label><input type="number" id="grow-num" value="15" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700" oninput="document.getElementById('grow-sld').value=this.value; calculateDCF();"><input type="range" id="grow-sld" min="1" max="100" value="15" class="w-full accent-blue-500" oninput="document.getElementById('grow-num').value=this.value; calculateDCF();"></div>
+                <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Discount (%)</label><input type="number" id="disc-num" value="10" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700" oninput="document.getElementById('disc-sld').value=this.value; calculateDCF();"><input type="range" id="disc-sld" min="1" max="50" value="10" class="w-full accent-blue-500" oninput="document.getElementById('disc-num').value=this.value; calculateDCF();"></div>
+                <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Exit Mult</label><input type="number" id="exit-num" value="15" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700" oninput="document.getElementById('exit-sld').value=this.value; calculateDCF();"><input type="range" id="exit-sld" min="1" max="100" value="15" class="w-full accent-blue-500" oninput="document.getElementById('exit-num').value=this.value; calculateDCF();"></div>
+                <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Perp Growth (%)</label><input type="number" id="perp-num" value="2.5" step="0.5" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700" oninput="document.getElementById('perp-sld').value=this.value; calculateDCF();"><input type="range" id="perp-sld" min="0" max="10" value="2.5" step="0.5" class="w-full accent-green-500" oninput="document.getElementById('perp-num').value=this.value; calculateDCF();"></div>
             </div>
-            <div class="flex flex-col md:flex-row justify-around items-center bg-gray-800 p-8 rounded-xl border border-gray-700">
-                <div class="text-center mb-6 md:mb-0"><p class="text-gray-400 font-bold text-sm tracking-widest uppercase">Target Entry Price</p><h1 id="target-price" class="text-5xl md:text-6xl font-light mt-2">$0.00</h1></div>
-                <div class="text-center"><p class="text-gray-400 font-bold text-sm tracking-widest uppercase">Margin of Safety</p><h1 id="mos" class="text-5xl md:text-6xl font-bold mt-2">0.00%</h1></div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 text-center">
+                    <p class="text-blue-400 font-bold text-xs tracking-widest uppercase">Target (Exit Multiple)</p>
+                    <h1 id="target-em" class="text-4xl font-light mt-2">$0.00</h1>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 text-center">
+                    <p class="text-green-400 font-bold text-xs tracking-widest uppercase">Target (Gordon Growth)</p>
+                    <h1 id="target-gg" class="text-4xl font-light mt-2">$0.00</h1>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 text-center">
+                    <p class="text-purple-400 font-bold text-xs tracking-widest uppercase">Graham Number</p>
+                    <h1 id="target-graham" class="text-4xl font-light mt-2">$0.00</h1>
+                </div>
             </div>
-            <p id="dcf-warning" class="text-red-400 text-center mt-6 hidden font-bold">Insufficient Cash Flow data to run DCF Valuation.</p>
+            
+            <div class="mt-8 pt-8 border-t border-gray-700">
+                <h4 class="text-center font-bold text-gray-400 uppercase tracking-widest mb-2">Valuation Football Field</h4>
+                <div id="football-field" class="w-full h-48"></div>
+            </div>
+            
+            <p id="dcf-warning" class="text-red-400 text-center mt-6 hidden font-bold">Insufficient Cash Flow or Estimates to run full Valuation Engine.</p>
         </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mt-12 mb-12">
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+                <div class="flex justify-between items-center mb-6 border-b pb-4">
+                    <h3 class="text-2xl font-black">Peer Benchmarking</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead id="peer-table-head"></thead>
+                        <tbody id="peer-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+                <div class="flex justify-between items-center mb-6 border-b pb-4">
+                    <h3 class="text-2xl font-black">Insider Trading Activity</h3>
+                </div>
+                <div id="insider-visual"></div>
+                <div class="overflow-x-auto max-h-[350px] overflow-y-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr>
+                                <th class="py-3 px-4 border-b text-gray-500 font-bold uppercase tracking-widest text-xs">Insider</th>
+                                <th class="py-3 px-4 border-b text-gray-500 font-bold uppercase tracking-widest text-xs">Action</th>
+                                <th class="py-3 px-4 border-b text-gray-500 font-bold uppercase tracking-widest text-xs">Shares</th>
+                                <th class="py-3 px-4 border-b text-gray-500 font-bold uppercase tracking-widest text-xs">Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="insider-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </section>
 
     <div id="score-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
@@ -189,9 +229,7 @@
                 <p class="text-xs text-red-700 font-bold uppercase tracking-widest mb-1">Disclaimer</p>
                 <p class="text-xs text-red-800">The Sethi Score is generated algorithmically for educational and informational purposes only. It does not constitute financial or investment advice. Always conduct your own due diligence or consult a certified financial advisor before making investment decisions.</p>
             </div>
-            <div class="mt-8 pt-4 text-center">
-                <button onclick="toggleModal('score-modal')" class="bg-gray-900 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition">Close</button>
-            </div>
+            <div class="mt-8 pt-4 text-center"><button onclick="toggleModal('score-modal')" class="bg-gray-900 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition">Close</button></div>
         </div>
     </div>
 
@@ -210,34 +248,29 @@
                 <p><strong class="text-blue-600 font-black">Dividend Yield:</strong> The financial ratio that shows how much a company pays out in dividends each year relative to its share price. A key metric for income-focused investors.</p>
                 <p><strong class="text-blue-600 font-black">FCF Yield:</strong> Free Cash Flow Yield. Compares the free cash flow per share with the market price per share. A high yield often indicates a company is generating plenty of cash relative to its valuation.</p>
             </div>
-            <div class="mt-8 pt-4 text-center">
-                <button onclick="toggleModal('stats-modal')" class="bg-gray-900 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition">Close</button>
-            </div>
+            <div class="mt-8 pt-4 text-center"><button onclick="toggleModal('stats-modal')" class="bg-gray-900 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition">Close</button></div>
         </div>
     </div>
 
     <div id="dcf-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
         <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 overflow-y-auto max-h-[90vh]">
             <div class="flex justify-between items-center mb-6 border-b pb-4">
-                <h2 class="text-2xl font-black text-gray-900">How the DCF Calculator Works</h2>
+                <h2 class="text-2xl font-black text-gray-900">Advanced Valuation Engine</h2>
                 <button onclick="toggleModal('dcf-modal')" class="text-gray-400 hover:text-red-500 text-3xl leading-none">&times;</button>
             </div>
-            <p class="text-gray-600 text-sm mb-6">A Discounted Cash Flow (DCF) model attempts to determine the intrinsic value of a company today, based on projections of how much cash it will generate in the future. Adjust the parameters below to see how they impact the target entry price.</p>
+            <p class="text-gray-600 text-sm mb-6">This engine uses three separate mathematical models to calculate a range of intrinsic values for the target company, creating a comprehensive "Football Field" of potential target entry prices.</p>
             <div class="space-y-5 text-gray-700 text-sm leading-relaxed">
-                <p><strong class="text-blue-600 font-black">Projection Years:</strong> The timeframe over which you are estimating the company's future cash flows. Typically 5 to 10 years, depending on the predictability of the business.</p>
-                <p><strong class="text-blue-600 font-black">Growth (%):</strong> The expected annual growth rate of the company's Free Cash Flow. Overestimating this is a common trap; it should reflect realistic, sustainable business expansion.</p>
-                <p><strong class="text-blue-600 font-black">Discount (%):</strong> Your required rate of return. It reflects the risk of the investment and the time value of money—essentially, how much future cash is worth to you today.</p>
-                <p><strong class="text-blue-600 font-black">Exit Multiple:</strong> A terminal value metric representing what the business could be sold for at the end of the projection period, usually based on historic Price-to-FCF or EV/EBITDA multiples.</p>
+                <p><strong class="text-blue-600 font-black">Exit Multiple DCF:</strong> Calculates terminal value based on a multiple of the final year's cash flow. Best for established, steady-state businesses.</p>
+                <p><strong class="text-green-600 font-black">Gordon Growth DCF:</strong> Assumes the company will grow cash flows perpetually at a stable rate. Highly sensitive to the Perpetual Growth Rate input. If the discount rate is lower than the growth rate, this model mathematically breaks and returns N/A.</p>
+                <p><strong class="text-purple-600 font-black">Graham Number:</strong> Benjamin Graham's classic defensive valuation formula: SQRT(22.5 × EPS × Book Value). It represents the maximum price a conservative investor should pay for a stock.</p>
             </div>
-            <div class="mt-8 pt-4 text-center">
-                <button onclick="toggleModal('dcf-modal')" class="bg-gray-900 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition">Close</button>
-            </div>
+            <div class="mt-8 pt-4 text-center"><button onclick="toggleModal('dcf-modal')" class="bg-gray-900 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition">Close</button></div>
         </div>
     </div>
 
     <script>
         const API_URL = "https://sethistock-api.onrender.com";
-        let state = { ticker: "", period: "1y", interval: "1d", type: "line", fcf: 0, shares: 0, price: 0, chartData: null };
+        let state = { ticker: "", period: "1y", interval: "1d", type: "line", fcf: 0, shares: 0, price: 0, stats: null, chartData: null };
         let watchlist = JSON.parse(localStorage.getItem('sethiWatchlist')) || [];
 
         renderWatchlist();
@@ -270,11 +303,8 @@
 
         function toggleWatchlist() {
             if(!state.ticker) return;
-            if(watchlist.includes(state.ticker)) {
-                watchlist = watchlist.filter(t => t !== state.ticker);
-            } else {
-                watchlist.push(state.ticker);
-            }
+            if(watchlist.includes(state.ticker)) { watchlist = watchlist.filter(t => t !== state.ticker); } 
+            else { watchlist.push(state.ticker); }
             localStorage.setItem('sethiWatchlist', JSON.stringify(watchlist));
             renderWatchlist();
             updateWatchlistBtn();
@@ -336,7 +366,9 @@
                     if(el.id === 'sethi-score-mobile') el.className = el.className.replace('text-3xl', 'text-xl');
                 });
 
-                state.fcf = data.fcf; state.shares = data.shares; state.price = data.current_price;
+                state.fcf = data.fcf; state.shares = data.shares; state.price = data.current_price; 
+                state.stats = data.stats;
+                
                 calculateDCF();
                 updateWatchlistBtn();
 
@@ -364,6 +396,8 @@
                 setTimeout(async () => {
                     await fetchChart();
                     drawFinancials(cleanFin);
+                    loadPeers(data.peers);
+                    loadInsiders(data.insiders);
                     dash.classList.add('opacity-100'); 
                 }, 150);
 
@@ -374,6 +408,98 @@
                 btn.innerHTML = 'Analyse'; btn.disabled = false;
             }
         });
+
+        async function loadPeers(peers) {
+            const tableBody = document.getElementById('peer-table-body');
+            const tableHead = document.getElementById('peer-table-head');
+            
+            tableHead.innerHTML = `<tr><th class="py-3 px-4 border-b">Metric</th><th colspan="3" class="py-3 px-4 border-b text-gray-400 font-normal">Loading competitors...</th></tr>`;
+            tableBody.innerHTML = '';
+            
+            try {
+                const promises = peers.map(p => fetch(`${API_URL}/api/stock/${p}`).then(res => res.json()).catch(() => null));
+                let results = await Promise.all(promises);
+                results = results.filter(r => r !== null);
+                
+                results.unshift({ ticker: state.ticker, current_price: state.price, stats: state.stats });
+
+                let th = `<tr><th class="py-3 px-4 border-b text-gray-500 font-bold uppercase tracking-widest text-xs">Metric</th>`;
+                results.forEach(r => th += `<th class="py-3 px-4 border-b font-black text-lg ${r.ticker === state.ticker ? 'text-blue-600' : 'text-gray-900'}">${r.ticker}</th>`);
+                th += `</tr>`;
+                tableHead.innerHTML = th;
+
+                let html = '';
+                const metrics = ['Current Price', 'Market Cap', 'P/E Ratio', 'P/B Ratio', 'EPS', 'Div Yield', 'FCF Yield'];
+                const keys = ['price', 'mkt_cap', 'pe', 'pb', 'eps', 'div_yield', 'fcf_yield'];
+                
+                metrics.forEach((metric, idx) => {
+                    let tr = `<tr class="hover:bg-gray-50 border-b border-gray-100"><td class="py-3 px-4 font-bold text-gray-700 text-sm">${metric}</td>`;
+                    results.forEach(r => {
+                        let val = idx === 0 ? `$${r.current_price.toFixed(2)}` : r.stats[keys[idx]];
+                        tr += `<td class="py-3 px-4 text-gray-600 text-sm font-mono">${val}</td>`;
+                    });
+                    tr += `</tr>`;
+                    html += tr;
+                });
+                
+                tableBody.innerHTML = html;
+            } catch(err) {
+                tableHead.innerHTML = `<tr><th class="py-3 px-4 border-b">Metric</th><th colspan="3" class="py-3 px-4 border-b text-red-500 text-sm">Failed to fetch competitors.</th></tr>`;
+            }
+        }
+
+        function loadInsiders(insiders) {
+            const tbody = document.getElementById('insider-table-body');
+            const visual = document.getElementById('insider-visual');
+            
+            if (!insiders || insiders.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center text-gray-500 py-4">No recent insider transactions publicly filed.</td></tr>`;
+                visual.innerHTML = '';
+                return;
+            }
+            
+            let html = ''; let buyVol = 0; let sellVol = 0;
+
+            insiders.forEach(ins => {
+                const transStr = ins.transaction.toLowerCase();
+                const isBuy = transStr.includes('buy') || transStr.includes('purchase') || transStr.includes('grant') || transStr.includes('award');
+                const isSell = transStr.includes('sale') || transStr.includes('sell');
+                const color = isBuy ? 'text-green-600 font-bold' : (isSell ? 'text-red-600 font-bold' : 'text-gray-600');
+                
+                if (isBuy) buyVol += ins.shares;
+                if (isSell) sellVol += ins.shares;
+
+                const valStr = ins.value > 0 ? `$${ins.value.toLocaleString()}` : '-';
+                const shareStr = ins.shares > 0 ? ins.shares.toLocaleString() : '-';
+                
+                html += `
+                <tr class="hover:bg-gray-50 transition border-b border-gray-100">
+                    <td class="py-3 px-4 text-sm font-semibold">${ins.name} <span class="block text-xs text-gray-400 font-normal truncate max-w-[200px]">${ins.position}</span></td>
+                    <td class="py-3 px-4 text-sm ${color}">${ins.transaction}</td>
+                    <td class="py-3 px-4 text-sm">${shareStr}</td>
+                    <td class="py-3 px-4 text-sm font-mono">${valStr}</td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+
+            const total = buyVol + sellVol;
+            if (total > 0) {
+                const buyPct = (buyVol / total) * 100;
+                const sellPct = (sellVol / total) * 100;
+                visual.innerHTML = `
+                    <div class="mb-6">
+                        <div class="flex justify-between text-xs font-bold uppercase tracking-widest mb-1">
+                            <span class="text-green-600">Buy Volume (${buyPct.toFixed(0)}%)</span>
+                            <span class="text-red-600">Sell Volume (${sellPct.toFixed(0)}%)</span>
+                        </div>
+                        <div class="w-full h-3 rounded-full flex overflow-hidden bg-gray-200">
+                            <div style="width: ${buyPct}%" class="bg-green-500"></div>
+                            <div style="width: ${sellPct}%" class="bg-red-500"></div>
+                        </div>
+                    </div>
+                `;
+            } else { visual.innerHTML = ''; }
+        }
 
         function getCAGR(data) {
             if (!data || data.length < 2) return { '1Y': '-', '2Y': '-', '3Y': '-', 'MAX': '-' };
@@ -530,14 +656,41 @@
             Plotly.newPlot('price-chart', [trace], layout, {displayModeBar: false, responsive: true});
         }
 
+        function drawFootballField(em_target, gg_target, graham) {
+            const low52 = state.stats.fiftyTwoWeekLow;
+            const high52 = state.stats.fiftyTwoWeekHigh;
+            
+            let yLabels = ['52W Range'];
+            let xMins = [low52];
+            let xMaxs = [high52];
+            let colors = ['#94a3b8']; 
+            
+            if (graham > 0) { yLabels.push('Graham Num'); xMins.push(graham*0.95); xMaxs.push(graham*1.05); colors.push('#c084fc'); }
+            if (gg_target > 0) { yLabels.push('Gordon Growth'); xMins.push(gg_target*0.85); xMaxs.push(gg_target*1.15); colors.push('#4ade80'); }
+            if (em_target > 0) { yLabels.push('Exit Multiple'); xMins.push(em_target*0.85); xMaxs.push(em_target*1.15); colors.push('#60a5fa'); }
+            
+            const lengths = xMaxs.map((m, i) => m - xMins[i]);
+            
+            const trace = { type: 'bar', x: lengths, y: yLabels, base: xMins, orientation: 'h', marker: { color: colors, borderRadius: 4 }, width: 0.5 };
+            const layout = {
+                margin: {t: 10, b: 20, l: 110, r: 10}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+                xaxis: { showgrid: true, gridcolor: '#334155', zeroline: false, tickfont: {color: '#94a3b8'} },
+                yaxis: { showgrid: false, tickfont: {color: '#f8fafc', size: 12} },
+                shapes: [{ type: 'line', x0: state.price, x1: state.price, y0: -0.5, y1: yLabels.length - 0.5, line: { color: '#ef4444', width: 2, dash: 'dash' } }],
+                annotations: [{ x: state.price, y: yLabels.length - 0.5, text: 'Current Price', showarrow: false, yshift: 15, font: {color: '#ef4444', size: 10, weight: 'bold'} }]
+            };
+            Plotly.newPlot('football-field', [trace], layout, {displayModeBar: false, responsive: true});
+        }
+
         function calculateDCF() {
             const warning = document.getElementById('dcf-warning');
-            const targetEl = document.getElementById('target-price');
-            const mosEl = document.getElementById('mos');
-
+            
             if (state.fcf <= 0 || state.shares <= 0 || state.price <= 0) {
                 warning.classList.remove('hidden');
-                targetEl.innerText = "N/A"; mosEl.innerText = "N/A"; mosEl.className = "text-5xl md:text-6xl font-bold mt-2 text-gray-500"; return;
+                document.getElementById('target-em').innerText = "N/A";
+                document.getElementById('target-gg').innerText = "N/A";
+                document.getElementById('target-graham').innerText = "N/A";
+                return;
             }
             warning.classList.add('hidden');
 
@@ -545,17 +698,29 @@
             const gr = parseFloat(document.getElementById('grow-num').value)/100;
             const dr = parseFloat(document.getElementById('disc-num').value)/100;
             const em = parseFloat(document.getElementById('exit-num').value);
+            const pgr = parseFloat(document.getElementById('perp-num').value)/100;
             
-            let fcf_n = state.fcf; let sum = 0;
-            for(let t=1; t<=py; t++){ fcf_n *= (1+gr); sum += fcf_n / Math.pow((1+dr), t); }
-            sum += (fcf_n * em) / Math.pow((1+dr), py);
+            // 1. Exit Multiple
+            let fcf_n = state.fcf; let sum_em = 0;
+            for(let t=1; t<=py; t++){ fcf_n *= (1+gr); sum_em += fcf_n / Math.pow((1+dr), t); }
+            let target_em = (sum_em + ((fcf_n * em) / Math.pow((1+dr), py))) / state.shares;
             
-            let target = sum / state.shares;
-            let mos = ((target - state.price) / state.price) * 100;
-            
-            targetEl.innerText = '$' + target.toFixed(2);
-            mosEl.innerText = mos.toFixed(2) + '%';
-            mosEl.className = mos > 0 ? "text-5xl md:text-6xl font-bold mt-2 text-green-500" : "text-5xl md:text-6xl font-bold mt-2 text-red-500";
+            // 2. Gordon Growth
+            let fcf_gg = state.fcf; let sum_gg = 0;
+            for(let t=1; t<=py; t++){ fcf_gg *= (1+gr); sum_gg += fcf_gg / Math.pow((1+dr), t); }
+            let tv_gg = dr > pgr ? (fcf_gg * (1 + pgr)) / (dr - pgr) : 0;
+            let target_gg = dr > pgr ? (sum_gg + (tv_gg / Math.pow((1+dr), py))) / state.shares : 0;
+
+            // 3. Graham Number
+            let eps = parseFloat(state.stats.eps);
+            let bvps = parseFloat(state.stats.book_value);
+            let graham = (eps > 0 && bvps > 0) ? Math.sqrt(22.5 * eps * bvps) : 0;
+
+            document.getElementById('target-em').innerText = '$' + target_em.toFixed(2);
+            document.getElementById('target-gg').innerText = target_gg > 0 ? '$' + target_gg.toFixed(2) : 'N/A';
+            document.getElementById('target-graham').innerText = graham > 0 ? '$' + graham.toFixed(2) : 'N/A';
+
+            drawFootballField(target_em, target_gg, graham);
         }
     </script>
 </body>

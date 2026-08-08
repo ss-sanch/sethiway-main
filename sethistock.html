@@ -473,26 +473,17 @@
                 // Inject News/Earnings Intel (UPDATED)
                 let newsHtml = '';
                 
-                if (data.ai_summary && data.ai_summary !== "AI Summarizer not configured or no news available." && !data.ai_summary.includes("unavailable")) {
-                    newsHtml += `
-                    <div class="p-4 mb-4 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl shadow-inner">
-                        <div class="flex items-center space-x-1 mb-2">
-                            <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest">🤖 AI Intel Summary</span>
+                if (data.ai_summary && !data.ai_summary.includes("temporarily unavailable") && !data.ai_summary.includes("No recent news")) {
+                    newsHtml = `
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-sm h-full">
+                            <h4 class="text-xs font-black text-blue-800 uppercase tracking-wider mb-2">✨ Sethi AI Analysis</h4>
+                            <p class="text-sm text-blue-900 font-medium leading-relaxed">${data.ai_summary}</p>
                         </div>
-                        <p class="text-xs text-blue-900 leading-relaxed font-medium">${data.ai_summary}</p>
-                    </div>`;
-                }
-
-                if(data.news && data.news.length > 0) {
-                    data.news.forEach(n => {
-                        newsHtml += `<a href="${n.link}" target="_blank" class="block p-4 border border-gray-100 rounded-xl hover:border-blue-500 hover:shadow-md transition bg-gray-50 group mb-3">
-                            <p class="text-[9px] font-bold text-blue-600 uppercase tracking-widest mb-1">${n.publisher}</p>
-                            <h5 class="text-xs font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">${n.title}</h5>
-                        </a>`;
-                    });
+                    `;
                 } else {
-                    newsHtml += `<p class="text-xs text-gray-400 italic text-center py-4 bg-gray-50 rounded-xl border border-gray-100">No recent intel or press releases found.</p>`;
+                    newsHtml = `<p class="text-sm text-gray-500 italic p-2">${data.ai_summary}</p>`;
                 }
+                
                 document.getElementById('news-container').innerHTML = newsHtml;
 
                 state.fcf = data.fcf; state.shares = data.shares; state.price = data.current_price; 

@@ -42,6 +42,15 @@
     </header>
 
     <section id="dashboard" class="hidden px-6 md:px-10 w-full max-w-[1600px] mx-auto space-y-8 opacity-0 transition-opacity duration-300">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 flex items-center space-x-4 mb-2">
+            <div class="hidden md:flex p-3 bg-blue-50 text-blue-600 rounded-xl">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <div>
+                <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Company Overview</h3>
+                <p id="company-summary" class="text-sm text-gray-700 leading-relaxed font-medium">Loading profile...</p>
+            </div>
+        </div>
         
         <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
             <div class="xl:col-span-2 bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col">
@@ -123,12 +132,16 @@
                     <span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">FCF Yield</span>
                     <span id="stat-fcfy" class="text-5xl font-black mt-2 text-green-600">0%</span>
                 </div>
-                <div class="mt-6 pt-6 border-t border-gray-100">
-                    <div class="flex items-center space-x-2 mb-2">
-                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span class="text-[11px] text-gray-500 font-bold tracking-widest uppercase">Company Overview</span>
+
+                <div class="mt-8 pt-6 border-t border-gray-100 flex-grow flex flex-col">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-2">
+                            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+                            <span class="text-[11px] text-gray-500 font-bold tracking-widest uppercase">Latest Press Intel</span>
+                        </div>
                     </div>
-                    <p id="company-summary" class="text-sm text-gray-600 leading-relaxed">Loading profile...</p>
+                    <div id="news-container" class="flex flex-col space-y-3 overflow-y-auto max-h-[250px] pr-2 pb-2">
+                        </div>
                 </div>
             </div>
         </div>
@@ -195,14 +208,6 @@
             </div>
             
             <p id="dcf-warning" class="text-red-500 text-center font-bold hidden">Insufficient Cash Flow or Estimates to run full Valuation Engine.</p>
-        </div>
-
-        <div id="intel" class="mt-12 scroll-mt-24">
-            <h3 class="text-2xl font-black mb-6 border-b border-gray-200 pb-4">Latest Press & Earnings Intel</h3>
-            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
-                <div id="news-container" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    </div>
-            </div>
         </div>
 
         <div id="extra" class="grid grid-cols-1 xl:grid-cols-2 gap-8 mt-12 mb-12 scroll-mt-24">
@@ -465,20 +470,19 @@
 
                 document.getElementById('company-summary').innerText = data.summary || "Summary not available.";
 
-                // Inject News/Earnings Intel
+                // Inject News/Earnings Intel (UPDATED)
                 let newsHtml = '';
                 if(data.news && data.news.length > 0) {
                     data.news.forEach(n => {
-                        newsHtml += `<a href="${n.link}" target="_blank" class="block p-5 border border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-md transition bg-gray-50 group">
-                            <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">${n.publisher}</p>
-                            <h5 class="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors">${n.title}</h5>
+                        newsHtml += `<a href="${n.link}" target="_blank" class="block p-4 border border-gray-100 rounded-xl hover:border-blue-500 hover:shadow-md transition bg-gray-50 group">
+                            <p class="text-[9px] font-bold text-blue-600 uppercase tracking-widest mb-1">${n.publisher}</p>
+                            <h5 class="text-xs font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">${n.title}</h5>
                         </a>`;
                     });
                 } else {
-                    newsHtml = `<p class="text-sm text-gray-500 italic col-span-3">No recent news or earnings reports found for this ticker.</p>`;
+                    newsHtml = `<p class="text-xs text-gray-400 italic text-center py-4 bg-gray-50 rounded-xl border border-gray-100">No recent intel or press releases found.</p>`;
                 }
                 document.getElementById('news-container').innerHTML = newsHtml;
-
 
                 state.fcf = data.fcf; state.shares = data.shares; state.price = data.current_price; 
                 state.stats = data.stats;

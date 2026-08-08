@@ -129,45 +129,58 @@
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200"><h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">Operating CF vs CapEx</h4><div id="comp-ocf-capex" class="h-64 w-full"></div></div>
         </div>
 
-        <div class="bg-gray-900 p-8 md:p-12 rounded-2xl shadow-xl text-white mt-12 relative">
-            <div class="flex justify-center items-center mb-8 relative">
-                <h3 class="text-2xl font-black tracking-tight text-center">Advanced Valuation Engine</h3>
-                <button onclick="toggleModal('dcf-modal')" class="absolute right-0 text-gray-500 hover:text-blue-400 transition-colors" title="Learn about DCF Valuation">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                </button>
-            </div>
+        <div class="mt-12">
+            <h3 class="text-2xl font-black mb-6 border-b border-gray-200 pb-4">Advanced Valuation Engine</h3>
             
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-10">
-                <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Proj Years</label><input type="number" id="proj-num" value="5" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700" oninput="document.getElementById('proj-sld').value=this.value; calculateDCF();"><input type="range" id="proj-sld" min="1" max="20" value="5" class="w-full accent-blue-500" oninput="document.getElementById('proj-num').value=this.value; calculateDCF();"></div>
-                <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">FCF Growth (%)</label><input type="number" id="grow-num" value="15" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700" oninput="document.getElementById('grow-sld').value=this.value; calculateDCF();"><input type="range" id="grow-sld" min="1" max="100" value="15" class="w-full accent-blue-500" oninput="document.getElementById('grow-num').value=this.value; calculateDCF();"></div>
-                <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Discount (%)</label><input type="number" id="disc-num" value="10" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700" oninput="document.getElementById('disc-sld').value=this.value; calculateDCF();"><input type="range" id="disc-sld" min="1" max="50" value="10" class="w-full accent-blue-500" oninput="document.getElementById('disc-num').value=this.value; calculateDCF();"></div>
-                <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Exit Mult</label><input type="number" id="exit-num" value="15" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700" oninput="document.getElementById('exit-sld').value=this.value; calculateDCF();"><input type="range" id="exit-sld" min="1" max="100" value="15" class="w-full accent-blue-500" oninput="document.getElementById('exit-num').value=this.value; calculateDCF();"></div>
-                <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Perp Growth (%)</label><input type="number" id="perp-num" value="2.5" step="0.5" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700" oninput="document.getElementById('perp-sld').value=this.value; calculateDCF();"><input type="range" id="perp-sld" min="0" max="10" value="2.5" step="0.5" class="w-full accent-green-500" oninput="document.getElementById('perp-num').value=this.value; calculateDCF();"></div>
-            </div>
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-4">
+                
+                <div class="bg-gray-900 p-8 rounded-2xl shadow-xl text-white relative flex flex-col justify-between">
+                    <div class="flex justify-between items-center mb-6">
+                        <h4 class="text-xl font-bold tracking-tight">Reverse DCF Calculator</h4>
+                        <button onclick="toggleModal('dcf-modal')" class="text-gray-500 hover:text-blue-400 transition-colors" title="Learn about DCF Valuation">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-6 mb-8">
+                        <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Proj Years</label><input type="number" id="proj-num" value="5" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700" oninput="document.getElementById('proj-sld').value=this.value; calculateDCF();"><input type="range" id="proj-sld" min="1" max="20" value="5" class="w-full accent-blue-500" oninput="document.getElementById('proj-num').value=this.value; calculateDCF();"></div>
+                        <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">FCF Growth (%)</label><input type="number" id="grow-num" value="15" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700" oninput="document.getElementById('grow-sld').value=this.value; calculateDCF();"><input type="range" id="grow-sld" min="1" max="100" value="15" class="w-full accent-blue-500" oninput="document.getElementById('grow-num').value=this.value; calculateDCF();"></div>
+                        <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Discount (%)</label><input type="number" id="disc-num" value="10" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700" oninput="document.getElementById('disc-sld').value=this.value; calculateDCF();"><input type="range" id="disc-sld" min="1" max="50" value="10" class="w-full accent-blue-500" oninput="document.getElementById('disc-num').value=this.value; calculateDCF();"></div>
+                        <div class="flex flex-col"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest">Exit Mult</label><input type="number" id="exit-num" value="15" class="bg-gray-800 text-white rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-700" oninput="document.getElementById('exit-sld').value=this.value; calculateDCF();"><input type="range" id="exit-sld" min="1" max="100" value="15" class="w-full accent-blue-500" oninput="document.getElementById('exit-num').value=this.value; calculateDCF();"></div>
+                        <div class="flex flex-col col-span-2"><label class="text-gray-400 font-bold mb-2 text-xs uppercase tracking-widest text-center">Perp Growth (%)</label><div class="flex items-center space-x-4"><input type="number" id="perp-num" value="2.5" step="0.5" class="bg-gray-800 text-white rounded-lg p-2 w-24 text-center font-bold outline-none border border-gray-700" oninput="document.getElementById('perp-sld').value=this.value; calculateDCF();"><input type="range" id="perp-sld" min="0" max="10" value="2.5" step="0.5" class="w-full accent-green-500" oninput="document.getElementById('perp-num').value=this.value; calculateDCF();"></div></div>
+                    </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 text-center">
-                    <p class="text-blue-400 font-bold text-xs tracking-widest uppercase">Target (Exit Multiple)</p>
-                    <h1 id="target-em" class="text-4xl font-light mt-2">$0.00</h1>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-auto">
+                        <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 text-center">
+                            <p class="text-blue-400 font-bold text-[10px] tracking-widest uppercase">Target (Exit Mult)</p>
+                            <h1 id="target-em" class="text-3xl font-light mt-2">$0.00</h1>
+                        </div>
+                        <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 text-center">
+                            <p class="text-green-400 font-bold text-[10px] tracking-widest uppercase">Target (Gordon)</p>
+                            <h1 id="target-gg" class="text-3xl font-light mt-2">$0.00</h1>
+                        </div>
+                        <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 text-center">
+                            <p class="text-purple-400 font-bold text-[10px] tracking-widest uppercase">Graham Number</p>
+                            <h1 id="target-graham" class="text-3xl font-light mt-2">$0.00</h1>
+                        </div>
+                    </div>
                 </div>
-                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 text-center">
-                    <p class="text-green-400 font-bold text-xs tracking-widest uppercase">Target (Gordon Growth)</p>
-                    <h1 id="target-gg" class="text-4xl font-light mt-2">$0.00</h1>
+
+                <div class="bg-gray-900 p-8 rounded-2xl shadow-xl text-white relative flex flex-col justify-between">
+                    <div class="flex justify-between items-center mb-6">
+                        <h4 class="text-xl font-bold tracking-tight">Fair Value Range</h4>
+                        <button onclick="toggleModal('football-modal')" class="text-gray-500 hover:text-blue-400 transition-colors" title="Learn about the Football Field">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </button>
+                    </div>
+                    
+                    <div id="football-field" class="w-full flex-grow min-h-[300px]"></div>
                 </div>
-                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 text-center">
-                    <p class="text-purple-400 font-bold text-xs tracking-widest uppercase">Graham Number</p>
-                    <h1 id="target-graham" class="text-4xl font-light mt-2">$0.00</h1>
-                </div>
+
             </div>
             
-            <div class="mt-8 pt-8 border-t border-gray-700">
-                <h4 class="text-center font-bold text-gray-400 uppercase tracking-widest mb-2">Valuation Football Field</h4>
-                <div id="football-field" class="w-full h-48"></div>
-            </div>
-            
-            <p id="dcf-warning" class="text-red-400 text-center mt-6 hidden font-bold">Insufficient Cash Flow or Estimates to run full Valuation Engine.</p>
+            <p id="dcf-warning" class="text-red-500 text-center font-bold hidden">Insufficient Cash Flow or Estimates to run full Valuation Engine.</p>
         </div>
-
         <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mt-12 mb-12">
             <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
                 <div class="flex justify-between items-center mb-6 border-b pb-4">
@@ -186,7 +199,7 @@
                     <h3 class="text-2xl font-black">Insider Trading Activity</h3>
                 </div>
                 <div id="insider-visual"></div>
-                <div class="overflow-x-auto max-h-[350px] overflow-y-auto">
+                <div class="overflow-x-auto max-h-[350px] overflow-y-auto mt-4">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr>
@@ -265,6 +278,20 @@
                 <p><strong class="text-purple-600 font-black">Graham Number:</strong> Benjamin Graham's classic defensive valuation formula: SQRT(22.5 × EPS × Book Value). It represents the maximum price a conservative investor should pay for a stock.</p>
             </div>
             <div class="mt-8 pt-4 text-center"><button onclick="toggleModal('dcf-modal')" class="bg-gray-900 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition">Close</button></div>
+        </div>
+    </div>
+    
+    <div id="football-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-2xl font-black text-gray-900">The Valuation Football Field</h2>
+                <button onclick="toggleModal('football-modal')" class="text-gray-400 hover:text-red-500 text-3xl leading-none">&times;</button>
+            </div>
+            <p class="text-gray-600 text-sm mb-6">The Football Field chart visually plots the intrinsic price targets generated by our three valuation models against the stock's actual 52-Week trading range.</p>
+            <div class="bg-gray-50 p-4 border border-gray-200 rounded-lg text-sm text-gray-700">
+                <p><strong>How to read it:</strong> If the current price (the dotted red line) falls to the left of the colored valuation bars, the stock is currently trading <em>below</em> its theoretical fair value, indicating a potential margin of safety.</p>
+            </div>
+            <div class="mt-8 pt-4 text-center"><button onclick="toggleModal('football-modal')" class="bg-gray-900 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition">Close</button></div>
         </div>
     </div>
 
@@ -462,8 +489,8 @@
 
             insiders.forEach(ins => {
                 const transStr = ins.transaction.toLowerCase();
-                const isBuy = transStr.includes('buy') || transStr.includes('purchase') || transStr.includes('grant') || transStr.includes('award');
-                const isSell = transStr.includes('sale') || transStr.includes('sell');
+                const isBuy = transStr.includes('buy');
+                const isSell = transStr.includes('sell');
                 const color = isBuy ? 'text-green-600 font-bold' : (isSell ? 'text-red-600 font-bold' : 'text-gray-600');
                 
                 if (isBuy) buyVol += ins.shares;

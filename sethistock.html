@@ -127,8 +127,8 @@
                     <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">P/B Ratio (TTM)</span><span id="stat-pb" class="text-3xl font-black mt-1">0</span></div>
                     <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">EPS (TTM)</span><span id="stat-eps" class="text-3xl font-black mt-1">0</span></div>
                     <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">Dividend Yield</span><span id="stat-div" class="text-3xl font-black mt-1 text-green-600">0%</span></div>
-                    <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">FCF Yield</span><span id="stat-div" class="text-3xl font-black mt-1 text-green-600">0%</span></div>
-                    <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">ROE</span><span id="stat-div" class="text-3xl font-black mt-1 text-green-600">0%</span></div>
+                    <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">FCF Yield</span><span id="stat-fcf" class="text-3xl font-black mt-1 text-green-600">0%</span></div>
+                    <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">ROE</span><span id="roe" class="text-3xl font-black mt-1 text-green-600">0%</span></div>
                 </div>
                 <div class="mt-8 pt-6 border-t border-gray-100 flex-grow flex flex-col">
                     <div class="flex items-center justify-between mb-4">
@@ -455,6 +455,7 @@
                 document.getElementById('stat-eps').innerText = data.stats.eps;
                 document.getElementById('stat-div').innerText = data.stats.div_yield;
                 document.getElementById('stat-fcfy').innerText = data.stats.fcf_yield;
+                document.getElementById('roe').innerText = data.stats.roe;
 
                 const score = data.stats.sethi_score;
                 const scoreEls = [document.getElementById('sethi-score'), document.getElementById('sethi-score-mobile')];

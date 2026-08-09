@@ -139,6 +139,8 @@
                     <div class="bg-blue-900/20 border border-blue-500/50 rounded-lg p-4 mb-6 overflow-y-auto max-h-32">
                         <p id="ai-summary" class="text-sm text-blue-100 leading-relaxed">Loading AI analysis...</p>
                     </div>
+                    
+                    <div id="news-container" class="flex flex-col space-y-3 overflow-y-auto max-h-[250px] pr-2 pb-2"></div>
                 </div>
             </div>
         </div>
@@ -457,6 +459,8 @@
                 document.getElementById('stat-div').innerText = data.stats.div_yield;
                 document.getElementById('stat-fcf').innerText = data.stats.fcf_yield;
                 document.getElementById('roe').innerText = data.stats.roe;
+
+                // --- AI INJECTION (Done perfectly once) ---
                 document.getElementById('ai-summary').innerText = data.ai_summary;
 
                 const score = data.stats.sethi_score;
@@ -468,9 +472,13 @@
                 });
 
                 document.getElementById('company-summary').innerText = data.summary || "Summary not available.";
-
-                // Inject News/Earnings Intel (UPDATED)
-                document.getElementById('ai-summary').innerText = data.ai_summary;
+                
+                // --- GHOST TEXT KILLER ---
+                // This guarantees the old ghost text is instantly erased!
+                const newsBox = document.getElementById('news-container');
+                if (newsBox) {
+                    newsBox.innerHTML = '';
+                }
             
                 state.fcf = data.fcf; state.shares = data.shares; state.price = data.current_price; 
                 state.stats = data.stats;

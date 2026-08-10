@@ -588,47 +588,6 @@
                     document.getElementById('dupont-roe').innerText = 'N/A';
                 }
 
-                // 3. Dynamic Sensitivity Matrix Generation
-                if (data.sensitivity_matrix && data.sensitivity_matrix.length > 0) {
-                    let matrixHTML = '<table class="w-full text-sm text-center border-collapse">';
-                    
-                    matrixHTML += `
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-600 text-xs uppercase tracking-wider">
-                                <th class="py-3 px-2 rounded-tl-lg font-bold">WACC \\ Multiple</th>
-                                <th class="py-3 px-2 font-bold">-2.0x</th>
-                                <th class="py-3 px-2 font-bold">-1.0x</th>
-                                <th class="py-3 px-2 text-gray-900 font-black bg-gray-200">Base Exit</th>
-                                <th class="py-3 px-2 font-bold">+1.0x</th>
-                                <th class="py-3 px-2 rounded-tr-lg font-bold">+2.0x</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                    `;
-
-                    data.sensitivity_matrix.forEach(rowObj => {
-                        let waccLabel = Object.keys(rowObj)[0]; 
-                        let prices = rowObj[waccLabel];
-                        
-                        matrixHTML += `<tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">`;
-                        matrixHTML += `<td class="py-3 px-2 font-bold bg-gray-50 text-gray-700 border-r border-gray-200">${waccLabel.replace('_', ' ')}</td>`;
-                        
-                        prices.forEach((price, index) => {
-                            let colorClass = price > data.current_price ? 'text-green-600' : 'text-red-600';
-                            let bgClass = (index === 2) ? 'bg-gray-100/50' : ''; 
-                            
-                            matrixHTML += `<td class="py-3 px-2 ${colorClass} ${bgClass} font-semibold">$${price.toFixed(2)}</td>`;
-                        });
-                        
-                        matrixHTML += '</tr>';
-                    });
-                    
-                    matrixHTML += '</tbody></table>';
-                    document.getElementById('sensitivity-matrix-container').innerHTML = matrixHTML;
-                } else {
-                    document.getElementById('sensitivity-matrix-container').innerHTML = '<p class="text-gray-500 py-4 italic">Sensitivity data currently unavailable for this ticker.</p>';
-                }
-
                 let cleanFin = { years: [], revenue: [], net: [], gross_margin: [], op_margin: [], net_margin: [], fcf: [], ocf: [], capex: [], cash: [], debt: [], shares: [] };
                 for(let i=0; i<data.financials.years.length; i++) {
                     if (data.financials.revenue[i] !== 0) {
@@ -971,6 +930,79 @@
             document.getElementById('target-gg').innerText = target_gg > 0 ? '$' + target_gg.toFixed(2) : 'N/A';
 
             drawFootballField(target_em, target_gg);
+        }
+
+        // ==========================================
+        // --- LIVE FRONTEND SENSITIVITY ENGINE -----
+        // ==========================================
+        function renderLiveSensitivityMatrix() {
+            if (!state.fcf || !state.shares) return;
+
+            // 1. Pull the LIVE inputs directly from your DCF Calculator HTML inputs
+            // NOTE: Make sure these IDs match the IDs of your actual DCF inputs!
+            // If your inputs have different IDs (e.g., 'wacc', 'exit-mult'), change them below.
+            let baseWacc = parseFloat(document.getElementById('discount_rate').value) / 100 || 0.10;
+            let baseMult = parseFloat(document.getElementById('exit_multiple').value) || 15.0;
+            let growth = parseFloat(document.getElementById('growth_rate').value) / 100 || 0.10;
+            let years = parseInt(document.getElementById('proj_years').value) || 5;
+            
+            let currentPrice = state.price;
+            let fcf = state.fcf;
+            let shares = state.shares;
+
+            // 2. Define the Matrix Steps
+            const waccSteps = [baseWacc - 0.02, baseWacc - 0.01, baseWacc, baseWacc + 0.01, baseWacc + 0.02];
+            const multSteps = [baseMult - 2, baseMult - 1, baseMult, baseMult + 1, baseMult + 2];
+
+            // 3. Generate FCF Projections
+            let projections = [];
+            for (let i = 1; i <= years; i++) {
+                projections.push(fcf * Math.pow(1 + growth, i));
+            }
+
+            // 4. Build the HTML Table
+            let matrixHTML = '<table class="w-full text-sm text-center border-collapse">';
+            matrixHTML += `
+                <thead>
+                    <tr class="bg-gray-100 text-gray-600 text-xs uppercase tracking-wider">
+                        <th class="py-3 px-2 rounded-tl-lg font-bold border-b border-gray-200">WACC \\ Multiple</th>
+                        <th class="py-3 px-2 font-bold border-b border-gray-200">${(baseMult - 2).toFixed(1)}x</th>
+                        <th class="py-3 px-2 font-bold border-b border-gray-200">${(baseMult - 1).toFixed(1)}x</th>
+                        <th class="py-3 px-2 text-gray-900 font-black bg-gray-200 border-b border-gray-300">Base ${(baseMult).toFixed(1)}x</th>
+                        <th class="py-3 px-2 font-bold border-b border-gray-200">${(baseMult + 1).toFixed(1)}x</th>
+                        <th class="py-3 px-2 rounded-tr-lg font-bold border-b border-gray-200">${(baseMult + 2).toFixed(1)}x</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+
+            waccSteps.forEach(wacc => {
+                matrixHTML += `<tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">`;
+                matrixHTML += `<td class="py-3 px-2 font-bold bg-gray-50 text-gray-700 border-r border-gray-200">${(wacc * 100).toFixed(1)}%</td>`;
+
+                multSteps.forEach((mult, index) => {
+                    // Calculate Present Value of FCFs
+                    let pvFcfs = 0;
+                    projections.forEach((p, i) => { pvFcfs += p / Math.pow(1 + wacc, i + 1); });
+                    
+                    // Calculate Terminal Value & Discount it
+                    let terminalValue = projections[projections.length - 1] * mult;
+                    let pvTv = terminalValue / Math.pow(1 + wacc, years);
+                    
+                    // Implied Share Price
+                    let impliedPrice = (pvFcfs + pvTv) / shares;
+
+                    // Color coding
+                    let colorClass = impliedPrice > currentPrice ? 'text-green-600' : 'text-red-600';
+                    let bgClass = (index === 2) ? 'bg-gray-100/50' : '';
+
+                    matrixHTML += `<td class="py-3 px-2 ${colorClass} ${bgClass} font-semibold">$${impliedPrice.toFixed(2)}</td>`;
+                });
+                matrixHTML += '</tr>';
+            });
+
+            matrixHTML += '</tbody></table>';
+            document.getElementById('sensitivity-matrix-container').innerHTML = matrixHTML;
         }
     </script>
 </body>

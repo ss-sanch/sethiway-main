@@ -939,13 +939,11 @@
         function renderLiveSensitivityMatrix() {
             if (!state.fcf || !state.shares) return;
 
-            // 1. Pull the LIVE inputs directly from your DCF Calculator HTML inputs
-            // NOTE: Make sure these IDs match the IDs of your actual DCF inputs!
-            // If your inputs have different IDs (e.g., 'wacc', 'exit-mult'), change them below.
-            let baseWacc = parseFloat(document.getElementById('discount_rate').value) / 100 || 0.10;
-            let baseMult = parseFloat(document.getElementById('exit_multiple').value) || 15.0;
-            let growth = parseFloat(document.getElementById('growth_rate').value) / 100 || 0.10;
-            let years = parseInt(document.getElementById('proj_years').value) || 5;
+            // 1. Pull the LIVE inputs directly from the ACTUAL DCF HTML IDs
+            let baseWacc = parseFloat(document.getElementById('disc-sld').value) / 100 || 0.10;
+            let baseMult = parseFloat(document.getElementById('exit-sld').value) || 15.0;
+            let growth = parseFloat(document.getElementById('grow-sld').value) / 100 || 0.15;
+            let years = parseInt(document.getElementById('proj-sld').value) || 5;
             
             let currentPrice = state.price;
             let fcf = state.fcf;

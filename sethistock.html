@@ -201,22 +201,28 @@
 
         <div class="mt-6">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center justify-between">
-                        Risk Profile (5-Year)
-                        <span class="text-xs bg-gray-100 text-gray-500 font-semibold px-2 py-1 rounded border border-gray-200">Daily</span>
+                <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm relative">
+                    <button onclick="toggleModal('modal-risk')" class="absolute top-4 right-4 text-gray-400 hover:text-blue-600 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        Risk Profile 
+                        <span class="text-xs bg-gray-100 text-gray-500 font-semibold px-2 py-1 rounded border border-gray-200">Daily 5Y</span>
                     </h3>
                     <div class="flex justify-between items-center mb-4">
-                        <span class="text-sm font-semibold text-gray-500">95% Value at Risk (VaR)</span>
+                        <span class="text-sm font-semibold text-gray-500">95% Value at Risk</span>
                         <span id="var-95" class="text-xl font-bold text-red-500">--</span>
                     </div>
                     <div class="flex justify-between items-center pt-4 border-t border-gray-100">
-                        <span class="text-sm font-semibold text-gray-500">Annualized Volatility</span>
+                        <span class="text-sm font-semibold text-gray-500">Annual Volatility</span>
                         <span id="volatility" class="text-xl font-bold text-gray-900">--</span>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm lg:col-span-2">
+                <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm lg:col-span-2 relative">
+                    <button onclick="toggleModal('modal-dupont')" class="absolute top-4 right-4 text-gray-400 hover:text-blue-600 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
                     <h3 class="text-lg font-bold text-gray-800 mb-4">DuPont ROE Decomposition</h3>
                     <div class="grid grid-cols-1 md:grid-cols-7 gap-2 text-center items-center">
                         <div class="bg-gray-50 border border-gray-100 p-3 rounded-lg col-span-2">
@@ -237,11 +243,14 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm mt-6 overflow-x-auto">
+            <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm mt-6 overflow-x-auto relative">
+                <button onclick="toggleModal('modal-matrix')" class="absolute top-4 right-4 text-gray-400 hover:text-blue-600 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </button>
                 <div class="flex justify-between items-end mb-4">
                     <div>
-                        <h3 class="text-lg font-bold text-gray-800">DCF Sensitivity Matrix</h3>
-                        <p class="text-xs font-semibold text-gray-500 mt-1">Implied Share Price based on WACC (Y-Axis) and Exit Multiple Variances (X-Axis)</p>
+                        <h3 class="text-lg font-bold text-gray-800">Live DCF Sensitivity Matrix</h3>
+                        <p class="text-xs font-semibold text-gray-500 mt-1">Implied Share Price based on Live DCF Inputs (Updates Automatically)</p>
                     </div>
                 </div>
                 <div id="sensitivity-matrix-container" class="w-full">
@@ -249,10 +258,9 @@
             </div>
         </div>
 
-        <div id="Extra" class="mt-12 scroll-mt-24">
-            <h3 class="text-2xl font-black mb-6 border-b border-gray-200 pb-4">Extra Info</h3>
-            
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-4">
+        <div class="mt-10 border-t border-gray-200 pt-8 mb-6">
+            <h2 class="text-2xl font-black text-gray-900">Extra Info</h2>
+        </div>
 
         <div id="extra" class="grid grid-cols-1 xl:grid-cols-2 gap-8 mt-12 mb-12 scroll-mt-24">
             <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
@@ -410,6 +418,37 @@
                 <p><strong>How to read it:</strong> If the current price (the dotted red line) falls to the left of the colored valuation bars, the stock is currently trading <em>below</em> its theoretical fair value, indicating a potential margin of safety.</p>
             </div>
             <div class="mt-8 pt-4 text-center"><button onclick="toggleModal('football-modal')" class="bg-gray-900 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition">Close</button></div>
+        </div>
+    </div>
+
+    <div id="modal-risk" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-60 transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-2xl w-11/12 md:w-1/2 lg:w-1/3 p-8 shadow-2xl transform scale-95 transition-transform duration-300">
+            <h2 class="text-2xl font-black text-gray-900 mb-4">Risk Profile (VaR & Volatility)</h2>
+            <p class="text-gray-600 mb-4"><strong>Value at Risk (VaR):</strong> A statistical technique used on Wall Street to quantify the level of financial risk. A 95% VaR of -3.5% means we are 95% confident the stock will not lose more than 3.5% of its value in a single trading day, based on 5 years of historical data.</p>
+            <p class="text-gray-600 mb-6"><strong>Volatility:</strong> The annualized standard deviation of daily returns. Higher percentages indicate a wider swing in daily price action.</p>
+            <button onclick="toggleModal('modal-risk')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800">Understood</button>
+        </div>
+    </div>
+
+    <div id="modal-dupont" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-60 transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-2xl w-11/12 md:w-1/2 lg:w-1/3 p-8 shadow-2xl transform scale-95 transition-transform duration-300">
+            <h2 class="text-2xl font-black text-gray-900 mb-4">DuPont ROE Analysis</h2>
+            <p class="text-gray-600 mb-4">Return on Equity (ROE) is a massive profitability indicator, but it can be manipulated with debt. The DuPont model breaks ROE down into its three true drivers:</p>
+            <ul class="list-disc pl-5 text-gray-600 mb-6 space-y-2">
+                <li><strong>Net Margin:</strong> Operating efficiency (Are they pricing their product well?)</li>
+                <li><strong>Asset Turnover:</strong> Asset use efficiency (Are they selling enough product?)</li>
+                <li><strong>Equity Multiplier:</strong> Financial leverage (Are they pumping up returns using dangerous debt?)</li>
+            </ul>
+            <button onclick="toggleModal('modal-dupont')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800">Understood</button>
+        </div>
+    </div>
+
+    <div id="modal-matrix" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-60 transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-2xl w-11/12 md:w-1/2 lg:w-1/3 p-8 shadow-2xl transform scale-95 transition-transform duration-300">
+            <h2 class="text-2xl font-black text-gray-900 mb-4">Live Sensitivity Matrix</h2>
+            <p class="text-gray-600 mb-4">A standard single-scenario DCF is dangerous. Analysts use Sensitivity Matrices to see how slightly missing their assumptions affects the target price.</p>
+            <p class="text-gray-600 mb-6">This live grid pulls your exact inputs from the DCF Calculator above, and automatically calculates 25 different target prices by flexing the Exit Multiple (X-Axis) and the Discount Rate (Y-Axis) up and down. <span class="text-green-600 font-bold">Green values</span> mean the implied price is higher than today's market price (Undervalued).</p>
+            <button onclick="toggleModal('modal-matrix')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800">Understood</button>
         </div>
     </div>
 

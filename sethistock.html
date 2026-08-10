@@ -233,6 +233,63 @@
             </div>
         </div>
 
+        <div class="mt-8 border-t border-gray-800 pt-8">
+            <h2 class="text-2xl font-bold text-white mb-6">Advanced Quant Engine</h2>
+    
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 shadow-lg">
+                    <h3 class="text-lg font-semibold text-gray-300 mb-4 flex items-center justify-between">
+                        Risk Profile (5-Year)
+                        <span class="text-xs bg-gray-800 text-gray-400 px-2 py-1 rounded">Daily</span>
+                    </h3>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm text-gray-400">95% Value at Risk (VaR)</span>
+                        <span id="var-95" class="text-xl font-bold text-red-400">--</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-4 border-t border-gray-800">
+                        <span class="text-sm text-gray-400">Annualized Volatility</span>
+                        <span id="volatility" class="text-xl font-bold text-white">--</span>
+                    </div>
+                </div>
+
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 shadow-lg lg:col-span-2">
+                    <h3 class="text-lg font-semibold text-gray-300 mb-4">DuPont ROE Decomposition</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-7 gap-2 text-center items-center">
+                        
+                        <div class="bg-gray-800 p-3 rounded-lg col-span-2">
+                            <span class="block text-xs text-gray-400 uppercase tracking-wider mb-1">Net Margin</span>
+                            <span id="dupont-margin" class="block text-lg font-bold text-white">--</span>
+                        </div>
+                        
+                        <div class="text-gray-500 font-bold hidden md:block">×</div>
+                        
+                        <div class="bg-gray-800 p-3 rounded-lg col-span-2">
+                            <span class="block text-xs text-gray-400 uppercase tracking-wider mb-1">Asset Turnover</span>
+                            <span id="dupont-turnover" class="block text-lg font-bold text-white">--</span>
+                        </div>
+                        
+                        <div class="text-gray-500 font-bold hidden md:block">=</div>
+                        
+                        <div class="bg-blue-900/30 p-3 rounded-lg border border-blue-800/50 col-span-2 md:col-span-1">
+                            <span class="block text-xs text-blue-300 uppercase tracking-wider mb-1">True ROE</span>
+                            <span id="dupont-roe" class="block text-xl font-bold text-blue-400">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 shadow-lg mt-6 overflow-x-auto">
+                <div class="flex justify-between items-end mb-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-300">DCF Sensitivity Matrix</h3>
+                        <p class="text-xs text-gray-500 mt-1">Implied Share Price based on WACC (Y-Axis) and Exit Multiple Variances (X-Axis)</p>
+                    </div>
+                </div>
+                <div id="sensitivity-matrix-container" class="w-full">
+                    </div>
+            </div>
+        </div>
+
     </section>
 
     <div class="px-6 md:px-10 w-full max-w-[1600px] mx-auto mt-20 mb-12">
@@ -468,6 +525,71 @@
                 
                 calculateDCF();
                 updateWatchlistBtn();
+
+                // ==========================================
+                // --- ADVANCED QUANT ENGINE LOGIC ----------
+                // ==========================================
+
+                // 1. Risk Profile Mapping
+                if (data.risk_profile && !data.risk_profile.error) {
+                    document.getElementById('var-95').innerText = data.risk_profile.daily_var_95 + '%';
+                    document.getElementById('volatility').innerText = data.risk_profile.annualized_volatility + '%';
+                } else {
+                    document.getElementById('var-95').innerText = 'N/A';
+                    document.getElementById('volatility').innerText = 'N/A';
+                }
+
+                // 2. DuPont Analysis Mapping
+                if (data.dupont_analysis && !data.dupont_analysis.error) {
+                    document.getElementById('dupont-margin').innerText = data.dupont_analysis.net_profit_margin + '%';
+                    document.getElementById('dupont-turnover').innerText = data.dupont_analysis.asset_turnover + 'x';
+                    document.getElementById('dupont-roe').innerText = data.dupont_analysis.calculated_roe + '%';
+                } else {
+                    document.getElementById('dupont-margin').innerText = 'N/A';
+                    document.getElementById('dupont-turnover').innerText = 'N/A';
+                    document.getElementById('dupont-roe').innerText = 'N/A';
+                }
+
+                // 3. Dynamic Sensitivity Matrix Generation
+                if (data.sensitivity_matrix && data.sensitivity_matrix.length > 0) {
+                    let matrixHTML = '<table class="w-full text-sm text-center border-collapse">';
+                    
+                    matrixHTML += `
+                        <thead>
+                            <tr class="bg-gray-800 text-gray-400 text-xs uppercase tracking-wider">
+                                <th class="py-3 px-2 rounded-tl-lg">WACC \\ Multiple</th>
+                                <th class="py-3 px-2">-2.0x</th>
+                                <th class="py-3 px-2">-1.0x</th>
+                                <th class="py-3 px-2 text-white font-bold bg-gray-700">Base Exit</th>
+                                <th class="py-3 px-2">+1.0x</th>
+                                <th class="py-3 px-2 rounded-tr-lg">+2.0x</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    `;
+
+                    data.sensitivity_matrix.forEach(rowObj => {
+                        let waccLabel = Object.keys(rowObj)[0]; 
+                        let prices = rowObj[waccLabel];
+                        
+                        matrixHTML += `<tr class="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">`;
+                        matrixHTML += `<td class="py-3 px-2 font-bold bg-gray-800/80 text-gray-300 border-r border-gray-700">${waccLabel.replace('_', ' ')}</td>`;
+                        
+                        prices.forEach((price, index) => {
+                            let colorClass = price > data.current_price ? 'text-green-400' : 'text-red-400';
+                            let bgClass = (index === 2) ? 'bg-gray-800/20' : ''; 
+                            
+                            matrixHTML += `<td class="py-3 px-2 ${colorClass} ${bgClass} font-semibold">$${price.toFixed(2)}</td>`;
+                        });
+                        
+                        matrixHTML += '</tr>';
+                    });
+                    
+                    matrixHTML += '</tbody></table>';
+                    document.getElementById('sensitivity-matrix-container').innerHTML = matrixHTML;
+                } else {
+                    document.getElementById('sensitivity-matrix-container').innerHTML = '<p class="text-gray-500 py-4 italic">Sensitivity data currently unavailable for this ticker.</p>';
+                }
 
                 let cleanFin = { years: [], revenue: [], net: [], gross_margin: [], op_margin: [], net_margin: [], fcf: [], ocf: [], capex: [], cash: [], debt: [], shares: [] };
                 for(let i=0; i<data.financials.years.length; i++) {

@@ -352,6 +352,37 @@
         </div>
     </footer>
 
+    <div id="modal-risk" class="fixed inset-0 z-[150] hidden flex items-center justify-center bg-black bg-opacity-60 transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-2xl w-11/12 md:w-1/2 lg:w-1/3 p-8 shadow-2xl transform scale-95 transition-transform duration-300">
+            <h2 class="text-2xl font-black text-gray-900 mb-4">Risk Profile (VaR & Volatility)</h2>
+            <p class="text-gray-600 mb-4"><strong>Value at Risk (VaR):</strong> A statistical technique used on Wall Street to quantify financial risk. A 95% VaR of -3.5% means we are 95% confident the stock will not lose more than 3.5% of its value in a single trading day, based on 5 years of historical data.</p>
+            <p class="text-gray-600 mb-6"><strong>Volatility:</strong> The annualized standard deviation of daily returns. Higher percentages indicate a wider swing in daily price action.</p>
+            <button onclick="toggleModal('modal-risk')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800">Understood</button>
+        </div>
+    </div>
+
+    <div id="modal-dupont" class="fixed inset-0 z-[150] hidden flex items-center justify-center bg-black bg-opacity-60 transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-2xl w-11/12 md:w-1/2 lg:w-1/3 p-8 shadow-2xl transform scale-95 transition-transform duration-300">
+            <h2 class="text-2xl font-black text-gray-900 mb-4">DuPont ROE Analysis</h2>
+            <p class="text-gray-600 mb-4">Return on Equity (ROE) is a massive profitability indicator, but it can be manipulated with debt. The DuPont model breaks ROE down into its three true drivers:</p>
+            <ul class="list-disc pl-5 text-gray-600 mb-6 space-y-2">
+                <li><strong>Net Margin:</strong> Operating efficiency (Are they pricing their product well?)</li>
+                <li><strong>Asset Turnover:</strong> Asset use efficiency (Are they selling enough product?)</li>
+                <li><strong>Equity Multiplier:</strong> Financial leverage (Are they pumping up returns using dangerous debt?)</li>
+            </ul>
+            <button onclick="toggleModal('modal-dupont')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800">Understood</button>
+        </div>
+    </div>
+
+    <div id="modal-matrix" class="fixed inset-0 z-[150] hidden flex items-center justify-center bg-black bg-opacity-60 transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-2xl w-11/12 md:w-1/2 lg:w-1/3 p-8 shadow-2xl transform scale-95 transition-transform duration-300">
+            <h2 class="text-2xl font-black text-gray-900 mb-4">Live Sensitivity Matrix</h2>
+            <p class="text-gray-600 mb-4">A standard single-scenario DCF is dangerous. Analysts use Sensitivity Matrices to see how slightly missing their assumptions affects the target price.</p>
+            <p class="text-gray-600 mb-6">This live grid pulls your exact inputs from the DCF Calculator above, and automatically calculates 25 different target prices by flexing the Exit Multiple (X-Axis) and the Discount Rate (Y-Axis) up and down. <span class="text-green-600 font-bold">Green values</span> mean the implied price is higher than today's market price (Undervalued).</p>
+            <button onclick="toggleModal('modal-matrix')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800">Understood</button>
+        </div>
+    </div>
+
     <div id="score-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
         <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 overflow-y-auto max-h-[90vh]">
             <div class="flex justify-between items-center mb-6 border-b pb-4">
@@ -432,7 +463,6 @@
             <div class="mt-8 pt-4 text-center"><button onclick="toggleModal('football-modal')" class="bg-gray-900 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition">Close</button></div>
         </div>
     </div>
-
 
     <script>
         const API_URL = "https://sethistock-api.onrender.com";

@@ -105,50 +105,50 @@
 
 
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col relative h-full">
-                <h3 class="text-xl font-black text-gray-900 mb-6 flex items-center justify-between">
+                <h3 class="text-xl font-black text-gray-900 mb-4 flex items-center justify-between">
                     Insights & Stats
                     <button onclick="toggleModal('stats-modal')" class="text-gray-400 hover:text-blue-600 transition z-10 cursor-pointer">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </button>
                 </h3>
                 
-                <div class="flex-grow flex flex-col justify-between space-y-6">
+                <div class="flex flex-col space-y-4 mt-2">
                     
                     <div>
-                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Value & Profitability</h4>
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 px-1">
-                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Mkt Cap</span><span id="stat-mkt" class="text-sm font-black text-gray-900">--</span></div>
-                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">EV/EBITDA</span><span id="stat-ev" class="text-sm font-black text-gray-900">--</span></div>
-                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">P/E (TTM)</span><span id="stat-pe" class="text-sm font-black text-gray-900">--</span></div>
-                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-blue-600">ROE</span><span id="roe" class="text-sm font-black text-blue-700">--</span></div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-1.5 mb-2">Value & Profitability</h4>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 px-1">
+                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">Mkt Cap</span><span id="stat-mkt" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">EV/EBITDA</span><span id="stat-ev" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">P/E (TTM)</span><span id="stat-pe" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-blue-600">ROE</span><span id="roe" class="text-sm font-black text-blue-700">--</span></div>
                         </div>
                     </div>
 
                     <div>
-                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Technicals & Momentum</h4>
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 px-1">
-                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">14d RSI</span><span id="stat-rsi" class="text-sm font-black text-gray-900">--</span></div>
-                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Stochastic</span><span id="stat-stoch" class="text-sm font-black text-gray-900">--</span></div>
-                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">% From 200MA</span><span id="stat-sma" class="text-sm font-black text-gray-900">--</span></div>
-                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">% From 52W High</span><span id="stat-52w" class="text-sm font-black text-gray-900">--</span></div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-1.5 mb-2">Technicals & Momentum</h4>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 px-1">
+                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">14d RSI</span><span id="stat-rsi" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">Stochastic</span><span id="stat-stoch" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">% From 200MA</span><span id="stat-sma" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">% From 52W High</span><span id="stat-52w" class="text-sm font-black text-gray-900">--</span></div>
                         </div>
                     </div>
 
                     <div>
-                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Risk & Yield</h4>
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 px-1">
-                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Beta</span><span id="stat-beta" class="text-sm font-black text-gray-900">--</span></div>
-                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-red-500">Short Int.</span><span id="stat-short" class="text-sm font-black text-red-600">--</span></div>
-                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Div Yield</span><span id="stat-div" class="text-sm font-black text-gray-900">--</span></div>
-                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-green-600">FCF Yield</span><span id="stat-fcf" class="text-sm font-black text-green-700">--</span></div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-1.5 mb-2">Risk & Yield</h4>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 px-1">
+                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">Beta</span><span id="stat-beta" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-red-500">Short Int.</span><span id="stat-short" class="text-sm font-black text-red-600">--</span></div>
+                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">Div Yield</span><span id="stat-div" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-green-600">FCF Yield</span><span id="stat-fcf" class="text-sm font-black text-green-700">--</span></div>
                         </div>
                     </div>
 
                     <div>
-                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Catalysts</h4>
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 px-1">
-                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-purple-600">Next Earnings</span><span id="stat-earn" class="text-sm font-black text-gray-900">--</span></div>
-                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-purple-600">Ex-Dividend</span><span id="stat-exdiv" class="text-sm font-black text-gray-900">--</span></div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-1.5 mb-2">Catalysts</h4>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 px-1">
+                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-purple-600">Next Earnings</span><span id="stat-earn" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-purple-600">Ex-Dividend</span><span id="stat-exdiv" class="text-sm font-black text-gray-900">--</span></div>
                         </div>
                     </div>
 
@@ -410,39 +410,51 @@
     </div>
 
     <div id="stats-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 overflow-y-auto max-h-[90vh]">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-3xl w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 overflow-y-auto max-h-[90vh]">
             <div class="flex justify-between items-center mb-6 border-b pb-4">
-                <h2 class="text-2xl font-black text-gray-900">Understanding Core Metrics</h2>
+                <h2 class="text-2xl font-black text-gray-900">Quantitative Terminal Glossary</h2>
                 <button onclick="toggleModal('stats-modal')" class="text-gray-400 hover:text-red-500 text-3xl leading-none">&times;</button>
             </div>
-            <div class="space-y-4 text-gray-700 text-sm leading-relaxed">
-                <p><strong class="text-blue-600 font-black">Market Cap:</strong> The total market value of a company's outstanding shares. It helps categorise companies by size and risk profile.</p>
-                <p><strong class="text-blue-600 font-black">EV/EBITDA:</strong> Enterprise Value to Earnings Before Interest, Taxes, Depreciation, and Amortisation. A comprehensive valuation metric that compares a company's total value (including debt) to its cash earnings.</p>
-                <p><strong class="text-blue-600 font-black">P/E Ratio (TTM):</strong> Price-to-Earnings Ratio. Compares the current share price to its per-share earnings. Used to gauge if a stock is over or undervalued relative to its peers.</p>
-                <p><strong class="text-blue-600 font-black">P/B Ratio (TTM):</strong> Price-to-Book Ratio. Compares the market valuation to the company's actual net asset value (book value).</p>
-                <p><strong class="text-blue-600 font-black">EPS (TTM):</strong> Earnings Per Share. The portion of a company's profit allocated to each outstanding share.</p>
-                <p><strong class="text-blue-600 font-black">Div Yield:</strong> The financial ratio that shows how much a company pays out in dividends each year relative to its share price.</p>
-                <p><strong class="text-blue-600 font-black">FCF Yield:</strong> Free Cash Flow Yield. A high yield often indicates a company is generating plenty of cash relative to its valuation.</p>
-                <p><strong class="text-blue-600 font-black">ROE:</strong> Return on Equity. A massive indicator of efficiency, showing how much profit a company generates with the money shareholders have invested.</p>
-                <p><strong class="text-red-500 font-black">95% VaR (5Y):</strong> Value at Risk. A Wall Street statistical technique. A 95% VaR of -3.5% means we are 95% confident the stock will not lose more than 3.5% of its value in a single trading day, based on 5 years of historical data.</p>
-                <p><strong class="text-gray-900 font-black">Volatility:</strong> The annualized standard deviation of daily returns. Higher percentages indicate a wider, riskier swing in daily price action.</p>
-            </div>
-            <div class="mt-8 pt-4 text-center"><button onclick="toggleModal('stats-modal')" class="bg-gray-900 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition">Close</button></div>
-        </div>
-    </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-gray-700 leading-relaxed">
+                <div>
+                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-200 pb-2 mb-3">Value & Profitability</h4>
+                    <ul class="space-y-3">
+                        <li><strong class="text-blue-600">Market Cap:</strong> The total market value of the company's outstanding shares.</li>
+                        <li><strong class="text-blue-600">EV/EBITDA:</strong> Compares a company's total value (including debt) to its raw cash earnings. The gold standard of valuation.</li>
+                        <li><strong class="text-blue-600">P/E Ratio:</strong> Price-to-Earnings. How much investors are willing to pay per dollar of earnings.</li>
+                        <li><strong class="text-blue-600">ROE (Return on Equity):</strong> Measures how efficiently the company turns shareholder cash into profits.</li>
+                    </ul>
 
-    <div id="dcf-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 overflow-y-auto max-h-[90vh]">
-            <div class="flex justify-between items-center mb-6 border-b pb-4">
-                <h2 class="text-2xl font-black text-gray-900">Advanced Valuation Engine</h2>
-                <button onclick="toggleModal('dcf-modal')" class="text-gray-400 hover:text-red-500 text-3xl leading-none">&times;</button>
+                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-200 pb-2 mt-6 mb-3">Risk & Yield</h4>
+                    <ul class="space-y-3">
+                        <li><strong class="text-blue-600">Beta:</strong> A measure of volatility. A Beta > 1 means the stock is more volatile than the S&P 500; < 1 means it is less volatile.</li>
+                        <li><strong class="text-red-500">Short Interest:</strong> The percentage of available shares that are being shorted by hedge funds betting the price will fall.</li>
+                        <li><strong class="text-blue-600">Dividend Yield:</strong> How much the company pays out in dividends each year relative to its share price.</li>
+                        <li><strong class="text-green-600">FCF Yield:</strong> Free Cash Flow Yield. High numbers indicate the company is generating massive cash relative to its valuation.</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-200 pb-2 mb-3">Technicals & Momentum</h4>
+                    <ul class="space-y-3">
+                        <li><strong class="text-blue-600">14d RSI:</strong> Relative Strength Index. A momentum oscillator ranging from 0-100. >70 is historically "Overbought", <30 is "Oversold".</li>
+                        <li><strong class="text-blue-600">Stochastic:</strong> Compares a particular closing price to a range of its prices over a period of time to predict trend reversals.</li>
+                        <li><strong class="text-blue-600">% From 200MA:</strong> How far the current price has strayed from its 200-day Simple Moving Average (the baseline trend of the stock).</li>
+                        <li><strong class="text-blue-600">% From 52W High:</strong> Shows immediate upside required to break out into new yearly highs.</li>
+                    </ul>
+
+                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-200 pb-2 mt-6 mb-3">Catalysts</h4>
+                    <ul class="space-y-3">
+                        <li><strong class="text-purple-600">Next Earnings:</strong> The estimated date the company will report quarterly financials, driving major price volatility.</li>
+                        <li><strong class="text-purple-600">Ex-Dividend:</strong> You must own the stock before this date to receive the upcoming dividend payout.</li>
+                    </ul>
+                </div>
             </div>
-            <p class="text-gray-600 text-sm mb-6">This engine uses two separate mathematical models to calculate a range of intrinsic values for the target company, creating a comprehensive "Football Field" of potential target entry prices.</p>
-            <div class="space-y-5 text-gray-700 text-sm leading-relaxed">
-                <p><strong class="text-blue-600 font-black">Exit Multiple DCF:</strong> Calculates terminal value based on a multiple of the final year's cash flow. Best for established, steady-state businesses.</p>
-                <p><strong class="text-green-600 font-black">Gordon Growth DCF:</strong> Assumes the company will grow cash flows perpetually at a stable rate. Highly sensitive to the Perpetual Growth Rate input. If the discount rate is lower than the growth rate, this model mathematically breaks and returns N/A.</p>
+
+            <div class="mt-8 pt-4 text-center border-t border-gray-100">
+                <button onclick="toggleModal('stats-modal')" class="bg-gray-900 text-white font-bold py-2 px-8 rounded-lg hover:bg-gray-700 transition">Understood</button>
             </div>
-            <div class="mt-8 pt-4 text-center"><button onclick="toggleModal('dcf-modal')" class="bg-gray-900 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition">Close</button></div>
         </div>
     </div>
     

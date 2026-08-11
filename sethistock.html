@@ -476,6 +476,15 @@
             return el;
         };
 
+        const injectText = (id, text) => {
+            const el = document.getElementById(id);
+            if (el && !el.is_null_shield) {
+                el.innerText = text;
+            } else {
+                console.warn(`🚨 GHOST ID: Cannot find HTML element with id="${id}"`);
+            }
+        };
+
         renderWatchlist();
 
         function toggleModal(id) {

@@ -132,6 +132,18 @@
                     <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">ROE</span><span id="roe" class="text-3xl font-black mt-1 text-green-600">0%</span></div>
                 </div>
                 
+                <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                    <span class="text-gray-500 text-sm font-bold uppercase tracking-wider flex items-center gap-1">
+                        95% VaR (5Y) 
+                        <button onclick="toggleModal('modal-risk')" class="text-gray-400 hover:text-blue-600"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button>
+                    </span>
+                    <span id="var-95" class="font-black text-red-500">--</span>
+                </div>
+                <div class="flex justify-between items-center py-3">
+                    <span class="text-gray-500 text-sm font-bold uppercase tracking-wider">Volatility (Ann.)</span>
+                    <span id="volatility" class="font-black text-gray-900">--</span>
+                </div>
+
             </div>
         </div>
 
@@ -296,6 +308,34 @@
             </div>
         </div>
 
+        <div class="bg-white rounded-xl p-8 border border-gray-200 shadow-sm mb-8 relative">
+            <button onclick="toggleModal('modal-dupont')" class="absolute top-4 right-4 text-gray-400 hover:text-blue-600 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-6">DuPont ROE Decomposition</h3>
+            <div class="grid grid-cols-1 md:grid-cols-11 gap-2 text-center items-center">
+                <div class="bg-gray-50 border border-gray-100 p-4 rounded-xl col-span-2">
+                    <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Net Margin</span>
+                    <span id="dupont-margin" class="block text-xl font-black text-gray-900">--</span>
+                </div>
+                <div class="text-gray-300 font-black text-2xl hidden md:block">×</div>
+                <div class="bg-gray-50 border border-gray-100 p-4 rounded-xl col-span-2">
+                    <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Asset Turnover</span>
+                    <span id="dupont-turnover" class="block text-xl font-black text-gray-900">--</span>
+                </div>
+                <div class="text-gray-300 font-black text-2xl hidden md:block">×</div>
+                <div class="bg-gray-50 border border-gray-100 p-4 rounded-xl col-span-2">
+                    <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Equity Mult.</span>
+                    <span id="dupont-leverage" class="block text-xl font-black text-gray-900">--</span>
+                </div>
+                <div class="text-gray-300 font-black text-2xl hidden md:block">=</div>
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 col-span-2">
+                    <span class="block text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">True ROE</span>
+                    <span id="dupont-roe" class="block text-2xl font-black text-blue-700">--</span>
+                </div>
+            </div>
+        </div>
+
 
     </section>
 
@@ -421,35 +461,16 @@
         </div>
     </div>
 
-    <div id="modal-risk" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-60 transition-opacity duration-300 opacity-0">
-        <div class="bg-white rounded-2xl w-11/12 md:w-1/2 lg:w-1/3 p-8 shadow-2xl transform scale-95 transition-transform duration-300">
-            <h2 class="text-2xl font-black text-gray-900 mb-4">Risk Profile (VaR & Volatility)</h2>
-            <p class="text-gray-600 mb-4"><strong>Value at Risk (VaR):</strong> A statistical technique used on Wall Street to quantify the level of financial risk. A 95% VaR of -3.5% means we are 95% confident the stock will not lose more than 3.5% of its value in a single trading day, based on 5 years of historical data.</p>
-            <p class="text-gray-600 mb-6"><strong>Volatility:</strong> The annualized standard deviation of daily returns. Higher percentages indicate a wider swing in daily price action.</p>
-            <button onclick="toggleModal('modal-risk')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800">Understood</button>
+    <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 mt-6 overflow-x-auto relative">
+        <button onclick="toggleModal('modal-matrix')" class="absolute top-4 right-4 text-gray-400 hover:text-blue-600 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </button>
+        <div class="mb-4">
+            <h3 class="text-lg font-bold text-gray-800">Live DCF Sensitivity Matrix</h3>
+            <p class="text-xs font-semibold text-gray-500 mt-1">Implied Share Price based on Live DCF Inputs</p>
         </div>
-    </div>
-
-    <div id="modal-dupont" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-60 transition-opacity duration-300 opacity-0">
-        <div class="bg-white rounded-2xl w-11/12 md:w-1/2 lg:w-1/3 p-8 shadow-2xl transform scale-95 transition-transform duration-300">
-            <h2 class="text-2xl font-black text-gray-900 mb-4">DuPont ROE Analysis</h2>
-            <p class="text-gray-600 mb-4">Return on Equity (ROE) is a massive profitability indicator, but it can be manipulated with debt. The DuPont model breaks ROE down into its three true drivers:</p>
-            <ul class="list-disc pl-5 text-gray-600 mb-6 space-y-2">
-                <li><strong>Net Margin:</strong> Operating efficiency (Are they pricing their product well?)</li>
-                <li><strong>Asset Turnover:</strong> Asset use efficiency (Are they selling enough product?)</li>
-                <li><strong>Equity Multiplier:</strong> Financial leverage (Are they pumping up returns using dangerous debt?)</li>
-            </ul>
-            <button onclick="toggleModal('modal-dupont')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800">Understood</button>
-        </div>
-    </div>
-
-    <div id="modal-matrix" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-60 transition-opacity duration-300 opacity-0">
-        <div class="bg-white rounded-2xl w-11/12 md:w-1/2 lg:w-1/3 p-8 shadow-2xl transform scale-95 transition-transform duration-300">
-            <h2 class="text-2xl font-black text-gray-900 mb-4">Live Sensitivity Matrix</h2>
-            <p class="text-gray-600 mb-4">A standard single-scenario DCF is dangerous. Analysts use Sensitivity Matrices to see how slightly missing their assumptions affects the target price.</p>
-            <p class="text-gray-600 mb-6">This live grid pulls your exact inputs from the DCF Calculator above, and automatically calculates 25 different target prices by flexing the Exit Multiple (X-Axis) and the Discount Rate (Y-Axis) up and down. <span class="text-green-600 font-bold">Green values</span> mean the implied price is higher than today's market price (Undervalued).</p>
-            <button onclick="toggleModal('modal-matrix')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800">Understood</button>
-        </div>
+        <div id="sensitivity-matrix-container" class="w-full">
+            </div>
     </div>
 
     <script>
@@ -581,10 +602,12 @@
                 if (data.dupont_analysis && !data.dupont_analysis.error) {
                     document.getElementById('dupont-margin').innerText = data.dupont_analysis.net_profit_margin + '%';
                     document.getElementById('dupont-turnover').innerText = data.dupont_analysis.asset_turnover + 'x';
+                    document.getElementById('dupont-leverage').innerText = data.dupont_analysis.equity_multiplier + 'x'; // <-- ADD THIS LINE
                     document.getElementById('dupont-roe').innerText = data.dupont_analysis.calculated_roe + '%';
                 } else {
                     document.getElementById('dupont-margin').innerText = 'N/A';
                     document.getElementById('dupont-turnover').innerText = 'N/A';
+                    document.getElementById('dupont-leverage').innerText = 'N/A';
                     document.getElementById('dupont-roe').innerText = 'N/A';
                 }
 

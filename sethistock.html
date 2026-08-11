@@ -105,56 +105,45 @@
 
 
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col relative h-full">
-                <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center justify-between">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center justify-between">
                     Insights & Stats
                     <button onclick="toggleModal('stats-modal')" class="text-gray-400 hover:text-blue-600 transition z-10 cursor-pointer">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </button>
                 </h3>
                 
-                <div class="flex-grow flex items-center justify-center">
-                    <div class="grid grid-cols-2 gap-x-10 gap-y-4 w-full max-w-md">
-                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
-                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Mkt Cap</span>
-                            <span id="stat-mkt" class="text-sm font-black text-gray-900">--</span>
-                        </div>
-                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
-                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">EV/EBITDA</span>
-                            <span id="stat-ev" class="text-sm font-black text-gray-900">--</span>
-                        </div>
-                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
-                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">P/E (TTM)</span>
-                            <span id="stat-pe" class="text-sm font-black text-gray-900">--</span>
-                        </div>
-                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
-                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">P/B (TTM)</span>
-                            <span id="stat-pb" class="text-sm font-black text-gray-900">--</span>
-                        </div>
-                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
-                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">EPS (TTM)</span>
-                            <span id="stat-eps" class="text-sm font-black text-gray-900">--</span>
-                        </div>
-                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
-                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Div Yield</span>
-                            <span id="stat-div" class="text-sm font-black text-gray-900">--</span>
-                        </div>
-                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
-                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">FCF Yield</span>
-                            <span id="stat-fcf" class="text-sm font-black text-gray-900">--</span>
-                        </div>
-                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
-                            <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">ROE</span>
-                            <span id="roe" class="text-sm font-black text-blue-700">--</span>
-                        </div>
-                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
-                            <span class="text-xs font-bold text-red-500 uppercase tracking-wider">95% VaR</span>
-                            <span id="var-95" class="text-sm font-black text-red-600">--</span>
-                        </div>
-                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
-                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Volatility</span>
-                            <span id="volatility" class="text-sm font-black text-gray-900">--</span>
+                <div class="flex-grow flex flex-col justify-center space-y-5">
+                    
+                    <div>
+                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-1 mb-2">Value & Profitability</h4>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-2 px-1">
+                            <div class="flex justify-between items-center"><span class="text-xs font-bold text-gray-500">Mkt Cap</span><span id="stat-mkt" class="text-xs font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center"><span class="text-xs font-bold text-gray-500">EV/EBITDA</span><span id="stat-ev" class="text-xs font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center"><span class="text-xs font-bold text-gray-500">P/E (TTM)</span><span id="stat-pe" class="text-xs font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center"><span class="text-xs font-bold text-blue-600">ROE</span><span id="roe" class="text-xs font-black text-blue-700">--</span></div>
                         </div>
                     </div>
+
+                    <div>
+                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-1 mb-2">Technicals & Momentum</h4>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-2 px-1">
+                            <div class="flex justify-between items-center"><span class="text-xs font-bold text-gray-500">14d RSI</span><span id="stat-rsi" class="text-xs font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center"><span class="text-xs font-bold text-gray-500">Stochastic</span><span id="stat-stoch" class="text-xs font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center"><span class="text-xs font-bold text-gray-500">% From 200MA</span><span id="stat-sma" class="text-xs font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center"><span class="text-xs font-bold text-gray-500">% From 52W High</span><span id="stat-52w" class="text-xs font-black text-gray-900">--</span></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-1 mb-2">Risk & Yield</h4>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-2 px-1">
+                            <div class="flex justify-between items-center"><span class="text-xs font-bold text-gray-500">Beta</span><span id="stat-beta" class="text-xs font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center"><span class="text-xs font-bold text-red-500">Short Int.</span><span id="stat-short" class="text-xs font-black text-red-600">--</span></div>
+                            <div class="flex justify-between items-center"><span class="text-xs font-bold text-gray-500">Div Yield</span><span id="stat-div" class="text-xs font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center"><span class="text-xs font-bold text-green-600">FCF Yield</span><span id="stat-fcf" class="text-xs font-black text-green-700">--</span></div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
             </div>
@@ -567,14 +556,33 @@
                 changeEl.className = data.change >= 0 ? "text-xl font-semibold text-green-600" : "text-xl font-semibold text-red-600";
                 pctEl.className = data.change >= 0 ? "px-3 py-1 text-sm font-bold text-white rounded-full bg-green-500" : "px-3 py-1 text-sm font-bold text-white rounded-full bg-red-500";
 
-                document.getElementById('stat-mkt').innerText = data.stats.mkt_cap;
-                document.getElementById('stat-ev').innerText = data.stats.ev_ebitda;
-                document.getElementById('stat-pe').innerText = data.stats.pe;
-                document.getElementById('stat-pb').innerText = data.stats.pb;
-                document.getElementById('stat-eps').innerText = data.stats.eps;
-                document.getElementById('stat-div').innerText = data.stats.div_yield;
-                document.getElementById('stat-fcf').innerText = data.stats.fcf_yield;
-                document.getElementById('roe').innerText = data.stats.roe;
+                // --- BULLETPROOF INSIGHTS & STATS MAPPING ---
+                if (data.stats) {
+                    // Value
+                    injectText('stat-mkt', data.stats.mkt_cap || 'N/A');
+                    injectText('stat-ev', data.stats.ev_ebitda || 'N/A');
+                    injectText('stat-pe', data.stats.pe || 'N/A');
+                    injectText('roe', data.stats.roe || 'N/A');
+                    
+                    // Technicals
+                    injectText('stat-rsi', data.stats.rsi_14 || 'N/A');
+                    injectText('stat-stoch', data.stats.stoch_k || 'N/A');
+                    
+                    // Colorize the SMA so green is above, red is below
+                    const smaEl = document.getElementById('stat-sma');
+                    if(smaEl) {
+                        smaEl.innerText = data.stats.sma_200_pct || 'N/A';
+                        smaEl.className = (parseFloat(data.stats.sma_200_pct) > 0) ? "text-xs font-black text-green-600" : "text-xs font-black text-red-600";
+                    }
+                    
+                    injectText('stat-52w', data.stats.dist_52w_high || 'N/A');
+                    
+                    // Risk & Yield
+                    injectText('stat-beta', data.stats.beta || 'N/A');
+                    injectText('stat-short', data.stats.short_interest || 'N/A');
+                    injectText('stat-div', data.stats.div_yield || 'N/A');
+                    injectText('stat-fcf', data.stats.fcf_yield || 'N/A');
+                }
 
 
                 const score = data.stats.sethi_score;

@@ -450,6 +450,24 @@
         let state = { ticker: "", period: "1y", interval: "1d", type: "line", fcf: 0, shares: 0, price: 0, stats: null, chartData: null };
         let watchlist = JSON.parse(localStorage.getItem('sethiWatchlist')) || [];
 
+        const _originalGetElementById = document.getElementById;
+        document.getElementById = function(id) {
+            const el = _originalGetElementById.call(document, id);
+            if (!el) {
+                console.warn(`🛡️ Null-Shield intercepted missing ID: "${id}"`);
+                // Return a dummy safe object so setting .innerText never crashes your app
+                return { 
+                    style: {}, 
+                    classList: { add(){}, remove(){}, contains(){} },
+                    setAttribute() {},
+                    addEventListener() {},
+                    innerText: '',
+                    innerHTML: ''
+                };
+            }
+            return el;
+        };
+
         renderWatchlist();
 
         function toggleModal(id) {

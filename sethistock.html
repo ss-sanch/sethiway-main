@@ -104,46 +104,59 @@
             </div>
 
 
-            <div id="insights" class="xl:col-span-1 bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col relative scroll-mt-24">
-                <div class="flex justify-between items-center mb-6 border-b pb-4">
-                    <h3 class="text-2xl font-black">Insights & Stats</h3>
-                    <button onclick="toggleModal('stats-modal')" class="text-gray-400 hover:text-blue-600 transition-colors" title="Learn about these metrics">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col relative h-full">
+                <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center justify-between">
+                    Insights & Stats
+                    <button onclick="toggleModal('stats-modal')" class="text-gray-400 hover:text-blue-600 transition z-10 cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </button>
-                </div>
-                <div class="flex md:hidden justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6">
-                    <div class="flex items-center space-x-1">
-                        <span class="text-xs text-gray-500 font-bold uppercase">Sethi Score</span>
-                        <button onclick="toggleModal('score-modal')" class="text-gray-400 hover:text-blue-600 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        </button>
+                </h3>
+                
+                <div class="flex-grow flex items-center justify-center">
+                    <div class="grid grid-cols-2 gap-x-10 gap-y-4 w-full max-w-md">
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Mkt Cap</span>
+                            <span id="stat-mkt" class="text-sm font-black text-gray-900">--</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">EV/EBITDA</span>
+                            <span id="stat-ev" class="text-sm font-black text-gray-900">--</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">P/E (TTM)</span>
+                            <span id="stat-pe" class="text-sm font-black text-gray-900">--</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">P/B (TTM)</span>
+                            <span id="stat-pb" class="text-sm font-black text-gray-900">--</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">EPS (TTM)</span>
+                            <span id="stat-eps" class="text-sm font-black text-gray-900">--</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Div Yield</span>
+                            <span id="stat-div" class="text-sm font-black text-gray-900">--</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">FCF Yield</span>
+                            <span id="stat-fcf" class="text-sm font-black text-gray-900">--</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                            <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">ROE</span>
+                            <span id="roe" class="text-sm font-black text-blue-700">--</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                            <span class="text-xs font-bold text-red-500 uppercase tracking-wider">95% VaR</span>
+                            <span id="var-95" class="text-sm font-black text-red-600">--</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Volatility</span>
+                            <span id="volatility" class="text-sm font-black text-gray-900">--</span>
+                        </div>
                     </div>
-                    <span id="sethi-score-mobile" class="text-xl font-black">0/100</span>
                 </div>
-                
-                <div class="grid grid-cols-2 gap-y-8 gap-x-6 mt-2">
-                    <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">Market Cap</span><span id="stat-mkt" class="text-3xl font-black mt-1 text-blue-600">0</span></div>
-                    <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">EV/EBITDA</span><span id="stat-ev" class="text-3xl font-black mt-1">0</span></div>
-                    <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">P/E Ratio (TTM)</span><span id="stat-pe" class="text-3xl font-black mt-1">0</span></div>
-                    <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">P/B Ratio (TTM)</span><span id="stat-pb" class="text-3xl font-black mt-1">0</span></div>
-                    <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">EPS (TTM)</span><span id="stat-eps" class="text-3xl font-black mt-1">0</span></div>
-                    <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">Dividend Yield</span><span id="stat-div" class="text-3xl font-black mt-1 text-green-600">0%</span></div>
-                    <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">FCF Yield</span><span id="stat-fcf" class="text-3xl font-black mt-1 text-green-600">0%</span></div>
-                    <div class="flex flex-col"><span class="text-[11px] text-gray-400 font-bold tracking-widest uppercase">ROE</span><span id="roe" class="text-3xl font-black mt-1 text-green-600">0%</span></div>
-                </div>
-                
-                <div class="flex justify-between items-center py-3 border-b border-gray-100">
-                    <span class="text-gray-500 text-sm font-bold uppercase tracking-wider flex items-center gap-1">
-                        95% VaR (5Y) 
-                        <button onclick="toggleModal('modal-risk')" class="text-gray-400 hover:text-blue-600"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button>
-                    </span>
-                    <span id="var-95" class="font-black text-red-500">--</span>
-                </div>
-                <div class="flex justify-between items-center py-3">
-                    <span class="text-gray-500 text-sm font-bold uppercase tracking-wider">Volatility (Ann.)</span>
-                    <span id="volatility" class="font-black text-gray-900">--</span>
-                </div>
-
+            </div>
             </div>
         </div>
 
@@ -212,17 +225,15 @@
         </div>
 
 
-            <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm mt-6 overflow-x-auto relative">
-                <button onclick="toggleModal('modal-matrix')" class="absolute top-4 right-4 text-gray-400 hover:text-blue-600 transition">
+            <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 mt-6 relative">
+                <button onclick="toggleModal('modal-matrix')" class="absolute top-4 right-4 text-gray-400 hover:text-blue-600 transition z-10 cursor-pointer">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </button>
-                <div class="flex justify-between items-end mb-4">
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-800">Live DCF Sensitivity Matrix</h3>
-                        <p class="text-xs font-semibold text-gray-500 mt-1">Implied Share Price based on Live DCF Inputs (Updates Automatically)</p>
-                    </div>
+                <div class="mb-4 pr-8">
+                    <h3 class="text-lg font-bold text-gray-800">Live DCF Sensitivity Matrix</h3>
+                    <p class="text-xs font-semibold text-gray-500 mt-1">Implied Share Price based on Live DCF Inputs</p>
                 </div>
-                <div id="sensitivity-matrix-container" class="w-full">
+                <div id="sensitivity-matrix-container" class="w-full overflow-x-auto">
                     </div>
             </div>
         </div>
@@ -266,10 +277,10 @@
         </div>
 
         <div class="bg-white rounded-xl p-8 border border-gray-200 shadow-sm mb-8 relative">
-            <button onclick="toggleModal('modal-dupont')" class="absolute top-4 right-4 text-gray-400 hover:text-blue-600 transition">
+            <button onclick="toggleModal('modal-dupont')" class="absolute top-4 right-4 text-gray-400 hover:text-blue-600 transition z-10 cursor-pointer">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             </button>
-            <h3 class="text-xl font-black text-gray-900 mb-6">DuPont ROE Decomposition</h3>
+            <h3 class="text-xl font-black text-gray-900 mb-6 pr-8">DuPont ROE Decomposition</h3>
             <div class="grid grid-cols-1 md:grid-cols-11 gap-2 text-center items-center">
                 <div class="bg-gray-50 border border-gray-100 p-4 rounded-xl col-span-2">
                     <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Net Margin</span>
@@ -375,14 +386,17 @@
                 <h2 class="text-2xl font-black text-gray-900">Understanding Core Metrics</h2>
                 <button onclick="toggleModal('stats-modal')" class="text-gray-400 hover:text-red-500 text-3xl leading-none">&times;</button>
             </div>
-            <div class="space-y-5 text-gray-700 text-sm leading-relaxed">
+            <div class="space-y-4 text-gray-700 text-sm leading-relaxed">
                 <p><strong class="text-blue-600 font-black">Market Cap:</strong> The total market value of a company's outstanding shares. It helps categorise companies by size and risk profile.</p>
                 <p><strong class="text-blue-600 font-black">EV/EBITDA:</strong> Enterprise Value to Earnings Before Interest, Taxes, Depreciation, and Amortisation. A comprehensive valuation metric that compares a company's total value (including debt) to its cash earnings.</p>
-                <p><strong class="text-blue-600 font-black">P/E Ratio (TTM):</strong> Price-to-Earnings Ratio (Trailing Twelve Months). Compares the current share price to its per-share earnings. Used to gauge if a stock is over or undervalued relative to its peers.</p>
-                <p><strong class="text-blue-600 font-black">P/B Ratio (TTM):</strong> Price-to-Book Ratio. Compares the market valuation to the company's actual net asset value (book value). Useful for identifying undervalued companies.</p>
-                <p><strong class="text-blue-600 font-black">EPS (TTM):</strong> Earnings Per Share. The portion of a company's profit allocated to each outstanding share, serving as a primary indicator of profitability.</p>
-                <p><strong class="text-blue-600 font-black">Dividend Yield:</strong> The financial ratio that shows how much a company pays out in dividends each year relative to its share price. A key metric for income-focused investors.</p>
-                <p><strong class="text-blue-600 font-black">FCF Yield:</strong> Free Cash Flow Yield. Compares the free cash flow per share with the market price per share. A high yield often indicates a company is generating plenty of cash relative to its valuation.</p>
+                <p><strong class="text-blue-600 font-black">P/E Ratio (TTM):</strong> Price-to-Earnings Ratio. Compares the current share price to its per-share earnings. Used to gauge if a stock is over or undervalued relative to its peers.</p>
+                <p><strong class="text-blue-600 font-black">P/B Ratio (TTM):</strong> Price-to-Book Ratio. Compares the market valuation to the company's actual net asset value (book value).</p>
+                <p><strong class="text-blue-600 font-black">EPS (TTM):</strong> Earnings Per Share. The portion of a company's profit allocated to each outstanding share.</p>
+                <p><strong class="text-blue-600 font-black">Div Yield:</strong> The financial ratio that shows how much a company pays out in dividends each year relative to its share price.</p>
+                <p><strong class="text-blue-600 font-black">FCF Yield:</strong> Free Cash Flow Yield. A high yield often indicates a company is generating plenty of cash relative to its valuation.</p>
+                <p><strong class="text-blue-600 font-black">ROE:</strong> Return on Equity. A massive indicator of efficiency, showing how much profit a company generates with the money shareholders have invested.</p>
+                <p><strong class="text-red-500 font-black">95% VaR (5Y):</strong> Value at Risk. A Wall Street statistical technique. A 95% VaR of -3.5% means we are 95% confident the stock will not lose more than 3.5% of its value in a single trading day, based on 5 years of historical data.</p>
+                <p><strong class="text-gray-900 font-black">Volatility:</strong> The annualized standard deviation of daily returns. Higher percentages indicate a wider, riskier swing in daily price action.</p>
             </div>
             <div class="mt-8 pt-4 text-center"><button onclick="toggleModal('stats-modal')" class="bg-gray-900 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition">Close</button></div>
         </div>

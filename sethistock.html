@@ -476,14 +476,14 @@
             return el;
         };
 
-        const injectText = (id, text) => {
+        function injectText(id, text) {
             const el = document.getElementById(id);
             if (el && !el.is_null_shield) {
                 el.innerText = text;
             } else {
                 console.warn(`🚨 GHOST ID: Cannot find HTML element with id="${id}"`);
             }
-        };
+        }
 
         renderWatchlist();
 
@@ -613,17 +613,7 @@
 
                 // ==========================================
                 // --- ADVANCED QUANT ENGINE LOGIC ----------
-                // ==========================================
-
-                // Defensive Injection Helper (Prevents Fatal Crashes)
-                const injectText = (id, text) => {
-                    const el = document.getElementById(id);
-                    if (el) {
-                        el.innerText = text;
-                    } else {
-                        console.error(`🚨 GHOST ID FOUND: Cannot find HTML element with id="${id}"`);
-                    }
-                };
+                // ==========================================                
 
                 // 1. Risk Profile Mapping
                 if (data.risk_profile && !data.risk_profile.error) {

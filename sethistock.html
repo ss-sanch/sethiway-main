@@ -211,49 +211,6 @@
             <p id="dcf-warning" class="text-red-500 text-center font-bold hidden">Insufficient Cash Flow or Estimates to run full Valuation Engine.</p>
         </div>
 
-        <div class="mt-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm relative">
-                    <button onclick="toggleModal('modal-risk')" class="absolute top-4 right-4 text-gray-400 hover:text-blue-600 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </button>
-                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        Risk Profile 
-                        <span class="text-xs bg-gray-100 text-gray-500 font-semibold px-2 py-1 rounded border border-gray-200">Daily 5Y</span>
-                    </h3>
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-sm font-semibold text-gray-500">95% Value at Risk</span>
-                        <span id="var-95" class="text-xl font-bold text-red-500">--</span>
-                    </div>
-                    <div class="flex justify-between items-center pt-4 border-t border-gray-100">
-                        <span class="text-sm font-semibold text-gray-500">Annual Volatility</span>
-                        <span id="volatility" class="text-xl font-bold text-gray-900">--</span>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm lg:col-span-2 relative">
-                    <button onclick="toggleModal('modal-dupont')" class="absolute top-4 right-4 text-gray-400 hover:text-blue-600 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </button>
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">DuPont ROE Decomposition</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-7 gap-2 text-center items-center">
-                        <div class="bg-gray-50 border border-gray-100 p-3 rounded-lg col-span-2">
-                            <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Net Margin</span>
-                            <span id="dupont-margin" class="block text-lg font-black text-gray-900">--</span>
-                        </div>
-                        <div class="text-gray-400 font-bold hidden md:block">×</div>
-                        <div class="bg-gray-50 border border-gray-100 p-3 rounded-lg col-span-2">
-                            <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Asset Turnover</span>
-                            <span id="dupont-turnover" class="block text-lg font-black text-gray-900">--</span>
-                        </div>
-                        <div class="text-gray-400 font-bold hidden md:block">=</div>
-                        <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 col-span-2 md:col-span-1">
-                            <span class="block text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">True ROE</span>
-                            <span id="dupont-roe" class="block text-xl font-black text-blue-700">--</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm mt-6 overflow-x-auto relative">
                 <button onclick="toggleModal('modal-matrix')" class="absolute top-4 right-4 text-gray-400 hover:text-blue-600 transition">

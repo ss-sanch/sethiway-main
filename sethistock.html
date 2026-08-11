@@ -105,58 +105,52 @@
 
 
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col relative h-full">
-                <h3 class="text-xl font-black text-gray-900 mb-4 flex items-center justify-between">
+                <h3 class="text-xl font-black text-gray-900 mb-6 flex items-center justify-between">
                     Insights & Stats
                     <button onclick="toggleModal('stats-modal')" class="text-gray-400 hover:text-blue-600 transition z-10 cursor-pointer">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </button>
                 </h3>
                 
-                <div class="flex flex-col space-y-4 mt-2">
+                <div class="flex-grow flex flex-col justify-between space-y-6">
                     
                     <div>
-                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-1.5 mb-2">Value & Profitability</h4>
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 px-1">
-                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">Mkt Cap</span><span id="stat-mkt" class="text-sm font-black text-gray-900">--</span></div>
-                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">EV/EBITDA</span><span id="stat-ev" class="text-sm font-black text-gray-900">--</span></div>
-                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">P/E (TTM)</span><span id="stat-pe" class="text-sm font-black text-gray-900">--</span></div>
-                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-blue-600">ROE</span><span id="roe" class="text-sm font-black text-blue-700">--</span></div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Value & Profitability</h4>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 px-1">
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Mkt Cap</span><span id="stat-mkt" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">EV/EBITDA</span><span id="stat-ev" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">P/E (TTM)</span><span id="stat-pe" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-blue-600">ROE</span><span id="roe" class="text-sm font-black text-blue-700">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">EPS (TTM)</span><span id="stat-eps" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">EPS (NTM)</span><span id="stat-feps" class="text-sm font-black text-gray-900">--</span></div>
                         </div>
                     </div>
 
                     <div>
-                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-1.5 mb-2">Technicals & Momentum</h4>
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 px-1">
-                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">14d RSI</span><span id="stat-rsi" class="text-sm font-black text-gray-900">--</span></div>
-                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">Stochastic</span><span id="stat-stoch" class="text-sm font-black text-gray-900">--</span></div>
-                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">% From 200MA</span><span id="stat-sma" class="text-sm font-black text-gray-900">--</span></div>
-                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">% From 52W High</span><span id="stat-52w" class="text-sm font-black text-gray-900">--</span></div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Technicals & Momentum</h4>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 px-1">
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">14d RSI</span><span id="stat-rsi" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Stochastic</span><span id="stat-stoch" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">% From 200MA</span><span id="stat-sma" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">% From 52W High</span><span id="stat-52w" class="text-sm font-black text-gray-900">--</span></div>
                         </div>
                     </div>
 
                     <div>
-                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-1.5 mb-2">Risk & Yield</h4>
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 px-1">
-                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">Beta</span><span id="stat-beta" class="text-sm font-black text-gray-900">--</span></div>
-                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-red-500">Short Int.</span><span id="stat-short" class="text-sm font-black text-red-600">--</span></div>
-                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">Div Yield</span><span id="stat-div" class="text-sm font-black text-gray-900">--</span></div>
-                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-green-600">FCF Yield</span><span id="stat-fcf" class="text-sm font-black text-green-700">--</span></div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Risk & Yield</h4>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 px-1">
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Beta</span><span id="stat-beta" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-red-500">Short Int.</span><span id="stat-short" class="text-sm font-black text-red-600">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Div Yield</span><span id="stat-div" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-green-600">FCF Yield</span><span id="stat-fcf" class="text-sm font-black text-green-700">--</span></div>
                         </div>
                     </div>
 
                     <div>
-                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-1.5 mb-2">Catalysts</h4>
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 px-1">
-                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-purple-600">Next Earnings</span><span id="stat-earn" class="text-sm font-black text-gray-900">--</span></div>
-                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-purple-600">Ex-Dividend</span><span id="stat-exdiv" class="text-sm font-black text-gray-900">--</span></div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-1.5 mb-2">Earnings</h4>
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 px-1">
-                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">EPS (TTM)</span><span id="stat-eps" class="text-sm font-black text-gray-900">--</span></div>
-                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">Forward EPS</span><span id="stat-feps" class="text-sm font-black text-gray-900">--</span></div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Catalysts</h4>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 px-1">
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-purple-600">Next Earnings</span><span id="stat-earn" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-purple-600">Ex-Dividend</span><span id="stat-exdiv" class="text-sm font-black text-gray-900">--</span></div>
                         </div>
                     </div>
 

@@ -152,6 +152,14 @@
                         </div>
                     </div>
 
+                    <div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-1.5 mb-2">Earnings</h4>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 px-1">
+                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">EPS (TTM)</span><span id="stat-eps" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1.5"><span class="text-sm font-bold text-gray-500">Forward EPS</span><span id="stat-feps" class="text-sm font-black text-gray-900">--</span></div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
             </div>
@@ -358,6 +366,23 @@
         </div>
     </div>
 
+    <div id="dcf-modal" class="hidden fixed inset-0 z-[150] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-2xl font-black text-gray-900">Advanced Valuation Engine</h2>
+                <button onclick="toggleModal('dcf-modal')" class="text-gray-400 hover:text-red-500 text-3xl leading-none">&times;</button>
+            </div>
+            <p class="text-gray-600 text-sm mb-6">This engine uses distinct mathematical models to calculate a range of intrinsic values for the target company, creating a comprehensive "Football Field" of potential target entry prices.</p>
+            <div class="space-y-5 text-gray-700 text-sm leading-relaxed">
+                <p><strong class="text-blue-600 font-black">Exit Multiple DCF:</strong> Calculates terminal value based on a multiple of the final year's cash flow. Best for established, steady-state businesses.</p>
+                <p><strong class="text-green-600 font-black">Gordon Growth DCF:</strong> Assumes the company will grow cash flows perpetually at a stable rate. Highly sensitive to the Perpetual Growth Rate input. If the discount rate is lower than the growth rate, this model mathematically breaks and returns N/A.</p>
+            </div>
+            <div class="mt-8 pt-4 text-center border-t border-gray-100">
+                <button onclick="toggleModal('dcf-modal')" class="bg-gray-900 text-white font-bold py-2 px-8 rounded-lg hover:bg-gray-700 transition">Close</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-dupont" class="fixed inset-0 z-[150] hidden flex items-center justify-center bg-black bg-opacity-60 transition-opacity duration-300 opacity-0">
         <div class="bg-white rounded-2xl w-11/12 md:w-1/2 lg:w-1/3 p-8 shadow-2xl transform scale-95 transition-transform duration-300">
             <h2 class="text-2xl font-black text-gray-900 mb-4">DuPont ROE Analysis</h2>
@@ -424,6 +449,8 @@
                         <li><strong class="text-blue-600">EV/EBITDA:</strong> Compares a company's total value (including debt) to its raw cash earnings. The gold standard of valuation.</li>
                         <li><strong class="text-blue-600">P/E Ratio:</strong> Price-to-Earnings. How much investors are willing to pay per dollar of earnings.</li>
                         <li><strong class="text-blue-600">ROE (Return on Equity):</strong> Measures how efficiently the company turns shareholder cash into profits.</li>
+                        <li><strong class="text-blue-600">EPS (TTM):</strong> Earnings Per Share. The portion of a company's profit allocated to each outstanding share over the last 12 months.</li>
+                        <li><strong class="text-blue-600">Forward EPS:</strong> Wall Street analysts' consensus estimate of what the company's Earnings Per Share will be over the next 12 months.</li>
                     </ul>
 
                     <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-200 pb-2 mt-6 mb-3">Risk & Yield</h4>
@@ -592,6 +619,8 @@
                     injectText('stat-ev', data.stats.ev_ebitda || 'N/A');
                     injectText('stat-pe', data.stats.pe || 'N/A');
                     injectText('roe', data.stats.roe || 'N/A');
+                    injectText('stat-eps', data.stats.eps !== 'N/A' ? '$' + data.stats.eps : 'N/A');
+                    injectText('stat-feps', data.stats.forward_eps !== 'N/A' ? '$' + data.stats.forward_eps : 'N/A');
                     
                     // Technicals
                     injectText('stat-rsi', data.stats.rsi_14 || 'N/A');

@@ -561,26 +561,36 @@
                 // --- ADVANCED QUANT ENGINE LOGIC ----------
                 // ==========================================
 
+                // Defensive Injection Helper (Prevents Fatal Crashes)
+                const injectText = (id, text) => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.innerText = text;
+                    } else {
+                        console.error(`🚨 GHOST ID FOUND: Cannot find HTML element with id="${id}"`);
+                    }
+                };
+
                 // 1. Risk Profile Mapping
                 if (data.risk_profile && !data.risk_profile.error) {
-                    document.getElementById('var-95').innerText = data.risk_profile.daily_var_95 + '%';
-                    document.getElementById('volatility').innerText = data.risk_profile.annualized_volatility + '%';
+                    injectText('var-95', data.risk_profile.daily_var_95 + '%');
+                    injectText('volatility', data.risk_profile.annualized_volatility + '%');
                 } else {
-                    document.getElementById('var-95').innerText = 'N/A';
-                    document.getElementById('volatility').innerText = 'N/A';
+                    injectText('var-95', 'N/A');
+                    injectText('volatility', 'N/A');
                 }
 
                 // 2. DuPont Analysis Mapping
                 if (data.dupont_analysis && !data.dupont_analysis.error) {
-                    document.getElementById('dupont-margin').innerText = data.dupont_analysis.net_profit_margin + '%';
-                    document.getElementById('dupont-turnover').innerText = data.dupont_analysis.asset_turnover + 'x';
-                    document.getElementById('dupont-leverage').innerText = data.dupont_analysis.equity_multiplier + 'x'; // <-- ADD THIS LINE
-                    document.getElementById('dupont-roe').innerText = data.dupont_analysis.calculated_roe + '%';
+                    injectText('dupont-margin', data.dupont_analysis.net_profit_margin + '%');
+                    injectText('dupont-turnover', data.dupont_analysis.asset_turnover + 'x');
+                    injectText('dupont-leverage', data.dupont_analysis.equity_multiplier + 'x');
+                    injectText('dupont-roe', data.dupont_analysis.calculated_roe + '%');
                 } else {
-                    document.getElementById('dupont-margin').innerText = 'N/A';
-                    document.getElementById('dupont-turnover').innerText = 'N/A';
-                    document.getElementById('dupont-leverage').innerText = 'N/A';
-                    document.getElementById('dupont-roe').innerText = 'N/A';
+                    injectText('dupont-margin', 'N/A');
+                    injectText('dupont-turnover', 'N/A');
+                    injectText('dupont-leverage', 'N/A');
+                    injectText('dupont-roe', 'N/A');
                 }
 
                 let cleanFin = { years: [], revenue: [], net: [], gross_margin: [], op_margin: [], net_margin: [], fcf: [], ocf: [], capex: [], cash: [], debt: [], shares: [] };

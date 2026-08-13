@@ -585,8 +585,26 @@
             btn.innerHTML = 'Analysing...'; btn.disabled = true;
             document.getElementById('error-message').classList.add('hidden');
             
-            dash.classList.add('hidden');
+            // Ensure dashboard is visible but maybe slightly faded out to show loading state
+            dash.classList.remove('hidden');
             dash.classList.remove('opacity-100');
+            dash.classList.add('opacity-50'); // Dim the dashboard while loading
+
+            // --- NEW: SKELETON LOADER INJECTION ---
+            const loaderHTML = `<div class="animate-pulse h-6 bg-gray-700 rounded w-3/4 mx-auto"></div>`;
+            
+            // Inject the pulsing bar into all metric boxes so the user knows data is coming
+            const statBoxes = [
+                "current-price", "pe-ratio", "market-cap", "fcf-yield", 
+                "sethi-score", "dcf-target", "gordon-growth", "graham-number",
+                "beta", "dividend-yield", "ev-ebitda", "profit-margin", "roe"
+            ];
+            
+            statBoxes.forEach(id => {
+                // We bypass the Null-Shield here directly to force the loader in
+                const element = _originalGetElementById.call(document, id); 
+                if (element) element.innerHTML = loaderHTML;
+            });
 
             try {
                 const res = await fetch(`${API_URL}/api/stock/${state.ticker}`);

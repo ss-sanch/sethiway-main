@@ -407,7 +407,7 @@
             </div>
             <p class="text-gray-600 text-sm mb-4">The Sethi Score is a proprietary algorithmic grading system out of 100. It quickly evaluates a stock's fundamental health based on 10 strict Wall Street financial metrics.</p>
             <div class="space-y-2 text-gray-700 text-sm leading-relaxed mb-6 bg-gray-50 p-5 rounded-lg border border-gray-200">
-                <ul class="list-disc pl-5 space-y-2">
+                <ul id="sethiscore-criteria-list" class="list-disc pl-5 space-y-2">
                     <li><strong class="font-bold">Positive Net Income:</strong> Company is currently profitable.</li>
                     <li><strong class="font-bold">Consistent Revenue Growth:</strong> Revenue has increased year-over-year.</li>
                     <li><strong class="font-bold">Positive Free Cash Flow:</strong> Generating real cash after capital expenditures.</li>
@@ -683,23 +683,37 @@
                 // ==========================================
                 const breakdownData = data.stats.sethi_score_breakdown;
                 if (breakdownData) {
-                    let checklistHTML = '<ul style="list-style-type: none; padding-left: 0;">';
+                    const metricDescriptions = {
+                        "Positive Net Income": "Company is currently profitable.",
+                        "Consistent Revenue Growth": "Revenue has increased year-over-year.",
+                        "Positive Free Cash Flow": "Generating real cash after capital expenditures.",
+                        "Return on Equity (ROE) > 15%": "Highly efficient at generating profits from shareholder equity.",
+                        "Net Profit Margin > 10%": "Keeping a healthy percentage of total revenue as profit.",
+                        "Debt-to-Equity Ratio < 1.0": "Conservative leverage with manageable debt levels.",
+                        "Free Cash Flow Yield > 5%": "Attractive cash generation relative to its valuation.",
+                        "P/E Ratio < 25": "Trading at a reasonable valuation compared to its earnings.",
+                        "P/B Ratio < 5": "Trading at a reasonable valuation relative to its book value.",
+                        "Pays a Dividend": "Returns cash directly to shareholders."
+                    };
+
+                    let checklistHTML = '';
                     for (const [metric, passed] of Object.entries(breakdownData)) {
                         const icon = passed ? '✅' : '❌';
-                        // Green text if passed, Red text if failed
-                        const colorClass = passed ? 'color: #22c55e;' : 'color: #ef4444;';
+                        const desc = metricDescriptions[metric] || "";
                         
-                        // Use dark grey text for the metric name so it shows up on the white modal
-                        checklistHTML += `<li style="${colorClass} font-weight: bold; margin-bottom: 8px;">
-                            ${icon} <span style="color: #374151; font-weight: normal; margin-left: 8px;">${metric}</span>
+                        // This formats it to match your original UI perfectly
+                        checklistHTML += `
+                        <li style="margin-bottom: 8px;">
+                            <strong style="color: #111827; font-weight: 800;">${icon} ${metric}:</strong> 
+                            <span style="color: #4b5563;">${desc}</span>
                         </li>`;
                     }
-                    checklistHTML += '</ul>';
 
-                    // Inject directly into the new Modal ID
-                    const modalTarget = document.getElementById('sethiscore-modal-checklist');
-                    if (modalTarget) {
-                        modalTarget.innerHTML = checklistHTML;
+                    const listTarget = document.getElementById('sethiscore-criteria-list');
+                    if (listTarget) {
+                        listTarget.style.listStyleType = "none"; // Removes standard bullet points
+                        listTarget.style.paddingLeft = "0";
+                        listTarget.innerHTML = checklistHTML;
                     }
                 }
 

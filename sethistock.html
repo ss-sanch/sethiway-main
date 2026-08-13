@@ -666,6 +666,15 @@
 
                 const score = data.stats.sethi_score;
                 const scoreEls = [document.getElementById('sethi-score'), document.getElementById('sethi-score-mobile')];
+                const breakdownData = data.stats.sethi_score_breakdown;
+                let breakdownHTML = '<ul style="list-style: none; padding: 0; margin-top: 10px; font-size: 0.9rem;">';
+
+                for (const [metric, passed] of Object.entries(breakdownData)) {
+                    const icon = passed ? '✅' : '❌';
+                    const color = passed ? 'text-green-500' : 'text-red-500'; // Assuming you use Tailwind CSS
+                    breakdownHTML += `<li class="${color}" style="margin-bottom: 4px;">${icon} ${metric}</li>`;
+                }
+                breakdownHTML += '</ul>';
                 scoreEls.forEach(el => {
                     el.innerText = `${score}/100`;
                     el.className = score >= 70 ? "text-3xl font-black mt-1 text-green-600" : (score >= 40 ? "text-3xl font-black mt-1 text-yellow-500" : "text-3xl font-black mt-1 text-red-500");

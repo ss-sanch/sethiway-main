@@ -675,6 +675,11 @@
                     breakdownHTML += `<li class="${color}" style="margin-bottom: 4px;">${icon} ${metric}</li>`;
                 }
                 breakdownHTML += '</ul>';
+                
+                if (document.getElementById('sethi-score-breakdown')) {
+                    document.getElementById('sethi-score-breakdown').innerHTML = breakdownHTML;
+                }
+
                 scoreEls.forEach(el => {
                     el.innerText = `${score}/100`;
                     el.className = score >= 70 ? "text-3xl font-black mt-1 text-green-600" : (score >= 40 ? "text-3xl font-black mt-1 text-yellow-500" : "text-3xl font-black mt-1 text-red-500");

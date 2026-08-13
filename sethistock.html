@@ -420,6 +420,9 @@
                     <li><strong class="font-bold">Pays a Dividend:</strong> Returns cash directly to shareholders.</li>
                 </ul>
             </div>
+
+            <div id="sethiscore-modal-checklist" class="mt-4 mb-6"></div>
+
             <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-2">
                 <p class="text-xs text-red-700 font-bold uppercase tracking-widest mb-1">Disclaimer</p>
                 <p class="text-xs text-red-800">The Sethi Score is generated algorithmically for educational and informational purposes only. It does not constitute financial or investment advice. Always conduct your own due diligence or consult a certified financial advisor before making investment decisions.</p>
@@ -666,25 +669,39 @@
 
                 const score = data.stats.sethi_score;
                 const scoreEls = [document.getElementById('sethi-score'), document.getElementById('sethi-score-mobile')];
-                const breakdownData = data.stats.sethi_score_breakdown;
-                let breakdownHTML = '<ul style="list-style: none; padding: 0; margin-top: 10px; font-size: 0.9rem;">';
-
-                for (const [metric, passed] of Object.entries(breakdownData)) {
-                    const icon = passed ? '✅' : '❌';
-                    const color = passed ? 'text-green-500' : 'text-red-500'; // Assuming you use Tailwind CSS
-                    breakdownHTML += `<li class="${color}" style="margin-bottom: 4px;">${icon} ${metric}</li>`;
-                }
-                breakdownHTML += '</ul>';
-                
-                if (document.getElementById('sethi-score-breakdown')) {
-                    document.getElementById('sethi-score-breakdown').innerHTML = breakdownHTML;
-                }
 
                 scoreEls.forEach(el => {
-                    el.innerText = `${score}/100`;
-                    el.className = score >= 70 ? "text-3xl font-black mt-1 text-green-600" : (score >= 40 ? "text-3xl font-black mt-1 text-yellow-500" : "text-3xl font-black mt-1 text-red-500");
-                    if(el.id === 'sethi-score-mobile') el.className = el.className.replace('text-3xl', 'text-xl');
+                    if (el) {
+                        el.innerText = `${score}/100`;
+                        el.className = score >= 70 ? "text-3xl font-black mt-1 text-green-600" : (score >= 40 ? "text-3xl font-black mt-1 text-yellow-500" : "text-3xl font-black mt-1 text-red-500");
+                        if(el.id === 'sethi-score-mobile') el.className = el.className.replace('text-3xl', 'text-xl');
+                    }
                 });
+
+                // ==========================================
+                // 2. BUILD & INJECT THE MODAL CHECKLIST
+                // ==========================================
+                const breakdownData = data.stats.sethi_score_breakdown;
+                if (breakdownData) {
+                    let checklistHTML = '<ul style="list-style-type: none; padding-left: 0;">';
+                    for (const [metric, passed] of Object.entries(breakdownData)) {
+                        const icon = passed ? '✅' : '❌';
+                        // Green text if passed, Red text if failed
+                        const colorClass = passed ? 'color: #22c55e;' : 'color: #ef4444;';
+                        
+                        // Use dark grey text for the metric name so it shows up on the white modal
+                        checklistHTML += `<li style="${colorClass} font-weight: bold; margin-bottom: 8px;">
+                            ${icon} <span style="color: #374151; font-weight: normal; margin-left: 8px;">${metric}</span>
+                        </li>`;
+                    }
+                    checklistHTML += '</ul>';
+
+                    // Inject directly into the new Modal ID
+                    const modalTarget = document.getElementById('sethiscore-modal-checklist');
+                    if (modalTarget) {
+                        modalTarget.innerHTML = checklistHTML;
+                    }
+                }
 
                 document.getElementById('company-summary').innerText = data.summary || "Summary not available.";
                 

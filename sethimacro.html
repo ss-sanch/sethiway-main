@@ -28,6 +28,45 @@
             <p class="text-gray-500 mt-2">US Macroeconomic & Risk Dashboard. Live data from the Federal Reserve (FRED).</p>
         </div>
 
+        <!-- EXECUTIVE MACRO BAR -->
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <!-- Yield Spread Alert -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-blue-500">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">2Y/10Y Yield Spread</h3>
+                <div class="flex items-end gap-2">
+                    <span id="spread-value" class="text-2xl font-black text-gray-900">--</span>
+                    <span id="spread-status" class="text-sm font-semibold mb-1">--</span>
+                </div>
+            </div>
+            
+            <!-- Sahm Rule Alert -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-purple-500">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Sahm Rule (Recession)</h3>
+                <div class="flex items-end gap-2">
+                    <span id="sahm-value" class="text-2xl font-black text-gray-900">--</span>
+                    <span id="sahm-status" class="text-sm font-semibold mb-1">--</span>
+                </div>
+            </div>
+
+            <!-- Taylor Rule Target -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-emerald-500">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Taylor Rule Target</h3>
+                <div class="flex items-end gap-2">
+                    <span id="taylor-rate" class="text-2xl font-black text-gray-900">--</span>
+                    <span id="taylor-bias" class="text-sm font-semibold mb-1">--</span>
+                </div>
+            </div>
+
+            <!-- Actual Fed Rate -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-gray-800">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Actual Fed Funds</h3>
+                <div class="flex items-end gap-2">
+                    <span id="fed-actual" class="text-2xl font-black text-gray-900">--</span>
+                    <span class="text-sm font-semibold text-gray-400 mb-1">Current</span>
+                </div>
+            </div>
+        </div>
+
         <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- Yield Curve -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 lg:col-span-2">
@@ -80,6 +119,36 @@
                 const yieldRes = await fetch(`${API_BASE}/yield-curve`);
                 const macroRes = await fetch(`${API_BASE}/macro-metrics`);
                 
+                // Fetch Proprietary Quant Signals
+                const signalRes = await fetch(`${API_BASE}/quant-signals`);
+                const signalData = await signalRes.json();
+
+                // 1. Populate Yield Spread
+                if(signalData.Yield_Spread_2Y10Y && signalData.Yield_Spread_2Y10Y.value !== "N/A") {
+                    document.getElementById('spread-value').innerText = signalData.Yield_Spread_2Y10Y.value + "%";
+                    const spreadStatus = document.getElementById('spread-status');
+                    spreadStatus.innerText = signalData.Yield_Spread_2Y10Y.status;
+                    spreadStatus.className = signalData.Yield_Spread_2Y10Y.value < 0 ? "text-sm font-semibold mb-1 text-red-600" : "text-sm font-semibold mb-1 text-green-600";
+                }
+
+                // 2. Populate Sahm Rule
+                if(signalData.Sahm_Rule && signalData.Sahm_Rule.value !== "N/A") {
+                    document.getElementById('sahm-value').innerText = signalData.Sahm_Rule.value + "%";
+                    const sahmStatus = document.getElementById('sahm-status');
+                    sahmStatus.innerText = signalData.Sahm_Rule.status;
+                    sahmStatus.className = signalData.Sahm_Rule.value >= 0.50 ? "text-sm font-semibold mb-1 text-red-600" : "text-sm font-semibold mb-1 text-green-600";
+                }
+
+                // 3. Populate Taylor Rule
+                if(signalData.Taylor_Rule && signalData.Taylor_Rule.value !== "N/A") {
+                    document.getElementById('taylor-rate').innerText = signalData.Taylor_Rule.prescribed_rate + "%";
+                    document.getElementById('fed-actual').innerText = signalData.Taylor_Rule.actual_rate + "%";
+                    
+                    const biasStatus = document.getElementById('taylor-bias');
+                    biasStatus.innerText = signalData.Taylor_Rule.policy_bias;
+                    biasStatus.className = signalData.Taylor_Rule.policy_bias.includes("Restrictive") ? "text-sm font-semibold mb-1 text-red-600" : "text-sm font-semibold mb-1 text-blue-600";
+                }
+
                 const yieldData = await yieldRes.json();
                 const macroData = await macroRes.json();
 

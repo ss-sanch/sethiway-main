@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SethiMacro | Big Picture Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
+
+    <!-- SETHIWAY UNIFIED NAVIGATION -->
+    <nav class="flex justify-between items-center py-6 px-6 md:px-10 bg-white shadow-sm sticky top-0 z-50">
+        <a href="index.html" class="flex items-center">
+            <img src="logo.png" alt="Sethiway Logo" class="h-10 w-auto invert">
+        </a>
+        <div class="hidden md:flex space-x-8 text-sm font-semibold uppercase tracking-wide">
+            <a href="index.html#portfolio" class="hover:text-blue-600 transition">Portfolio</a>
+            <a href="sethistock.html" class="hover:text-blue-600 transition">SethiStock</a>
+            <a href="#" class="text-blue-600 transition">SethiMacro</a>
+        </div>
+    </nav>
+
+    <!-- SETHIMACRO DASHBOARD -->
+    <div class="flex-grow p-8">
+        <div class="max-w-7xl mx-auto mb-8">
+            <h1 class="text-4xl font-bold tracking-tight text-gray-900">Sethi<span class="text-blue-600">Macro</span></h1>
+            <p class="text-gray-500 mt-2">US Macroeconomic & Risk Dashboard. Live data from the Federal Reserve (FRED).</p>
+        </div>
+
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Yield Curve -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 lg:col-span-2">
+                <h2 class="text-xl font-bold mb-4 border-b border-gray-100 pb-2">US Treasury Yield Curve (Live)</h2>
+                <div id="yieldCurveChart" style="height: 400px; width: 100%;"></div>
+            </div>
+
+            <!-- CPI Inflation -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-xl font-bold mb-4 border-b border-gray-100 pb-2">US Inflation (CPI YoY %)</h2>
+                <div id="cpiChart" style="height: 350px; width: 100%;"></div>
+            </div>
+
+            <!-- Fed Funds Rate -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <h2 class="text-xl font-bold mb-4 border-b border-gray-100 pb-2">Effective Federal Funds Rate</h2>
+                <div id="fedFundsChart" style="height: 350px; width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SETHIWAY UNIFIED FOOTER -->
+    <footer class="bg-gray-900 text-white py-12 px-6 mt-12">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-6 md:mb-0 flex items-center">
+                <img src="logo.png" alt="Sethiway Logo" class="h-8 w-auto opacity-90">
+            </div>
+            <div class="text-gray-400 font-light text-sm text-center md:text-right">
+                &copy; 2026 Sethiway. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- SETHIMACRO DATA ENGINE -->
+    <script>
+        // IMPORTANT: Replace this with your actual Live Render URL for the SethiMacro Backend
+        const API_BASE = "https://sethimacro.onrender.com/";
+
+        const layoutTemplate = {
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { color: '#4b5563' },
+            xaxis: { gridcolor: '#f3f4f6', showline: true, linecolor: '#e5e7eb' },
+            yaxis: { gridcolor: '#f3f4f6', showline: true, linecolor: '#e5e7eb' },
+            margin: { t: 20, r: 20, l: 40, b: 40 }
+        };
+
+        async function fetchAndRenderData() {
+            try {
+                const yieldRes = await fetch(`${API_BASE}/yield-curve`);
+                const macroRes = await fetch(`${API_BASE}/macro-metrics`);
+                
+                const yieldData = await yieldRes.json();
+                const macroData = await macroRes.json();
+
+                // Render Yield Curve
+                const yieldX = ["3 Month", "2 Year", "10 Year", "30 Year"];
+                const yieldY = [yieldData["3_Month"].value, yieldData["2_Year"].value, yieldData["10_Year"].value, yieldData["30_Year"].value];
+                Plotly.newPlot('yieldCurveChart', [{
+                    x: yieldX, y: yieldY, type: 'scatter', mode: 'lines+markers',
+                    line: { color: '#2563eb', width: 3, shape: 'spline' },
+                    marker: { size: 10, color: '#3b82f6' }
+                }], { ...layoutTemplate, yaxis: { ...layoutTemplate.yaxis, title: 'Yield (%)' } }, {displayModeBar: false});
+
+                // Render CPI
+                const cpi = macroData.CPI_Inflation_YoY.reverse();
+                Plotly.newPlot('cpiChart', [{
+                    x: cpi.map(d => d.date), y: cpi.map(d => d.value), type: 'scatter', mode: 'lines+markers',
+                    line: { color: '#dc2626', width: 3 }, fill: 'tozeroy', fillcolor: 'rgba(220, 38, 38, 0.1)'
+                }], { ...layoutTemplate, yaxis: { ...layoutTemplate.yaxis, title: 'YoY % Change' } }, {displayModeBar: false});
+
+                // Render Fed Funds Rate
+                const rates = macroData.Fed_Funds_Rate.reverse();
+                Plotly.newPlot('fedFundsChart', [{
+                    x: rates.map(d => d.date), y: rates.map(d => d.value), type: 'scatter', mode: 'lines+markers',
+                    line: { color: '#059669', width: 3, shape: 'hv' }, fill: 'tozeroy', fillcolor: 'rgba(5, 150, 105, 0.1)'
+                }], { ...layoutTemplate, yaxis: { ...layoutTemplate.yaxis, title: 'Interest Rate (%)' } }, {displayModeBar: false});
+
+            } catch (error) {
+                console.error("Error loading SethiMacro data:", error);
+            }
+        }
+        fetchAndRenderData();
+    </script>
+</body>
+</html>

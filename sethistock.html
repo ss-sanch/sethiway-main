@@ -237,9 +237,16 @@
             </div>
 
             <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 mt-6 relative shadow-sm">
-                <div class="mb-6 border-b border-gray-200 pb-4">
-                    <h3 class="text-lg font-bold text-gray-800">Mini-LBO (Leveraged Buyout) Model</h3>
-                    <p class="text-xs font-semibold text-gray-500 mt-1">Instant IRR & MoM calculations based on live cash flow metrics</p>
+                <div class="mb-6 border-b border-gray-200 pb-4 flex justify-between items-start">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-lg font-bold text-gray-800">Mini-LBO (Leveraged Buyout) Model</h3>
+                            <button onclick="toggleModal('lbo-modal')" class="text-gray-400 hover:text-blue-600 transition-colors cursor-pointer" title="Learn about LBOs">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            </button>
+                        </div>
+                        <p class="text-xs font-semibold text-gray-500 mt-1">Instant IRR & MoM calculations based on live cash flow metrics</p>
+                    </div>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -538,6 +545,39 @@
                 <p><strong>How to read it:</strong> If the current price (the dotted red line) falls to the left of the colored valuation bars, the stock is currently trading <em>below</em> its theoretical fair value, indicating a potential margin of safety.</p>
             </div>
             <div class="mt-8 pt-4 text-center"><button onclick="toggleModal('football-modal')" class="bg-gray-900 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition">Close</button></div>
+        </div>
+    </div>
+
+    <div id="lbo-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden justify-center items-center z-50 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-8 relative">
+            <button onclick="toggleModal('lbo-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-900 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            <h2 class="text-2xl font-black mb-4 text-gray-900 border-b border-gray-200 pb-3">The Mini-LBO Model</h2>
+            
+            <div class="text-gray-700 space-y-4 text-sm leading-relaxed">
+                <p>A <strong>Leveraged Buyout (LBO)</strong> is the acquisition of another company using a significant amount of borrowed money (debt) to meet the cost of acquisition. The assets of the company being acquired are often used as collateral for the loans.</p>
+                
+                <p>This calculator executes a <strong>"Paper LBO"</strong> (a rapid, back-of-the-envelope model heavily utilized in Private Equity interview technical tests). While institutional PE models contain hundreds of rows for working capital, tax shields, and multi-tranche debt schedules, the fundamental drivers of returns are simplified here to four core levers:</p>
+                
+                <ul class="list-disc pl-5 space-y-2 text-gray-600">
+                    <li><strong class="text-gray-800">Entry/Exit Multiple:</strong> What the sponsor pays for the business versus what they sell it for, typically mapped to EV/EBITDA.</li>
+                    <li><strong class="text-gray-800">Debt Funding %:</strong> How much of the purchase price is funded by the bank. More debt means less sponsor equity is required, which amplifies returns (if the company performs well).</li>
+                    <li><strong class="text-gray-800">Interest Rate:</strong> The cost of the debt. The company's Free Cash Flow must be high enough to pay this off over the holding period.</li>
+                    <li><strong class="text-gray-800">Holding Period:</strong> Typically 3 to 7 years. The faster the sponsor can grow the company and pay down the debt, the higher the annualized return.</li>
+                </ul>
+                
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 mt-6 flex items-start gap-3">
+                    <div class="text-blue-500 mt-0.5">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <p class="text-xs font-semibold text-blue-800 leading-tight">
+                        <span class="block text-sm font-bold text-blue-900 mb-1">Target PE Returns</span>
+                        Private Equity firms typically target a minimum of <strong>>20% IRR</strong> (Internal Rate of Return) and a <strong>>2.0x MoM</strong> (Multiple on Money) over a standard 5-year holding period.
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 

@@ -129,6 +129,19 @@
             </div>
 
         </div>
+
+        <!-- SYSTEMIC CREDIT RISK TIER -->
+        <div class="max-w-7xl mx-auto mb-12">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative">
+                <button onclick="toggleModal('modal-credit')" class="absolute top-6 right-6 text-gray-300 hover:text-purple-600 transition z-10 cursor-pointer" title="Learn about Credit Spreads">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </button>
+                <h2 class="text-xl font-bold mb-4 border-b border-gray-100 pb-2 pr-8">Systemic Credit Risk: US High-Yield Spread (OAS)</h2>
+                <div id="creditChart" style="height: 350px; width: 100%;" class="flex justify-center items-center">
+                    <svg class="animate-spin h-8 w-8 text-purple-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- SETHIWAY UNIFIED FOOTER -->
@@ -239,7 +252,26 @@
             <button onclick="toggleModal('modal-labor')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800 transition">Understood</button>
         </div>
     </div>
-    
+
+    <!-- 4. CREDIT RISK MODAL -->
+    <div id="modal-credit" class="fixed inset-0 z-[150] hidden flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-xl w-full mx-4 transform transition-all duration-300">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-2xl font-black text-gray-900">High-Yield Credit Spread (OAS)</h2>
+                <button onclick="toggleModal('modal-credit')" class="text-gray-400 hover:text-purple-600 text-3xl leading-none">&times;</button>
+            </div>
+            <div class="text-sm text-gray-700 leading-relaxed mb-6 space-y-4">
+                <p>The ICE BofA US High Yield Index Option-Adjusted Spread (OAS) is the ultimate "canary in the coal mine" for systemic financial risk.</p>
+                <p>It measures the extra yield (risk premium) that investors demand to hold riskier "junk" corporate bonds over ultra-safe US Government Treasury bonds.</p>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li><strong class="text-purple-600">Spiking Spreads:</strong> Indicates panic. Investors are fleeing to safety, expecting a wave of corporate bankruptcies and credit defaults. (A leading indicator for equity market crashes).</li>
+                    <li><strong class="text-gray-900">Falling/Low Spreads:</strong> Indicates complacency and a strong "Risk-On" environment where capital is flowing freely to corporations.</li>
+                </ul>
+            </div>
+            <button onclick="toggleModal('modal-credit')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800 transition">Understood</button>
+        </div>
+    </div>
+
     <!-- SETHIMACRO DATA ENGINE -->
     <script>
         // Modal Toggle Logic
@@ -340,7 +372,16 @@
                     }], { ...layoutTemplate, xaxis: { ...layoutTemplate.xaxis, type: 'date' }, yaxis: { ...layoutTemplate.yaxis, title: 'Jobs Added (Thousands)' } }, {displayModeBar: false});
                 }
 
-                // 6. Render Economic Calendar List
+                // 6. Render High-Yield Credit Spread
+                if(macroData && macroData.High_Yield_Spread) {
+                    const hy = [...macroData.High_Yield_Spread].reverse();
+                    Plotly.newPlot('creditChart', [{
+                        x: hy.map(d=>d.date), y: hy.map(d=>d.value), type: 'scatter', mode: 'lines',
+                        line: { color: '#8b5cf6', width: 2 }, fill: 'tozeroy', fillcolor: 'rgba(139, 92, 246, 0.1)'
+                    }], { ...layoutTemplate, xaxis: { ...layoutTemplate.xaxis, type: 'date' }, yaxis: { ...layoutTemplate.yaxis, title: 'Spread (%)' } }, {displayModeBar: false});
+                }
+
+                // 7. Render Economic Calendar List
                 const calContainer = document.getElementById('calendar-container');
                 if (calData && calData.length > 0) {
                     calContainer.innerHTML = '';

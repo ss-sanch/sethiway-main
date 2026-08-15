@@ -204,18 +204,19 @@
         // IMPORTANT: Live Render URL for the SethiMacro Backend
         const API_BASE = "https://sethimacro.sethiway.com/api";
 
+        // UPDATED: Increased bottom margin (b: 60) and forced strict Date timelines
         const layoutTemplate = {
             paper_bgcolor: 'rgba(0,0,0,0)',
             plot_bgcolor: 'rgba(0,0,0,0)',
             font: { color: '#4b5563' },
-            xaxis: { gridcolor: '#f3f4f6', showline: true, linecolor: '#e5e7eb' },
+            xaxis: { gridcolor: '#f3f4f6', showline: true, linecolor: '#e5e7eb', type: 'date' },
             yaxis: { gridcolor: '#f3f4f6', showline: true, linecolor: '#e5e7eb' },
-            margin: { t: 20, r: 20, l: 40, b: 40 }
+            margin: { t: 20, r: 20, l: 40, b: 60 }
         };
 
         async function fetchAndRenderData() {
             try {
-                // 1. Fetch All Data Simultaneously for Maximum Speed
+                // 1. Fetch All Data Simultaneously
                 const [yieldRes, macroRes, signalRes, calRes] = await Promise.all([
                     fetch(`${API_BASE}/yield-curve`),
                     fetch(`${API_BASE}/macro-metrics`),
@@ -223,7 +224,6 @@
                     fetch(`${API_BASE}/calendar`)
                 ]);
                 
-                // Parse all JSON responses
                 const yieldData = await yieldRes.json();
                 const macroData = await macroRes.json();
                 const signalData = await signalRes.json();
@@ -265,13 +265,16 @@
 
                 // 4. Render Advanced Multi-Line Inflation Tracker
                 if(macroData && macroData.CPI_YoY && macroData.Core_PCE_YoY && macroData.PPI_Wholesale_YoY) {
-                    const cpi = macroData.CPI_YoY.reverse();
-                    const pce = macroData.Core_PCE_YoY.reverse();
-                    const ppi = macroData.PPI_Wholesale_YoY.reverse();
+                    // UPDATED: Use the spread operator [...] to safely clone and reverse the arrays
+                    const cpi = [...macroData.CPI_YoY].reverse();
+                    const pce = [...macroData.Core_PCE_YoY].reverse();
+                    const ppi = [...macroData.PPI_Wholesale_YoY].reverse();
                     
                     const trace1 = { x: cpi.map(d=>d.date), y: cpi.map(d=>d.value), name: 'Headline CPI', type: 'scatter', line: {color: '#dc2626', width: 2} };
                     const trace2 = { x: pce.map(d=>d.date), y: pce.map(d=>d.value), name: 'Core PCE', type: 'scatter', line: {color: '#2563eb', width: 2} };
                     const trace3 = { x: ppi.map(d=>d.date), y: ppi.map(d=>d.value), name: 'PPI', type: 'scatter', line: {color: '#10b981', width: 2, dash: 'dot'} };
+                    
+                    // Fixed Fed Target bounds to match dynamic dates
                     const fedTarget = { x: [cpi[0].date, cpi[cpi.length-1].date], y: [2, 2], name: 'Fed 2% Target', type: 'scatter', hoverinfo: 'none', line: {color: '#9ca3af', width: 2, dash: 'dash'} };
 
                     Plotly.newPlot('inflationChart', [trace1, trace2, trace3, fedTarget], { ...layoutTemplate, legend: {orientation: 'h', y: 1.1}, yaxis: { ...layoutTemplate.yaxis, title: 'YoY % Change' } }, {displayModeBar: false});
@@ -279,7 +282,7 @@
 
                 // 5. Render Nonfarm Payrolls (NFP) Bar Chart
                 if(macroData && macroData.Nonfarm_Payrolls_MoM) {
-                    const nfp = macroData.Nonfarm_Payrolls_MoM.reverse();
+                    const nfp = [...macroData.Nonfarm_Payrolls_MoM].reverse();
                     const colors = nfp.map(d => d.value >= 0 ? '#3b82f6' : '#ef4444');
                     Plotly.newPlot('nfpChart', [{
                         x: nfp.map(d=>d.date), y: nfp.map(d=>d.value), type: 'bar', marker: {color: colors}

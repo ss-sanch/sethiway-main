@@ -87,24 +87,47 @@
             </div>
         </div>
 
-        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- MACRO CHARTS & CALENDAR GRID -->
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            
             <!-- Yield Curve -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 lg:col-span-2">
-                <h2 class="text-xl font-bold mb-4 border-b border-gray-100 pb-2">US Treasury Yield Curve (Live)</h2>
-                <div id="yieldCurveChart" style="height: 400px; width: 100%;" class="flex justify-center items-center"><svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 lg:col-span-2 relative">
+                <button onclick="toggleModal('macro-modal')" class="absolute top-6 right-6 text-gray-300 hover:text-blue-600 transition z-10 cursor-pointer" title="Learn about the Yield Curve">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </button>
+                <h2 class="text-xl font-bold mb-4 border-b border-gray-100 pb-2 pr-8">US Treasury Yield Curve (Live)</h2>
+                <div id="yieldCurveChart" style="height: 350px; width: 100%;" class="flex justify-center items-center"><svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
             </div>
 
-            <!-- CPI Inflation -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                <h2 class="text-xl font-bold mb-4 border-b border-gray-100 pb-2">US Inflation (CPI YoY %)</h2>
-                <div id="cpiChart" style="height: 350px; width: 100%;" class="flex justify-center items-center"><svg class="animate-spin h-8 w-8 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
+            <!-- Macro Catalyst Calendar -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative">
+                <h2 class="text-xl font-bold mb-4 border-b border-gray-100 pb-2 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    Economic Calendar
+                </h2>
+                <div id="calendar-container" class="space-y-4 overflow-y-auto" style="max-height: 350px;">
+                    <div class="flex justify-center items-center py-10"><svg class="animate-spin h-6 w-6 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
+                </div>
             </div>
 
-            <!-- Fed Funds Rate -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                <h2 class="text-xl font-bold mb-4 border-b border-gray-100 pb-2">Effective Federal Funds Rate</h2>
-                <div id="fedFundsChart" style="height: 350px; width: 100%;" class="flex justify-center items-center"><svg class="animate-spin h-8 w-8 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
+            <!-- Advanced Inflation Tracker -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 lg:col-span-2 relative">
+                <button onclick="toggleModal('macro-modal')" class="absolute top-6 right-6 text-gray-300 hover:text-red-600 transition z-10 cursor-pointer" title="Learn about Inflation Metrics">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </button>
+                <h2 class="text-xl font-bold mb-4 border-b border-gray-100 pb-2 pr-8">Inflation vs. Fed Target (YoY %)</h2>
+                <div id="inflationChart" style="height: 350px; width: 100%;" class="flex justify-center items-center"><svg class="animate-spin h-8 w-8 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
             </div>
+
+             <!-- Labor Market (NFP) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative">
+                <button onclick="toggleModal('macro-modal')" class="absolute top-6 right-6 text-gray-300 hover:text-green-600 transition z-10 cursor-pointer" title="Learn about Labor Data">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </button>
+                <h2 class="text-xl font-bold mb-4 border-b border-gray-100 pb-2 pr-8">Labor Momentum (NFP)</h2>
+                <div id="nfpChart" style="height: 350px; width: 100%;" class="flex justify-center items-center"><svg class="animate-spin h-8 w-8 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
+            </div>
+
         </div>
     </div>
 
@@ -149,6 +172,15 @@
                     <h4 class="font-black text-gray-800 uppercase tracking-widest mb-1">Actual Fed Funds Rate</h4>
                     <p>The target interest rate set by the Federal Open Market Committee (FOMC). It is the foundational "cost of capital" for the entire global economy, directly influencing mortgage rates, corporate debt, and equity valuations (DCF discount rates).</p>
                 </div>
+                <div>
+                    <h4 class="font-black text-red-600 uppercase tracking-widest mb-1">Headline vs. Core Inflation</h4>
+                    <p><strong>Headline CPI</strong> measures the total inflation across the entire economy. <strong>Core PCE</strong> strips out highly volatile food and energy prices, making it the preferred, stable metric that the Federal Reserve actually uses to set interest rates.</p>
+                </div>
+
+                <div>
+                    <h4 class="font-black text-blue-600 uppercase tracking-widest mb-1">Nonfarm Payrolls (NFP)</h4>
+                    <p>The total number of paid U.S. workers of any business, excluding general government employees, private household employees, and employees of nonprofit organizations. It is the most heavily traded monthly labor statistic on Wall Street, acting as a proxy for raw economic growth.</p>
+                </div>
             </div>
 
             <div class="mt-8 pt-4 text-center border-t border-gray-100">
@@ -159,7 +191,6 @@
 
     <!-- SETHIMACRO DATA ENGINE -->
     <script>
-
         // Modal Toggle Logic
         function toggleModal(modalID) {
             const modal = document.getElementById(modalID);
@@ -169,8 +200,8 @@
                 modal.classList.add('hidden');
             }
         }
-        
-        // IMPORTANT: Replace this with your actual Live Render URL for the SethiMacro Backend
+
+        // IMPORTANT: Live Render URL for the SethiMacro Backend
         const API_BASE = "https://sethimacro.sethiway.com/api";
 
         const layoutTemplate = {
@@ -184,14 +215,21 @@
 
         async function fetchAndRenderData() {
             try {
-                const yieldRes = await fetch(`${API_BASE}/yield-curve`);
-                const macroRes = await fetch(`${API_BASE}/macro-metrics`);
+                // 1. Fetch All Data Simultaneously for Maximum Speed
+                const [yieldRes, macroRes, signalRes, calRes] = await Promise.all([
+                    fetch(`${API_BASE}/yield-curve`),
+                    fetch(`${API_BASE}/macro-metrics`),
+                    fetch(`${API_BASE}/quant-signals`),
+                    fetch(`${API_BASE}/calendar`)
+                ]);
                 
-                // Fetch Proprietary Quant Signals
-                const signalRes = await fetch(`${API_BASE}/quant-signals`);
+                // Parse all JSON responses
+                const yieldData = await yieldRes.json();
+                const macroData = await macroRes.json();
                 const signalData = await signalRes.json();
+                const calData = await calRes.json();
 
-                // 1. Populate Yield Spread
+                // 2. Populate Proprietary Quant Signals (Executive Bar)
                 if(signalData.Yield_Spread_2Y10Y && signalData.Yield_Spread_2Y10Y.value !== "N/A") {
                     document.getElementById('spread-value').innerText = signalData.Yield_Spread_2Y10Y.value + "%";
                     const spreadStatus = document.getElementById('spread-status');
@@ -199,7 +237,6 @@
                     spreadStatus.className = signalData.Yield_Spread_2Y10Y.value < 0 ? "text-sm font-semibold mb-1 text-red-600" : "text-sm font-semibold mb-1 text-green-600";
                 }
 
-                // 2. Populate Sahm Rule
                 if(signalData.Sahm_Rule && signalData.Sahm_Rule.value !== "N/A") {
                     document.getElementById('sahm-value').innerText = signalData.Sahm_Rule.value + "%";
                     const sahmStatus = document.getElementById('sahm-status');
@@ -207,20 +244,15 @@
                     sahmStatus.className = signalData.Sahm_Rule.value >= 0.50 ? "text-sm font-semibold mb-1 text-red-600" : "text-sm font-semibold mb-1 text-green-600";
                 }
 
-                // 3. Populate Taylor Rule
                 if(signalData.Taylor_Rule && signalData.Taylor_Rule.value !== "N/A") {
                     document.getElementById('taylor-rate').innerText = signalData.Taylor_Rule.prescribed_rate + "%";
                     document.getElementById('fed-actual').innerText = signalData.Taylor_Rule.actual_rate + "%";
-                    
                     const biasStatus = document.getElementById('taylor-bias');
                     biasStatus.innerText = signalData.Taylor_Rule.policy_bias;
                     biasStatus.className = signalData.Taylor_Rule.policy_bias.includes("Restrictive") ? "text-sm font-semibold mb-1 text-red-600" : "text-sm font-semibold mb-1 text-blue-600";
                 }
 
-                const yieldData = await yieldRes.json();
-                const macroData = await macroRes.json();
-
-                // Render Yield Curve
+                // 3. Render Yield Curve
                 if(yieldData && yieldData["3_Month"]) {
                     const yieldX = ["3 Month", "2 Year", "5 Year", "10 Year", "30 Year"];
                     const yieldY = [yieldData["3_Month"].value, yieldData["2_Year"].value, yieldData["5_Year"].value, yieldData["10_Year"].value, yieldData["30_Year"].value];
@@ -231,28 +263,65 @@
                     }], { ...layoutTemplate, yaxis: { ...layoutTemplate.yaxis, title: 'Yield (%)' } }, {displayModeBar: false});
                 }
 
-                // Render CPI
-                if(macroData && macroData.CPI_YoY) {
+                // 4. Render Advanced Multi-Line Inflation Tracker
+                if(macroData && macroData.CPI_YoY && macroData.Core_PCE_YoY && macroData.PPI_Wholesale_YoY) {
                     const cpi = macroData.CPI_YoY.reverse();
-                    Plotly.newPlot('cpiChart', [{
-                        x: cpi.map(d => d.date), y: cpi.map(d => d.value), type: 'scatter', mode: 'lines+markers',
-                        line: { color: '#dc2626', width: 3 }, fill: 'tozeroy', fillcolor: 'rgba(220, 38, 38, 0.1)'
-                    }], { ...layoutTemplate, yaxis: { ...layoutTemplate.yaxis, title: 'YoY % Change' } }, {displayModeBar: false});
+                    const pce = macroData.Core_PCE_YoY.reverse();
+                    const ppi = macroData.PPI_Wholesale_YoY.reverse();
+                    
+                    const trace1 = { x: cpi.map(d=>d.date), y: cpi.map(d=>d.value), name: 'Headline CPI', type: 'scatter', line: {color: '#dc2626', width: 2} };
+                    const trace2 = { x: pce.map(d=>d.date), y: pce.map(d=>d.value), name: 'Core PCE', type: 'scatter', line: {color: '#2563eb', width: 2} };
+                    const trace3 = { x: ppi.map(d=>d.date), y: ppi.map(d=>d.value), name: 'PPI', type: 'scatter', line: {color: '#10b981', width: 2, dash: 'dot'} };
+                    const fedTarget = { x: [cpi[0].date, cpi[cpi.length-1].date], y: [2, 2], name: 'Fed 2% Target', type: 'scatter', hoverinfo: 'none', line: {color: '#9ca3af', width: 2, dash: 'dash'} };
+
+                    Plotly.newPlot('inflationChart', [trace1, trace2, trace3, fedTarget], { ...layoutTemplate, legend: {orientation: 'h', y: 1.1}, yaxis: { ...layoutTemplate.yaxis, title: 'YoY % Change' } }, {displayModeBar: false});
                 }
 
-                // Render Fed Funds Rate
-                if(macroData && macroData.Fed_Funds_Rate) {
-                    const rates = macroData.Fed_Funds_Rate.reverse();
-                    Plotly.newPlot('fedFundsChart', [{
-                        x: rates.map(d => d.date), y: rates.map(d => d.value), type: 'scatter', mode: 'lines+markers',
-                        line: { color: '#059669', width: 3, shape: 'hv' }, fill: 'tozeroy', fillcolor: 'rgba(5, 150, 105, 0.1)'
-                    }], { ...layoutTemplate, yaxis: { ...layoutTemplate.yaxis, title: 'Interest Rate (%)' } }, {displayModeBar: false});
+                // 5. Render Nonfarm Payrolls (NFP) Bar Chart
+                if(macroData && macroData.Nonfarm_Payrolls_MoM) {
+                    const nfp = macroData.Nonfarm_Payrolls_MoM.reverse();
+                    const colors = nfp.map(d => d.value >= 0 ? '#3b82f6' : '#ef4444');
+                    Plotly.newPlot('nfpChart', [{
+                        x: nfp.map(d=>d.date), y: nfp.map(d=>d.value), type: 'bar', marker: {color: colors}
+                    }], { ...layoutTemplate, yaxis: { ...layoutTemplate.yaxis, title: 'Jobs Added (Thousands)' } }, {displayModeBar: false});
+                }
+
+                // 6. Render Economic Calendar List
+                const calContainer = document.getElementById('calendar-container');
+                if (calData && calData.length > 0) {
+                    calContainer.innerHTML = '';
+                    calData.forEach(event => {
+                        const dateObj = new Date(event.date);
+                        const formattedDate = dateObj.toLocaleDateString('en-GB', { month: 'short', day: 'numeric', year: 'numeric' });
+                        
+                        let eventName = "Economic Release";
+                        if(event.release_id === 10) eventName = "CPI Inflation Data";
+                        if(event.release_id === 50) eventName = "Employment Situation (NFP)";
+                        if(event.release_id === 46) eventName = "GDP Data";
+                        if(event.release_id === 21) eventName = "Industrial Production";
+
+                        calContainer.innerHTML += `
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition">
+                                <div>
+                                    <p class="font-bold text-sm text-gray-900">${eventName}</p>
+                                    <p class="text-xs text-gray-500">Official FRED Release</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="px-3 py-1 bg-red-100 text-red-700 font-bold text-xs rounded-full">${formattedDate}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    calContainer.innerHTML = '<p class="text-sm text-gray-500 italic text-center py-6">No upcoming major releases this week.</p>';
                 }
 
             } catch (error) {
                 console.error("Error loading SethiMacro data:", error);
             }
         }
+        
+        // Boot the engine!
         fetchAndRenderData();
     </script>
 </body>

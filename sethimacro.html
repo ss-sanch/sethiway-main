@@ -197,6 +197,39 @@
             </div>
         </div>
 
+        <!-- KPI MODALS -->
+    <div id="modal-sahm" class="fixed inset-0 z-[150] hidden flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-xl w-full mx-4">
+            <h2 class="text-2xl font-black text-gray-900 mb-4">Sahm Recession Rule</h2>
+            <p class="text-gray-600 mb-6">A highly accurate macroeconomic rule. It signals the start of a recession when the 3-month moving average of the unemployment rate rises by 0.50% relative to its lowest point in the previous 12 months.</p>
+            <button onclick="toggleModal('modal-sahm')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800">Close</button>
+        </div>
+    </div>
+    
+    <div id="modal-spread" class="fixed inset-0 z-[150] hidden flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-xl w-full mx-4">
+            <h2 class="text-2xl font-black text-gray-900 mb-4">Global Yield Spread</h2>
+            <p class="text-gray-600 mb-6">The difference between the US 10-Year Treasury yield and the UK 10-Year Gilt. This spread dictates global capital flows. Capital generally flows toward the country offering the higher risk-free return, strengthening their currency.</p>
+            <button onclick="toggleModal('modal-spread')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800">Close</button>
+        </div>
+    </div>
+
+    <div id="modal-fed" class="fixed inset-0 z-[150] hidden flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-xl w-full mx-4">
+            <h2 class="text-2xl font-black text-gray-900 mb-4">Fed Policy Gap (Taylor Rule)</h2>
+            <p class="text-gray-600 mb-6">Calculates the "ideal" interest rate based on current inflation and unemployment. A negative gap means the Fed is currently Accommodative (stimulating growth), while a positive gap means they are Restrictive (cooling the economy).</p>
+            <button onclick="toggleModal('modal-fed')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800">Close</button>
+        </div>
+    </div>
+
+    <div id="modal-dxy" class="fixed inset-0 z-[150] hidden flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-xl w-full mx-4">
+            <h2 class="text-2xl font-black text-gray-900 mb-4">Dollar Index (DXY) Momentum</h2>
+            <p class="text-gray-600 mb-6">Tracks the rolling 30-day percentage change in the strength of the US Dollar against a basket of foreign currencies. A rising dollar often pressures emerging market debt and multinational corporate earnings.</p>
+            <button onclick="toggleModal('modal-dxy')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800">Close</button>
+        </div>
+    </div>
+
     </div>
 
     <!-- SETHIWAY UNIFIED FOOTER -->

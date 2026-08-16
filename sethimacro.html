@@ -307,7 +307,6 @@
                     document.getElementById('kpi-dxy-stat').className = sig.DXY_Strength.status.includes("+") ? "text-sm font-semibold mb-1 text-green-600" : "text-sm font-semibold mb-1 text-red-600";
                 }
 
-                // 2. POPULATE CATALYST TIMELINE
                 // 2. POPULATE ENDLESS CATALYST TIMELINE (Hybrid Macro + Corporate)
                 const renderTimelineNode = (event, index, isPast) => {
                     
@@ -318,13 +317,13 @@
                         13: {name: "Industrial Prod.", color: "text-purple-600", border: "border-t-purple-500", tick: "bg-purple-500"},
                         9:  {name: "Retail Sales", color: "text-orange-600", border: "border-t-orange-500", tick: "bg-orange-500"},
                         46: {name: "PPI Wholesale", color: "text-pink-600", border: "border-t-pink-500", tick: "bg-pink-500"},
-                        // New Corporate Earnings Map
+                        // The Crucial Golden Earnings Tag!
                         "EARNINGS": {name: "Earnings", color: "text-amber-600", border: "border-t-amber-500", tick: "bg-amber-500"}
                     };
                     
                     const config = idMap[event.release_id] || {name: "Macro Release", color: "text-gray-600", border: "border-t-gray-500", tick: "bg-gray-500"};
                     
-                    // Dynamically inject the specific Ticker if it is an Earnings event
+                    // Dynamically inject the specific Ticker (e.g. "NVDA Earnings")
                     const finalEventName = event.release_id === "EARNINGS" ? `${event.ticker} Earnings` : config.name;
                     
                     const isUp = index % 2 === 0;

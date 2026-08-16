@@ -246,6 +246,22 @@
 
     <!-- GLOBAL DATA ENGINE SCRIPT -->
     <script>
+        // ==========================================
+        // UI INTERACTION: MODAL TOGGLE ENGINE
+        // ==========================================
+        function toggleModal(modalID) {
+            const modal = document.getElementById(modalID);
+            if (modal) {
+                if (modal.classList.contains('hidden')) {
+                    modal.classList.remove('hidden');
+                } else {
+                    modal.classList.add('hidden');
+                }
+            } else {
+                console.error("Modal ID not found: " + modalID);
+            }
+        }
+        
         const API_BASE = "https://sethimacro.sethiway.com/api";
 
         const layoutBase = {

@@ -309,17 +309,24 @@
                 }
 
                 // 2. POPULATE CATALYST TIMELINE
+                // 2. POPULATE ENDLESS CATALYST TIMELINE (Hybrid Macro + Corporate)
                 const renderTimelineNode = (event, index, isPast) => {
-                    // UPDATED: Corrected Federal Reserve API Release IDs
+                    
                     const idMap = {
                         10: {name: "CPI Inflation", color: "text-red-600", border: "border-t-red-500", tick: "bg-red-500"},
                         50: {name: "Nonfarm Payrolls", color: "text-blue-600", border: "border-t-blue-500", tick: "bg-blue-500"},
                         53: {name: "GDP Data", color: "text-emerald-600", border: "border-t-emerald-500", tick: "bg-emerald-500"},
                         13: {name: "Industrial Prod.", color: "text-purple-600", border: "border-t-purple-500", tick: "bg-purple-500"},
                         9:  {name: "Retail Sales", color: "text-orange-600", border: "border-t-orange-500", tick: "bg-orange-500"},
-                        46: {name: "PPI Wholesale", color: "text-pink-600", border: "border-t-pink-500", tick: "bg-pink-500"}
+                        46: {name: "PPI Wholesale", color: "text-pink-600", border: "border-t-pink-500", tick: "bg-pink-500"},
+                        // New Corporate Earnings Map
+                        "EARNINGS": {name: "Earnings", color: "text-amber-600", border: "border-t-amber-500", tick: "bg-amber-500"}
                     };
+                    
                     const config = idMap[event.release_id] || {name: "Macro Release", color: "text-gray-600", border: "border-t-gray-500", tick: "bg-gray-500"};
+                    
+                    // Dynamically inject the specific Ticker if it is an Earnings event
+                    const finalEventName = event.release_id === "EARNINGS" ? `${event.ticker} Earnings` : config.name;
                     
                     const isUp = index % 2 === 0;
                     const dateObj = new Date(event.date);
@@ -331,24 +338,20 @@
                         return `
                         <div class="relative flex items-center justify-center ${opacityClass} group flex-shrink-0 transition-all duration-300" style="width: 144px;">
                             <div class="w-1.5 h-6 rounded-sm ${config.tick} z-10 shadow-sm border border-white"></div>
-                            
                             <div class="absolute bottom-3 w-0.5 h-10 bg-gray-300"></div>
-                            
                             <div class="absolute bottom-12 bg-white border ${config.border} border-x-gray-200 border-b-gray-200 px-3 py-3 rounded-xl shadow-lg text-center w-full transform transition group-hover:-translate-y-2">
                                 <span class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">${dateStr}</span>
-                                <span class="block text-sm font-bold ${config.color} leading-tight">${config.name}</span>
+                                <span class="block text-sm font-bold ${config.color} leading-tight">${finalEventName}</span>
                             </div>
                         </div>`;
                     } else {
                         return `
                         <div class="relative flex items-center justify-center ${opacityClass} group flex-shrink-0 transition-all duration-300" style="width: 144px;">
                             <div class="w-1.5 h-6 rounded-sm ${config.tick} z-10 shadow-sm border border-white"></div>
-                            
                             <div class="absolute top-3 w-0.5 h-10 bg-gray-300"></div>
-                            
                             <div class="absolute top-12 bg-white border ${config.border} border-x-gray-200 border-b-gray-200 px-3 py-3 rounded-xl shadow-lg text-center w-full transform transition group-hover:translate-y-2">
                                 <span class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">${dateStr}</span>
-                                <span class="block text-sm font-bold ${config.color} leading-tight">${config.name}</span>
+                                <span class="block text-sm font-bold ${config.color} leading-tight">${finalEventName}</span>
                             </div>
                         </div>`;
                     }

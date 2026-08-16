@@ -3,152 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SethiMacro | Big Picture Dashboard</title>
+    <title>SethiMacro | Global Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <style>
+        /* Smooth scrolling for the pillar navigation */
+        html { scroll-behavior: smooth; }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
 
     <!-- SETHIWAY UNIFIED NAVIGATION -->
     <nav class="flex justify-between items-center py-6 px-6 md:px-10 bg-white shadow-sm sticky top-0 z-50">
         <a href="index.html" class="flex items-center">
-            <img src="logo.png" alt="Sethiway Logo" class="h-10 w-auto invert">
+            <h1 class="text-2xl font-black tracking-tighter">SETHIWAY.</h1>
         </a>
         <div class="hidden md:flex space-x-8 text-sm font-semibold uppercase tracking-wide">
             <a href="index.html#portfolio" class="hover:text-blue-600 transition">Portfolio</a>
             <a href="sethistock.html" class="hover:text-blue-600 transition">SethiStock</a>
-            <a href="sethimacro.html" class="text-blue-600 transition">SethiMacro</a>
+            <a href="#" class="text-blue-600 transition">SethiMacro</a>
         </div>
     </nav>
 
-    <!-- SETHIMACRO DASHBOARD -->
     <div class="flex-grow p-8">
-        <div class="max-w-7xl mx-auto mb-8">
-            <h1 class="text-4xl font-bold tracking-tight text-gray-900">Sethi<span class="text-blue-600">Macro</span></h1>
-            <p class="text-gray-500 mt-2">US Macroeconomic & Risk Dashboard. Live data from the Federal Reserve (FRED).</p>
-        </div>
-
-        <!-- EXECUTIVE MACRO BAR -->
-        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <!-- Yield Spread Alert -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-blue-500 relative">
-                <button onclick="toggleModal('macro-modal')" class="absolute top-4 right-4 text-gray-300 hover:text-blue-600 transition z-10 cursor-pointer" title="Learn about this metric">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </button>
-                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 pr-6">2Y/10Y Yield Spread</h3>
-                <div class="flex items-end gap-2">
-                    <span id="spread-value" class="text-2xl font-black text-gray-900">
-                        <svg class="animate-spin h-6 w-6 text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    </span>
-                    <span id="spread-status" class="text-sm font-semibold mb-1"></span>
-                </div>
-            </div>
+        <!-- GLOBAL HEADER -->
+        <div class="max-w-7xl mx-auto text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-black tracking-tight text-gray-900 mb-2">SETHIMACRO</h1>
+            <p class="text-gray-500 font-light tracking-widest uppercase text-sm">Global Macroeconomic & Risk Terminal</p>
             
-            <!-- Sahm Rule Alert -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-purple-500 relative">
-                <button onclick="toggleModal('macro-modal')" class="absolute top-4 right-4 text-gray-300 hover:text-purple-600 transition z-10 cursor-pointer" title="Learn about this metric">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </button>
-                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 pr-6">Sahm Rule (Recession)</h3>
+            <!-- SECTOR NAVIGATION -->
+            <div class="flex flex-wrap justify-center gap-4 mt-8">
+                <a href="#pillar-jobs" class="px-6 py-2 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 transition shadow-sm">💼 Job Market</a>
+                <a href="#pillar-rates" class="px-6 py-2 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 transition shadow-sm">📉 Inflation & Rates</a>
+                <a href="#pillar-gdp" class="px-6 py-2 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 transition shadow-sm">🏭 GDP & Output</a>
+                <a href="#pillar-fx" class="px-6 py-2 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 transition shadow-sm">💱 Currencies</a>
+            </div>
+        </div>
+
+        <!-- EXECUTIVE KPI BAR -->
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-purple-500">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Sahm Recession Rule</h3>
                 <div class="flex items-end gap-2">
-                    <span id="sahm-value" class="text-2xl font-black text-gray-900">
-                        <svg class="animate-spin h-6 w-6 text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    </span>
-                    <span id="sahm-status" class="text-sm font-semibold mb-1"></span>
+                    <span id="kpi-sahm-val" class="text-2xl font-black text-gray-900">--</span>
+                    <span id="kpi-sahm-stat" class="text-sm font-semibold mb-1"></span>
                 </div>
             </div>
-
-            <!-- Taylor Rule Target -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-emerald-500 relative">
-                <button onclick="toggleModal('macro-modal')" class="absolute top-4 right-4 text-gray-300 hover:text-emerald-600 transition z-10 cursor-pointer" title="Learn about this metric">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </button>
-                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 pr-6">Taylor Rule Target</h3>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-blue-500">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Global Yield Spread</h3>
                 <div class="flex items-end gap-2">
-                    <span id="taylor-rate" class="text-2xl font-black text-gray-900">
-                        <svg class="animate-spin h-6 w-6 text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    </span>
-                    <span id="taylor-bias" class="text-sm font-semibold mb-1"></span>
+                    <span id="kpi-spread-val" class="text-2xl font-black text-gray-900">--</span>
+                    <span id="kpi-spread-stat" class="text-sm font-semibold mb-1 text-gray-500">US 10Y vs UK 10Y</span>
                 </div>
             </div>
-
-            <!-- Actual Fed Rate -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-gray-800 relative">
-                <button onclick="toggleModal('macro-modal')" class="absolute top-4 right-4 text-gray-300 hover:text-gray-800 transition z-10 cursor-pointer" title="Learn about this metric">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </button>
-                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 pr-6">Actual Fed Funds</h3>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-emerald-500">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Fed Policy Gap</h3>
                 <div class="flex items-end gap-2">
-                    <span id="fed-actual" class="text-2xl font-black text-gray-900">
-                        <svg class="animate-spin h-6 w-6 text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    </span>
-                    <span class="text-sm font-semibold text-gray-400 mb-1">Current</span>
+                    <span id="kpi-fed-val" class="text-2xl font-black text-gray-900">--</span>
+                    <span id="kpi-fed-stat" class="text-sm font-semibold mb-1"></span>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-gray-800">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Dollar Index (DXY)</h3>
+                <div class="flex items-end gap-2">
+                    <span id="kpi-dxy-val" class="text-2xl font-black text-gray-900">--</span>
+                    <span id="kpi-dxy-stat" class="text-sm font-semibold mb-1"></span>
                 </div>
             </div>
         </div>
 
-        <!-- MACRO CHARTS & CALENDAR GRID -->
-        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-            
-            <!-- Yield Curve -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 lg:col-span-2 relative">
-                <button onclick="toggleModal('modal-yield')" class="absolute top-6 right-6 text-gray-300 hover:text-blue-600 transition z-10 cursor-pointer" title="Learn about the Yield Curve">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </button>
-                <h2 class="text-xl font-bold mb-4 border-b border-gray-100 pb-2 pr-8">US Treasury Yield Curve (Live)</h2>
-                <div id="yieldCurveChart" style="height: 350px; width: 100%;" class="flex justify-center items-center"><svg class="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
-            </div>
-
-            <!-- Macro Catalyst Calendar -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative">
-                <h2 class="text-xl font-bold mb-4 border-b border-gray-100 pb-2 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    Economic Calendar
-                </h2>
-                <div id="calendar-container" class="space-y-4 overflow-y-auto" style="max-height: 350px;">
-                    <div class="flex justify-center items-center py-10"><svg class="animate-spin h-6 w-6 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
+        <!-- MACRO CATALYST TIMELINE -->
+        <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-12">
+            <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6 text-center">Macro Catalyst Timeline (Live)</h2>
+            <div class="relative flex items-center justify-between w-full">
+                <!-- Timeline Line -->
+                <div class="absolute w-full h-1 bg-gray-100 top-1/2 transform -translate-y-1/2 z-0"></div>
+                <!-- Past Events Container -->
+                <div id="timeline-past" class="flex justify-between w-[45%] z-10"></div>
+                <!-- Today Node -->
+                <div class="z-10 flex flex-col items-center justify-center bg-blue-600 text-white rounded-full h-12 w-12 shadow-lg border-4 border-white">
+                    <span class="text-xs font-black">TODAY</span>
                 </div>
+                <!-- Future Events Container -->
+                <div id="timeline-future" class="flex justify-between w-[45%] z-10"></div>
             </div>
-
-            <!-- Advanced Inflation Tracker -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 lg:col-span-2 relative">
-                <button onclick="toggleModal('modal-inflation')" class="absolute top-6 right-6 text-gray-300 hover:text-red-600 transition z-10 cursor-pointer" title="Learn about Inflation Metrics">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </button>
-                <h2 class="text-xl font-bold mb-4 border-b border-gray-100 pb-2 pr-8">Inflation vs. Fed Target (YoY %)</h2>
-                <div id="inflationChart" style="height: 350px; width: 100%;" class="flex justify-center items-center"><svg class="animate-spin h-8 w-8 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
-            </div>
-
-             <!-- Labor Market (NFP) -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative">
-                <button onclick="toggleModal('modal-labor')" class="absolute top-6 right-6 text-gray-300 hover:text-green-600 transition z-10 cursor-pointer" title="Learn about Labor Data">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </button>
-                <h2 class="text-xl font-bold mb-4 border-b border-gray-100 pb-2 pr-8">Labor Momentum (NFP)</h2>
-                <div id="nfpChart" style="height: 350px; width: 100%;" class="flex justify-center items-center"><svg class="animate-spin h-8 w-8 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
-            </div>
-
         </div>
 
-        <!-- SYSTEMIC CREDIT RISK TIER -->
-        <div class="max-w-7xl mx-auto mb-12">
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 relative">
-                <button onclick="toggleModal('modal-credit')" class="absolute top-6 right-6 text-gray-300 hover:text-purple-600 transition z-10 cursor-pointer" title="Learn about Credit Spreads">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </button>
-                <h2 class="text-xl font-bold mb-4 border-b border-gray-100 pb-2 pr-8">Systemic Credit Risk: US High-Yield Spread (OAS)</h2>
-                <div id="creditChart" style="height: 350px; width: 100%;" class="flex justify-center items-center">
-                    <svg class="animate-spin h-8 w-8 text-purple-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <!-- ========================================== -->
+        <!-- PILLAR 1: JOB MARKET & EMPLOYMENT -->
+        <!-- ========================================== -->
+        <div id="pillar-jobs" class="max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
+            <h2 class="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight">Section 1: Job Market & Employment</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-bold mb-4 border-b border-gray-100 pb-2">Global Unemployment Comparison</h3>
+                    <div id="chart-unemp" style="height: 350px; width: 100%;"></div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-bold mb-4 border-b border-gray-100 pb-2">US Labor Tightness (JOLTS vs NFP)</h3>
+                    <div id="chart-jolts" style="height: 350px; width: 100%;"></div>
                 </div>
             </div>
         </div>
+
+        <!-- ========================================== -->
+        <!-- PILLAR 2: INFLATION, RATES & YIELDS -->
+        <!-- ========================================== -->
+        <div id="pillar-rates" class="max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
+            <h2 class="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight">Section 2: Inflation, Rates & Yields</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-bold mb-4 border-b border-gray-100 pb-2">Global Central Bank Rates</h3>
+                    <div id="chart-cb-rates" style="height: 350px; width: 100%;"></div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-bold mb-4 border-b border-gray-100 pb-2">Global Sovereign Spreads (10Y)</h3>
+                    <div id="chart-sov-yields" style="height: 350px; width: 100%;"></div>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-bold mb-4 border-b border-gray-100 pb-2">Advanced US Inflation Tracker (CPI vs PCE vs PPI)</h3>
+                <div id="chart-us-inflation" style="height: 350px; width: 100%;"></div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PILLAR 3: GDP & ECONOMIC SECTORS -->
+        <!-- ========================================== -->
+        <div id="pillar-gdp" class="max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
+            <h2 class="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight">Section 3: GDP & Output</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-bold mb-4 border-b border-gray-100 pb-2">US Real GDP Growth (YoY %)</h3>
+                    <div id="chart-gdp" style="height: 350px; width: 100%;"></div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-bold mb-4 border-b border-gray-100 pb-2">US Industrial Production</h3>
+                    <div id="chart-ind-prod" style="height: 350px; width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PILLAR 4: CURRENCIES & FX -->
+        <!-- ========================================== -->
+        <div id="pillar-fx" class="max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
+            <h2 class="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight">Section 4: Currencies & FX</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
+                    <h3 class="text-sm font-bold text-gray-500 mb-2">Dollar Index (DXY)</h3>
+                    <div id="chart-dxy" style="height: 200px; width: 100%;"></div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
+                    <h3 class="text-sm font-bold text-gray-500 mb-2">GBP/USD (Cable)</h3>
+                    <div id="chart-gbp" style="height: 200px; width: 100%;"></div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
+                    <h3 class="text-sm font-bold text-gray-500 mb-2">EUR/USD (Fiber)</h3>
+                    <div id="chart-eur" style="height: 200px; width: 100%;"></div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
+                    <h3 class="text-sm font-bold text-gray-500 mb-2">USD/CNY</h3>
+                    <div id="chart-cny" style="height: 200px; width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- SETHIWAY UNIFIED FOOTER -->
     <footer class="bg-gray-900 text-white py-12 px-6 mt-12">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
-            <div class="mb-6 md:mb-0 flex items-center">
-                <img src="logo.png" alt="Sethiway Logo" class="h-8 w-auto opacity-90">
+            <div class="mb-6 md:mb-0">
+                <h2 class="text-xl font-black tracking-tighter">SETHIWAY.</h2>
             </div>
             <div class="text-gray-400 font-light text-sm text-center md:text-right">
                 &copy; 2026 Sethiway. All rights reserved.
@@ -156,268 +183,134 @@
         </div>
     </footer>
 
-
-    <!-- EDUCATIONAL MODAL -->
-    <div id="macro-modal" class="fixed inset-0 z-[150] hidden flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 transform transition-all duration-300 overflow-y-auto max-h-[90vh]">
-            <div class="flex justify-between items-center mb-6 border-b pb-4">
-                <h2 class="text-2xl font-black text-gray-900">Macroeconomic Glossary</h2>
-                <button onclick="toggleModal('macro-modal')" class="text-gray-400 hover:text-red-500 text-3xl leading-none">&times;</button>
-            </div>
-            
-            <div class="space-y-6 text-sm text-gray-700 leading-relaxed">
-                <div>
-                    <h4 class="font-black text-blue-600 uppercase tracking-widest mb-1">2Y/10Y Yield Spread</h4>
-                    <p>The difference between the 10-Year and 2-Year US Treasury yields. A "normal" curve slopes upward. When the 2-Year yields more than the 10-Year, the curve is <strong>Inverted</strong>—historically one of the most reliable warning signs of an impending economic recession on Wall Street.</p>
-                </div>
-                
-                <div>
-                    <h4 class="font-black text-purple-600 uppercase tracking-widest mb-1">Sahm Rule (Recession Indicator)</h4>
-                    <p>A highly accurate, modern macroeconomic rule developed by former Fed economist Claudia Sahm. It signals the start of a recession when the three-month moving average of the national unemployment rate rises by 0.50% or more relative to its lowest point in the previous 12 months.</p>
-                </div>
-
-                <div>
-                    <h4 class="font-black text-emerald-600 uppercase tracking-widest mb-1">Taylor Rule Target</h4>
-                    <p>A monetary policy formula that calculates what the "ideal" interest rate should be based on current inflation and GDP/unemployment data. Comparing the Taylor Rule Target to the Actual Fed Funds rate shows whether the central bank is currently being too restrictive or too accommodative.</p>
-                </div>
-
-                <div>
-                    <h4 class="font-black text-gray-800 uppercase tracking-widest mb-1">Actual Fed Funds Rate</h4>
-                    <p>The target interest rate set by the Federal Open Market Committee (FOMC). It is the foundational "cost of capital" for the entire global economy, directly influencing mortgage rates, corporate debt, and equity valuations (DCF discount rates).</p>
-                </div>
-            </div>
-
-            <div class="mt-8 pt-4 text-center border-t border-gray-100">
-                <button onclick="toggleModal('macro-modal')" class="bg-gray-900 text-white font-bold py-2 px-8 rounded-lg hover:bg-gray-700 transition">Understood</button>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- 1. YIELD CURVE MODAL -->
-    <div id="modal-yield" class="fixed inset-0 z-[150] hidden flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-xl w-full mx-4 transform transition-all duration-300">
-            <div class="flex justify-between items-center mb-6 border-b pb-4">
-                <h2 class="text-2xl font-black text-gray-900">The US Treasury Yield Curve</h2>
-                <button onclick="toggleModal('modal-yield')" class="text-gray-400 hover:text-blue-600 text-3xl leading-none">&times;</button>
-            </div>
-            <div class="text-sm text-gray-700 leading-relaxed mb-6">
-                <p class="mb-4">The Yield Curve plots the interest rates of US government bonds across different maturities (from 3 months to 30 years). It is widely considered the most powerful macroeconomic indicator in global finance.</p>
-                <ul class="list-disc pl-5 space-y-2">
-                    <li><strong class="text-blue-600">Normal Curve:</strong> Upward sloping. Investors demand higher yields for locking up money for longer periods. Signals a healthy, growing economy.</li>
-                    <li><strong class="text-red-500">Inverted Curve:</strong> Downward sloping (Short-term rates > Long-term rates). This is a massive systemic warning sign. It indicates the market believes the Fed will be forced to slash rates soon to fight an impending recession.</li>
-                </ul>
-            </div>
-            <button onclick="toggleModal('modal-yield')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800 transition">Understood</button>
-        </div>
-    </div>
-
-    <!-- 2. INFLATION MODAL -->
-    <div id="modal-inflation" class="fixed inset-0 z-[150] hidden flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-xl w-full mx-4 transform transition-all duration-300">
-            <div class="flex justify-between items-center mb-6 border-b pb-4">
-                <h2 class="text-2xl font-black text-gray-900">Inflation Tracking Metrics</h2>
-                <button onclick="toggleModal('modal-inflation')" class="text-gray-400 hover:text-red-600 text-3xl leading-none">&times;</button>
-            </div>
-            <div class="text-sm text-gray-700 leading-relaxed mb-6 space-y-4">
-                <p>Tracking the deterioration of purchasing power across three distinct levels of the economy:</p>
-                <div>
-                    <h4 class="font-black text-red-600 uppercase tracking-widest mb-1">Headline CPI</h4>
-                    <p>The Consumer Price Index. The raw, total inflation felt by everyday consumers at the cash register, including highly volatile food and energy costs.</p>
-                </div>
-                <div>
-                    <h4 class="font-black text-blue-600 uppercase tracking-widest mb-1">Core PCE</h4>
-                    <p>Personal Consumption Expenditures (excluding Food & Energy). This is the exact metric the Federal Reserve prefers to use when deciding whether to raise or lower interest rates.</p>
-                </div>
-                <div>
-                    <h4 class="font-black text-emerald-600 uppercase tracking-widest mb-1">PPI (Wholesale)</h4>
-                    <p>The Producer Price Index. This tracks inflation at the factory and wholesale level before it is passed on to the consumer. It is highly volatile and acts as an early warning signal for future CPI spikes.</p>
-                </div>
-            </div>
-            <button onclick="toggleModal('modal-inflation')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800 transition">Understood</button>
-        </div>
-    </div>
-
-    <!-- 3. LABOR MODAL -->
-    <div id="modal-labor" class="fixed inset-0 z-[150] hidden flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-xl w-full mx-4 transform transition-all duration-300">
-            <div class="flex justify-between items-center mb-6 border-b pb-4">
-                <h2 class="text-2xl font-black text-gray-900">Nonfarm Payrolls (NFP)</h2>
-                <button onclick="toggleModal('modal-labor')" class="text-gray-400 hover:text-green-600 text-3xl leading-none">&times;</button>
-            </div>
-            <div class="text-sm text-gray-700 leading-relaxed mb-6">
-                <p class="mb-4">The absolute heavyweight of monthly economic data. Nonfarm Payrolls measures the net number of paid workers added to the US economy (excluding farm workers, government, and non-profits).</p>
-                <p>Released on the first Friday of every month, this single metric acts as a direct proxy for real-time economic growth and frequently causes massive volatility in the stock and bond markets upon its release.</p>
-            </div>
-            <button onclick="toggleModal('modal-labor')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800 transition">Understood</button>
-        </div>
-    </div>
-
-    <!-- 4. CREDIT RISK MODAL -->
-    <div id="modal-credit" class="fixed inset-0 z-[150] hidden flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-xl w-full mx-4 transform transition-all duration-300">
-            <div class="flex justify-between items-center mb-6 border-b pb-4">
-                <h2 class="text-2xl font-black text-gray-900">High-Yield Credit Spread (OAS)</h2>
-                <button onclick="toggleModal('modal-credit')" class="text-gray-400 hover:text-purple-600 text-3xl leading-none">&times;</button>
-            </div>
-            <div class="text-sm text-gray-700 leading-relaxed mb-6 space-y-4">
-                <p>The ICE BofA US High Yield Index Option-Adjusted Spread (OAS) is the ultimate "canary in the coal mine" for systemic financial risk.</p>
-                <p>It measures the extra yield (risk premium) that investors demand to hold riskier "junk" corporate bonds over ultra-safe US Government Treasury bonds.</p>
-                <ul class="list-disc pl-5 space-y-2">
-                    <li><strong class="text-purple-600">Spiking Spreads:</strong> Indicates panic. Investors are fleeing to safety, expecting a wave of corporate bankruptcies and credit defaults. (A leading indicator for equity market crashes).</li>
-                    <li><strong class="text-gray-900">Falling/Low Spreads:</strong> Indicates complacency and a strong "Risk-On" environment where capital is flowing freely to corporations.</li>
-                </ul>
-            </div>
-            <button onclick="toggleModal('modal-credit')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800 transition">Understood</button>
-        </div>
-    </div>
-
-    <!-- SETHIMACRO DATA ENGINE -->
+    <!-- GLOBAL DATA ENGINE SCRIPT -->
     <script>
-        // Modal Toggle Logic
-        function toggleModal(modalID) {
-            const modal = document.getElementById(modalID);
-            if (modal.classList.contains('hidden')) {
-                modal.classList.remove('hidden');
-            } else {
-                modal.classList.add('hidden');
-            }
-        }
-
-        // IMPORTANT: Live Render URL for the SethiMacro Backend
         const API_BASE = "https://sethimacro.sethiway.com/api";
 
-        // UPDATED: Increased bottom margin (b: 60) and forced strict Date timelines
-        const layoutTemplate = {
-            paper_bgcolor: 'rgba(0,0,0,0)',
-            plot_bgcolor: 'rgba(0,0,0,0)',
-            font: { color: '#4b5563' },
-            xaxis: { gridcolor: '#f3f4f6', showline: true, linecolor: '#e5e7eb' },
+        const layoutBase = {
+            paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: { color: '#4b5563' },
+            xaxis: { gridcolor: '#f3f4f6', showline: true, linecolor: '#e5e7eb', type: 'date' },
             yaxis: { gridcolor: '#f3f4f6', showline: true, linecolor: '#e5e7eb' },
-            margin: { t: 20, r: 20, l: 40, b: 60 }
+            margin: { t: 10, r: 10, l: 40, b: 40 }, showlegend: true, legend: { orientation: 'h', y: 1.1 }
         };
+        const layoutMini = { ...layoutBase, margin: { t: 5, r: 5, l: 30, b: 20 }, showlegend: false };
 
-        async function fetchAndRenderData() {
+        async function fetchGlobalData() {
             try {
-                // 1. Fetch All Data Simultaneously
-                const [yieldRes, macroRes, signalRes, calRes] = await Promise.all([
-                    fetch(`${API_BASE}/yield-curve`),
-                    fetch(`${API_BASE}/macro-metrics`),
-                    fetch(`${API_BASE}/quant-signals`),
-                    fetch(`${API_BASE}/calendar`)
+                const [jobsRes, ratesRes, gdpRes, fxRes, sigRes, calRes] = await Promise.all([
+                    fetch(`${API_BASE}/pillar-jobs`), fetch(`${API_BASE}/pillar-rates`),
+                    fetch(`${API_BASE}/pillar-gdp`), fetch(`${API_BASE}/pillar-fx`),
+                    fetch(`${API_BASE}/quant-signals`), fetch(`${API_BASE}/calendar-timeline`)
                 ]);
-                
-                const yieldData = await yieldRes.json();
-                const macroData = await macroRes.json();
-                const signalData = await signalRes.json();
-                const calData = await calRes.json();
 
-                // 2. Populate Proprietary Quant Signals (Executive Bar)
-                if(signalData.Yield_Spread_2Y10Y && signalData.Yield_Spread_2Y10Y.value !== "N/A") {
-                    document.getElementById('spread-value').innerText = signalData.Yield_Spread_2Y10Y.value + "%";
-                    const spreadStatus = document.getElementById('spread-status');
-                    spreadStatus.innerText = signalData.Yield_Spread_2Y10Y.status;
-                    spreadStatus.className = signalData.Yield_Spread_2Y10Y.value < 0 ? "text-sm font-semibold mb-1 text-red-600" : "text-sm font-semibold mb-1 text-green-600";
+                const jobs = await jobsRes.json();
+                const rates = await ratesRes.json();
+                const gdp = await gdpRes.json();
+                const fx = await fxRes.json();
+                const sig = await sigRes.json();
+                const cal = await calRes.json();
+
+                // 1. POPULATE KPI BAR
+                if(sig.Sahm_Rule) {
+                    document.getElementById('kpi-sahm-val').innerText = sig.Sahm_Rule.value !== "N/A" ? `${sig.Sahm_Rule.value}%` : "N/A";
+                    document.getElementById('kpi-sahm-stat').innerText = sig.Sahm_Rule.status;
+                    document.getElementById('kpi-sahm-stat').className = sig.Sahm_Rule.value >= 0.5 ? "text-sm font-semibold mb-1 text-red-600" : "text-sm font-semibold mb-1 text-green-600";
+                }
+                if(sig.Yield_Spread) {
+                    document.getElementById('kpi-spread-val').innerText = sig.Yield_Spread.us_spread !== "N/A" ? `${sig.Yield_Spread.us_spread}%` : "N/A";
+                }
+                if(sig.Taylor_Rule) {
+                    document.getElementById('kpi-fed-val').innerText = sig.Taylor_Rule.actual_rate !== "N/A" ? `${sig.Taylor_Rule.actual_rate}%` : "N/A";
+                    document.getElementById('kpi-fed-stat').innerText = sig.Taylor_Rule.policy_bias;
+                    document.getElementById('kpi-fed-stat').className = sig.Taylor_Rule.policy_bias.includes("Restrictive") ? "text-sm font-semibold mb-1 text-red-600" : "text-sm font-semibold mb-1 text-blue-600";
+                }
+                if(sig.DXY_Strength) {
+                    document.getElementById('kpi-dxy-val').innerText = sig.DXY_Strength.value;
+                    document.getElementById('kpi-dxy-stat').innerText = sig.DXY_Strength.status;
+                    document.getElementById('kpi-dxy-stat').className = sig.DXY_Strength.status.includes("+") ? "text-sm font-semibold mb-1 text-green-600" : "text-sm font-semibold mb-1 text-red-600";
                 }
 
-                if(signalData.Sahm_Rule && signalData.Sahm_Rule.value !== "N/A") {
-                    document.getElementById('sahm-value').innerText = signalData.Sahm_Rule.value + "%";
-                    const sahmStatus = document.getElementById('sahm-status');
-                    sahmStatus.innerText = signalData.Sahm_Rule.status;
-                    sahmStatus.className = signalData.Sahm_Rule.value >= 0.50 ? "text-sm font-semibold mb-1 text-red-600" : "text-sm font-semibold mb-1 text-green-600";
+                // 2. POPULATE CATALYST TIMELINE
+                const renderTimelineNode = (event, isPast) => `
+                    <div class="flex flex-col items-center bg-white border border-gray-200 px-3 py-2 rounded-lg shadow-sm z-10 w-24 text-center">
+                        <span class="text-[10px] font-bold text-gray-500">${new Date(event.date).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' })}</span>
+                        <span class="text-xs font-bold ${isPast ? 'text-gray-900' : 'text-blue-600'} truncate w-full" title="Release ID: ${event.release_id}">Event ${event.release_id}</span>
+                    </div>
+                `;
+                document.getElementById('timeline-past').innerHTML = cal.past.map(e => renderTimelineNode(e, true)).join('');
+                document.getElementById('timeline-future').innerHTML = cal.future.map(e => renderTimelineNode(e, false)).join('');
+
+                // 3. PILLAR 1: JOBS
+                if(jobs.US_Unemp && jobs.UK_Unemp && jobs.EU_Unemp) {
+                    const usU = [...jobs.US_Unemp].reverse(), ukU = [...jobs.UK_Unemp].reverse(), euU = [...jobs.EU_Unemp].reverse();
+                    Plotly.newPlot('chart-unemp', [
+                        {x: usU.map(d=>d.date), y: usU.map(d=>d.value), name: 'US', line: {color: '#2563eb'}},
+                        {x: ukU.map(d=>d.date), y: ukU.map(d=>d.value), name: 'UK', line: {color: '#dc2626'}},
+                        {x: euU.map(d=>d.date), y: euU.map(d=>d.value), name: 'EU', line: {color: '#10b981'}}
+                    ], layoutBase, {displayModeBar: false});
+                }
+                if(jobs.US_NFP && jobs.US_JOLTS) {
+                    const nfp = [...jobs.US_NFP].reverse(), jolts = [...jobs.US_JOLTS].reverse();
+                    Plotly.newPlot('chart-jolts', [
+                        {x: jolts.map(d=>d.date), y: jolts.map(d=>d.value), name: 'Job Openings (M)', yaxis: 'y1', type: 'scatter', line: {color: '#8b5cf6'}},
+                        {x: nfp.map(d=>d.date), y: nfp.map(d=>d.value), name: 'NFP Added (K)', yaxis: 'y2', type: 'bar', marker: {color: '#93c5fd', opacity: 0.5}}
+                    ], {...layoutBase, yaxis2: {overlaying: 'y', side: 'right'}}, {displayModeBar: false});
                 }
 
-                if(signalData.Taylor_Rule && signalData.Taylor_Rule.value !== "N/A") {
-                    document.getElementById('taylor-rate').innerText = signalData.Taylor_Rule.prescribed_rate + "%";
-                    document.getElementById('fed-actual').innerText = signalData.Taylor_Rule.actual_rate + "%";
-                    const biasStatus = document.getElementById('taylor-bias');
-                    biasStatus.innerText = signalData.Taylor_Rule.policy_bias;
-                    biasStatus.className = signalData.Taylor_Rule.policy_bias.includes("Restrictive") ? "text-sm font-semibold mb-1 text-red-600" : "text-sm font-semibold mb-1 text-blue-600";
+                // 4. PILLAR 2: RATES
+                if(rates.Fed_Funds && rates.ECB_Rate) {
+                    const fed = [...rates.Fed_Funds].reverse(), ecb = [...rates.ECB_Rate].reverse();
+                    Plotly.newPlot('chart-cb-rates', [
+                        {x: fed.map(d=>d.date), y: fed.map(d=>d.value), name: 'Fed Funds', line: {shape: 'hv', color: '#059669'}},
+                        {x: ecb.map(d=>d.date), y: ecb.map(d=>d.value), name: 'ECB Rate', line: {shape: 'hv', color: '#2563eb'}}
+                    ], layoutBase, {displayModeBar: false});
+                }
+                if(rates.US_10Y && rates.UK_10Y && rates.GER_10Y) {
+                    const us10 = [...rates.US_10Y].reverse(), uk10 = [...rates.UK_10Y].reverse(), ger10 = [...rates.GER_10Y].reverse();
+                    Plotly.newPlot('chart-sov-yields', [
+                        {x: us10.map(d=>d.date), y: us10.map(d=>d.value), name: 'US 10Y', line: {color: '#1f2937'}},
+                        {x: uk10.map(d=>d.date), y: uk10.map(d=>d.value), name: 'UK Gilt 10Y', line: {color: '#dc2626'}},
+                        {x: ger10.map(d=>d.date), y: ger10.map(d=>d.value), name: 'GER Bund 10Y', line: {color: '#d97706'}}
+                    ], layoutBase, {displayModeBar: false});
+                }
+                if(rates.US_CPI && rates.US_Core_PCE && rates.US_PPI) {
+                    const cpi = [...rates.US_CPI].reverse(), pce = [...rates.US_Core_PCE].reverse(), ppi = [...rates.US_PPI].reverse();
+                    Plotly.newPlot('chart-us-inflation', [
+                        {x: cpi.map(d=>d.date), y: cpi.map(d=>d.value), name: 'Headline CPI', line: {color: '#dc2626'}},
+                        {x: pce.map(d=>d.date), y: pce.map(d=>d.value), name: 'Core PCE', line: {color: '#2563eb'}},
+                        {x: ppi.map(d=>d.date), y: ppi.map(d=>d.value), name: 'PPI', line: {color: '#10b981', dash: 'dot'}}
+                    ], layoutBase, {displayModeBar: false});
                 }
 
-                // 3. Render Yield Curve (Categorical X-Axis)
-                if(yieldData && yieldData["3_Month"]) {
-                    const yieldX = ["3 Month", "2 Year", "5 Year", "10 Year", "30 Year"];
-                    const yieldY = [yieldData["3_Month"].value, yieldData["2_Year"].value, yieldData["5_Year"].value, yieldData["10_Year"].value, yieldData["30_Year"].value];
-                    Plotly.newPlot('yieldCurveChart', [{
-                        x: yieldX, y: yieldY, type: 'scatter', mode: 'lines+markers',
-                        line: { color: '#2563eb', width: 3, shape: 'spline' },
-                        marker: { size: 10, color: '#3b82f6' }
-                    }], { ...layoutTemplate, yaxis: { ...layoutTemplate.yaxis, title: 'Yield (%)' } }, {displayModeBar: false});
+                // 5. PILLAR 3: GDP
+                if(gdp.US_GDP) {
+                    const usgdp = [...gdp.US_GDP].reverse();
+                    Plotly.newPlot('chart-gdp', [
+                        {x: usgdp.map(d=>d.date), y: usgdp.map(d=>d.value), type: 'bar', marker: {color: '#3b82f6'}}
+                    ], {...layoutBase, showlegend: false}, {displayModeBar: false});
+                }
+                if(gdp.US_Ind_Prod) {
+                    const ind = [...gdp.US_Ind_Prod].reverse();
+                    Plotly.newPlot('chart-ind-prod', [
+                        {x: ind.map(d=>d.date), y: ind.map(d=>d.value), type: 'scatter', fill: 'tozeroy', line: {color: '#6366f1'}}
+                    ], {...layoutBase, showlegend: false}, {displayModeBar: false});
                 }
 
-                // 4. Render Advanced Multi-Line Inflation Tracker (Forced Date X-Axis)
-                if(macroData && macroData.CPI_YoY && macroData.Core_PCE_YoY && macroData.PPI_Wholesale_YoY) {
-                    const cpi = [...macroData.CPI_YoY].reverse();
-                    const pce = [...macroData.Core_PCE_YoY].reverse();
-                    const ppi = [...macroData.PPI_Wholesale_YoY].reverse();
-                    
-                    const trace1 = { x: cpi.map(d=>d.date), y: cpi.map(d=>d.value), name: 'Headline CPI', type: 'scatter', line: {color: '#dc2626', width: 2} };
-                    const trace2 = { x: pce.map(d=>d.date), y: pce.map(d=>d.value), name: 'Core PCE', type: 'scatter', line: {color: '#2563eb', width: 2} };
-                    const trace3 = { x: ppi.map(d=>d.date), y: ppi.map(d=>d.value), name: 'PPI', type: 'scatter', line: {color: '#10b981', width: 2, dash: 'dot'} };
-                    const fedTarget = { x: [cpi[0].date, cpi[cpi.length-1].date], y: [2, 2], name: 'Fed 2% Target', type: 'scatter', hoverinfo: 'none', line: {color: '#9ca3af', width: 2, dash: 'dash'} };
+                // 6. PILLAR 4: FX
+                const renderFX = (id, dataArr, color) => {
+                    if(!dataArr) return;
+                    const clean = [...dataArr].reverse();
+                    Plotly.newPlot(id, [{x: clean.map(d=>d.date), y: clean.map(d=>d.value), line: {color: color}}], layoutMini, {displayModeBar: false});
+                };
+                renderFX('chart-dxy', fx.DXY, '#1f2937');
+                renderFX('chart-gbp', fx.GBP_USD, '#dc2626');
+                renderFX('chart-eur', fx.EUR_USD, '#2563eb');
+                renderFX('chart-cny', fx.USD_CNY, '#b91c1c');
 
-                    // Injected type: 'date' exclusively here
-                    Plotly.newPlot('inflationChart', [trace1, trace2, trace3, fedTarget], { ...layoutTemplate, legend: {orientation: 'h', y: 1.1}, xaxis: { ...layoutTemplate.xaxis, type: 'date' }, yaxis: { ...layoutTemplate.yaxis, title: 'YoY % Change' } }, {displayModeBar: false});
-                }
-
-                // 5. Render Nonfarm Payrolls (NFP) Bar Chart (Forced Date X-Axis)
-                if(macroData && macroData.Nonfarm_Payrolls_MoM) {
-                    const nfp = [...macroData.Nonfarm_Payrolls_MoM].reverse();
-                    const colors = nfp.map(d => d.value >= 0 ? '#3b82f6' : '#ef4444');
-                    
-                    // Injected type: 'date' exclusively here
-                    Plotly.newPlot('nfpChart', [{
-                        x: nfp.map(d=>d.date), y: nfp.map(d=>d.value), type: 'bar', marker: {color: colors}
-                    }], { ...layoutTemplate, xaxis: { ...layoutTemplate.xaxis, type: 'date' }, yaxis: { ...layoutTemplate.yaxis, title: 'Jobs Added (Thousands)' } }, {displayModeBar: false});
-                }
-
-                // 6. Render High-Yield Credit Spread
-                if(macroData && macroData.High_Yield_Spread) {
-                    const hy = [...macroData.High_Yield_Spread].reverse();
-                    Plotly.newPlot('creditChart', [{
-                        x: hy.map(d=>d.date), y: hy.map(d=>d.value), type: 'scatter', mode: 'lines',
-                        line: { color: '#8b5cf6', width: 2 }, fill: 'tozeroy', fillcolor: 'rgba(139, 92, 246, 0.1)'
-                    }], { ...layoutTemplate, xaxis: { ...layoutTemplate.xaxis, type: 'date' }, yaxis: { ...layoutTemplate.yaxis, title: 'Spread (%)' } }, {displayModeBar: false});
-                }
-
-                // 7. Render Economic Calendar List
-                const calContainer = document.getElementById('calendar-container');
-                if (calData && calData.length > 0) {
-                    calContainer.innerHTML = '';
-                    calData.forEach(event => {
-                        const dateObj = new Date(event.date);
-                        const formattedDate = dateObj.toLocaleDateString('en-GB', { month: 'short', day: 'numeric', year: 'numeric' });
-                        
-                        let eventName = "Economic Release";
-                        if(event.release_id === 10) eventName = "CPI Inflation Data";
-                        if(event.release_id === 50) eventName = "Employment Situation (NFP)";
-                        if(event.release_id === 46) eventName = "GDP Data";
-                        if(event.release_id === 21) eventName = "Industrial Production";
-
-                        calContainer.innerHTML += `
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition">
-                                <div>
-                                    <p class="font-bold text-sm text-gray-900">${eventName}</p>
-                                    <p class="text-xs text-gray-500">Official FRED Release</p>
-                                </div>
-                                <div class="text-right">
-                                    <span class="px-3 py-1 bg-red-100 text-red-700 font-bold text-xs rounded-full">${formattedDate}</span>
-                                </div>
-                            </div>
-                        `;
-                    });
-                } else {
-                    calContainer.innerHTML = '<p class="text-sm text-gray-500 italic text-center py-6">No upcoming major releases this week.</p>';
-                }
-
-            } catch (error) {
-                console.error("Error loading SethiMacro data:", error);
-            }
+            } catch (err) { console.error("Global engine failed to load:", err); }
         }
         
-        // Boot the engine!
-        fetchAndRenderData();
+        fetchGlobalData();
     </script>
 </body>
 </html>

@@ -92,24 +92,27 @@
     <!-- ========================================== -->
     <!-- THE ENDLESS MACRO CATALYST TIMELINE        -->
     <!-- ========================================== -->
-    <div class="w-full bg-white border-y border-gray-200 py-12 mb-12 shadow-sm relative overflow-hidden">
+    <div class="w-full bg-white border-y border-gray-200 py-16 mb-12 shadow-sm relative overflow-hidden">
         <h2 class="absolute top-6 w-full text-xs font-black text-gray-400 uppercase tracking-widest text-center">Global Macro Catalyst Timeline</h2>
         
-        <div class="max-w-[1400px] mx-auto relative h-48 mt-8">
-            <!-- Thicker, Darker Endless Line -->
-            <div class="absolute w-[200vw] h-1.5 bg-gray-300 left-[-50vw] top-1/2 transform -translate-y-1/2 z-0"></div>
+        <div class="max-w-[1400px] mx-auto relative h-56 mt-8 flex justify-center items-center">
+            <!-- Thicker, Blue Endless Line -->
+            <div class="absolute w-[200vw] h-1.5 bg-blue-200 z-0"></div>
+            
+            <!-- Etchings Background (Creates the empty generic ruler marks along the line) -->
+            <div class="absolute w-[200vw] h-3 z-0" style="background-image: repeating-linear-gradient(to right, transparent, transparent 99px, #93c5fd 99px, #93c5fd 100px); background-size: 100px 100%;"></div>
             
             <!-- Past Events Container -->
-            <div id="timeline-past" class="absolute right-[50%] pr-14 top-0 bottom-0 flex justify-end items-center space-x-4 w-[50%] z-10"></div>
+            <div id="timeline-past" class="absolute right-[50%] pr-16 flex justify-end items-center space-x-6 w-[50vw] z-10"></div>
             
-            <!-- Today Node (Perfectly Centered mathematically) -->
-            <div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center justify-center bg-blue-600 text-white rounded-full h-16 w-16 shadow-xl border-4 border-white flex-shrink-0">
-                <span class="text-[10px] font-black tracking-widest">TODAY</span>
+            <!-- Today Node -->
+            <div class="z-20 flex flex-col items-center justify-center bg-blue-600 text-white rounded-full h-20 w-20 shadow-xl border-4 border-white flex-shrink-0 relative">
+                <span class="text-[11px] font-black tracking-widest">TODAY</span>
                 <span class="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-40 animate-ping"></span>
             </div>
             
             <!-- Future Events Container -->
-            <div id="timeline-future" class="absolute left-[50%] pl-14 top-0 bottom-0 flex justify-start items-center space-x-4 w-[50%] z-10"></div>
+            <div id="timeline-future" class="absolute left-[50%] pl-16 flex justify-start items-center space-x-6 w-[50vw] z-10"></div>
         </div>
     </div>
 
@@ -309,40 +312,44 @@
                 const renderTimelineNode = (event, index, isPast) => {
                     // Centralized Color Coding & Naming Dictionary
                     const idMap = {
-                        10: {name: "CPI Inflation", color: "text-red-600", border: "border-t-red-500", dot: "bg-red-500"},
-                        50: {name: "Nonfarm Payrolls", color: "text-blue-600", border: "border-t-blue-500", dot: "bg-blue-500"},
-                        46: {name: "GDP Data", color: "text-emerald-600", border: "border-t-emerald-500", dot: "bg-emerald-500"},
-                        21: {name: "Industrial Prod.", color: "text-purple-600", border: "border-t-purple-500", dot: "bg-purple-500"},
-                        9:  {name: "Retail Sales", color: "text-orange-600", border: "border-t-orange-500", dot: "bg-orange-500"},
-                        18: {name: "PPI Wholesale", color: "text-pink-600", border: "border-t-pink-500", dot: "bg-pink-500"}
+                        10: {name: "CPI Inflation", color: "text-red-600", border: "border-t-red-500", tick: "bg-red-500"},
+                        50: {name: "Nonfarm Payrolls", color: "text-blue-600", border: "border-t-blue-500", tick: "bg-blue-500"},
+                        46: {name: "GDP Data", color: "text-emerald-600", border: "border-t-emerald-500", tick: "bg-emerald-500"},
+                        21: {name: "Industrial Prod.", color: "text-purple-600", border: "border-t-purple-500", tick: "bg-purple-500"},
+                        9:  {name: "Retail Sales", color: "text-orange-600", border: "border-t-orange-500", tick: "bg-orange-500"},
+                        18: {name: "PPI Wholesale", color: "text-pink-600", border: "border-t-pink-500", tick: "bg-pink-500"}
                     };
-                    const config = idMap[event.release_id] || {name: "Macro Release", color: "text-gray-600", border: "border-t-gray-500", dot: "bg-gray-500"};
+                    const config = idMap[event.release_id] || {name: "Macro Release", color: "text-gray-600", border: "border-t-gray-500", tick: "bg-gray-500"};
                     
-                    const isUp = index % 2 === 0; // Alternates Top/Bottom automatically
+                    const isUp = index % 2 === 0;
                     const dateObj = new Date(event.date);
                     const dateStr = dateObj.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
                     
-                    // Past events are slightly faded out to show they already happened
-                    const opacityClass = isPast ? 'opacity-60' : 'opacity-100';
+                    const opacityClass = isPast ? 'opacity-50 hover:opacity-100' : 'opacity-100';
 
+                    // Wider 144px boxes with vertical "etching" ticks instead of circles
                     if (isUp) {
                         return `
-                        <div class="relative flex items-center justify-center ${opacityClass} group flex-shrink-0" style="width: 110px;">
-                            <div class="w-3.5 h-3.5 rounded-full ${config.dot} z-10 shadow-sm border-2 border-white"></div>
-                            <div class="absolute bottom-2 w-0.5 h-6 bg-gray-400"></div>
-                            <div class="absolute bottom-8 bg-white border ${config.border} border-x-gray-200 border-b-gray-200 px-2 py-2 rounded-xl shadow-lg text-center w-full transform transition group-hover:-translate-y-1">
-                                <span class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">${dateStr}</span>
-                                <span class="block text-[11px] font-bold ${config.color} leading-tight">${config.name}</span>
+                        <div class="relative flex items-center justify-center ${opacityClass} group flex-shrink-0 transition-all duration-300" style="width: 144px;">
+                            <div class="w-1.5 h-6 rounded-sm ${config.tick} z-10 shadow-sm border border-white"></div>
+                            
+                            <div class="absolute bottom-3 w-0.5 h-10 bg-gray-300"></div>
+                            
+                            <div class="absolute bottom-12 bg-white border ${config.border} border-x-gray-200 border-b-gray-200 px-3 py-3 rounded-xl shadow-lg text-center w-full transform transition group-hover:-translate-y-2">
+                                <span class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">${dateStr}</span>
+                                <span class="block text-sm font-bold ${config.color} leading-tight">${config.name}</span>
                             </div>
                         </div>`;
                     } else {
                         return `
-                        <div class="relative flex items-center justify-center ${opacityClass} group flex-shrink-0" style="width: 110px;">
-                            <div class="w-3.5 h-3.5 rounded-full ${config.dot} z-10 shadow-sm border-2 border-white"></div>
-                            <div class="absolute top-2 w-0.5 h-6 bg-gray-400"></div>
-                            <div class="absolute top-8 bg-white border ${config.border} border-x-gray-200 border-b-gray-200 px-2 py-2 rounded-xl shadow-lg text-center w-full transform transition group-hover:translate-y-1">
-                                <span class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">${dateStr}</span>
-                                <span class="block text-[11px] font-bold ${config.color} leading-tight">${config.name}</span>
+                        <div class="relative flex items-center justify-center ${opacityClass} group flex-shrink-0 transition-all duration-300" style="width: 144px;">
+                            <div class="w-1.5 h-6 rounded-sm ${config.tick} z-10 shadow-sm border border-white"></div>
+                            
+                            <div class="absolute top-3 w-0.5 h-10 bg-gray-300"></div>
+                            
+                            <div class="absolute top-12 bg-white border ${config.border} border-x-gray-200 border-b-gray-200 px-3 py-3 rounded-xl shadow-lg text-center w-full transform transition group-hover:translate-y-2">
+                                <span class="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-1">${dateStr}</span>
+                                <span class="block text-sm font-bold ${config.color} leading-tight">${config.name}</span>
                             </div>
                         </div>`;
                     }

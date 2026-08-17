@@ -414,7 +414,11 @@
                     Plotly.newPlot('chart-jolts', [
                         {x: jolts.map(d=>d.date), y: jolts.map(d=>d.value), name: 'Job Openings (M)', yaxis: 'y1', type: 'scatter', line: {color: '#8b5cf6'}},
                         {x: nfp.map(d=>d.date), y: nfp.map(d=>d.value), name: 'NFP Added (K)', yaxis: 'y2', type: 'bar', marker: {color: '#93c5fd', opacity: 0.5}}
-                    ], {...layoutBase, yaxis2: {overlaying: 'y', side: 'right'}}, {displayModeBar: false});
+                    ], {
+                        ...layoutBase, 
+                        margin: { t: 10, r: 60, l: 40, b: 40 }, // <-- THE FIX: 60px right margin
+                        yaxis2: {overlaying: 'y', side: 'right', showgrid: false}
+                    }, {displayModeBar: false});
                 }
 
                 // 4. PILLAR 2: RATES

@@ -14,16 +14,34 @@
 <body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
 
     <!-- SETHIWAY UNIFIED NAVIGATION -->
-    <nav class="flex justify-between items-center py-6 px-6 md:px-10 bg-white shadow-sm sticky top-0 z-50">
+    <nav class="flex justify-between items-center py-6 px-6 md:px-10 bg-white shadow-sm sticky top-0 z-[100]">
+        <!-- 1. The Custom Logo -->
         <a href="index.html" class="flex items-center">
-            <h1 class="text-2xl font-black tracking-tighter">SETHIWAY.</h1>
+            <img src="logo.png" alt="Sethiway Logo" class="h-8 w-auto invert opacity-90 hover:opacity-100 transition">
         </a>
-        <div class="hidden md:flex space-x-8 text-sm font-semibold uppercase tracking-wide">
-            <a href="index.html#portfolio" class="hover:text-blue-600 transition">Portfolio</a>
+        
+        <!-- 2. The 6-Button Navigation Array -->
+        <div class="hidden lg:flex items-center space-x-6 text-sm font-semibold uppercase tracking-wide text-gray-500">
+            <a href="#job-market" class="hover:text-blue-600 transition">Job Market</a>
+            <a href="#inflation-rates" class="hover:text-blue-600 transition">Inflation & Rates</a>
+            <a href="#gdp-output" class="hover:text-blue-600 transition">GDP & Output</a>
+            <a href="#currencies" class="hover:text-blue-600 transition">Currencies</a>
+            
+            <span class="text-gray-200">|</span> <!-- Visual Divider -->
+            
             <a href="sethistock.html" class="hover:text-blue-600 transition">SethiStock</a>
-            <a href="#" class="text-blue-600 transition">SethiMacro</a>
+            <a href="index.html" class="px-5 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition shadow-md">Back to Hub</a>
         </div>
     </nav>
+
+    <!-- DYNAMIC LOADING BANNER -->
+    <div id="global-loader" class="w-full flex justify-center items-center py-3 bg-blue-50 border-b border-blue-100 transition-all duration-500 z-50">
+        <svg class="animate-spin h-5 w-5 text-blue-600 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <span id="loading-text" class="text-sm font-bold text-blue-800 tracking-wide">Initializing Global Terminal...</span>
+    </div>
+
+    <!-- MAIN DASHBOARD CONTENT (Starts Translucent) -->
+    <div id="macro-dashboard-content" class="flex-grow p-8 opacity-30 transition-opacity duration-1000 pointer-events-none">
 
     <div class="flex-grow p-8">
         <!-- GLOBAL HEADER -->
@@ -264,6 +282,26 @@
 
         const API_BASE = "https://sethimacro.sethiway.com/api";
 
+        // ==========================================
+        // DYNAMIC LOADING ENGINE
+        // ==========================================
+        const loadingPhrases = [
+            "Loading Job Market info...",
+            "Pulling employment data...",
+            "Plotting macro timeline...",
+            "Calculating global yield spreads...",
+            "Calibrating inflation metrics...",
+            "Connecting to Federal Reserve (FRED)..."
+        ];
+        let phraseIndex = 0;
+        const loadingTextEl = document.getElementById("loading-text");
+        
+        // Swap phrases every 1.5 seconds
+        const loadingInterval = setInterval(() => {
+            phraseIndex = (phraseIndex + 1) % loadingPhrases.length;
+            if(loadingTextEl) loadingTextEl.innerText = loadingPhrases[phraseIndex];
+        }, 1500);
+
         const layoutBase = {
             paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: { color: '#4b5563' },
             xaxis: { gridcolor: '#f3f4f6', showline: true, linecolor: '#e5e7eb', type: 'date' },
@@ -431,7 +469,30 @@
                 renderFX('chart-eur', fx.EUR_USD, '#2563eb');
                 renderFX('chart-cny', fx.USD_CNY, '#b91c1c');
 
-            } catch (err) { console.error("Global engine failed to load:", err); }
+                // --- END OF DATA PLOTTING: UNLOCK DASHBOARD ---
+                clearInterval(loadingInterval);
+                const globalLoader = document.getElementById('global-loader');
+                const dashContent = document.getElementById('macro-dashboard-content');
+                
+                // Slide banner up and fade out
+                if (globalLoader) {
+                    globalLoader.classList.add('h-0', 'py-0', 'opacity-0', 'overflow-hidden'); 
+                    setTimeout(() => globalLoader.remove(), 500); // Remove from DOM after transition
+                }
+                
+                // Fade in the actual dashboard and restore clicking
+                if (dashContent) {
+                    dashContent.classList.remove('opacity-30', 'pointer-events-none');
+                    dashContent.classList.add('opacity-100');
+                }
+
+            } catch (error) {
+                console.error("Error loading SethiMacro data:", error);
+                // Even if it fails, unlock the UI so the user isn't frozen forever
+                clearInterval(loadingInterval);
+                document.getElementById('loading-text').innerText = "Data Sync Failed. Please Refresh.";
+                document.getElementById('macro-dashboard-content').classList.remove('pointer-events-none');
+            }
         }
         
         fetchGlobalData();

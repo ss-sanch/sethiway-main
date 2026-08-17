@@ -516,17 +516,18 @@
                 if(rates.Fed_Funds && rates.ECB_Rate) {
                     const fed = [...rates.Fed_Funds].reverse(), ecb = [...rates.ECB_Rate].reverse();
                     Plotly.newPlot('chart-cb-rates', [
-                        {x: fed.map(d=>d.date), y: fed.map(d=>d.value), name: 'Fed Funds', line: {shape: 'hv', color: '#059669'}},
-                        {x: ecb.map(d=>d.date), y: ecb.map(d=>d.value), name: 'ECB Rate', line: {shape: 'hv', color: '#2563eb'}}
-                    ], layoutBase, {displayModeBar: false});
+                        {x: fed.map(d=>d.date), y: fed.map(d=>d.value), name: 'Fed Funds', line: {shape: 'hv', color: '#059669', width: 2}},
+                        {x: ecb.map(d=>d.date), y: ecb.map(d=>d.value), name: 'ECB Rate', line: {shape: 'hv', color: '#2563eb', width: 2}}
+                    ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
                 }
+                
                 if(rates.US_10Y && rates.UK_10Y && rates.GER_10Y) {
-                    const us10 = [...rates.US_10Y].reverse(), uk10 = [...rates.UK_10Y].reverse(), ger10 = [...rates.GER_10Y].reverse();
-                    Plotly.newPlot('chart-sov-yields', [
-                        {x: us10.map(d=>d.date), y: us10.map(d=>d.value), name: 'US 10Y', line: {color: '#1f2937'}},
-                        {x: uk10.map(d=>d.date), y: uk10.map(d=>d.value), name: 'UK Gilt 10Y', line: {color: '#dc2626'}},
-                        {x: ger10.map(d=>d.date), y: ger10.map(d=>d.value), name: 'GER Bund 10Y', line: {color: '#d97706'}}
-                    ], layoutBase, {displayModeBar: false});
+                    const us = [...rates.US_10Y].reverse(), uk = [...rates.UK_10Y].reverse(), ger = [...rates.GER_10Y].reverse();
+                    Plotly.newPlot('chart-spreads', [
+                        {x: us.map(d=>d.date), y: us.map(d=>d.value), name: 'US 10Y', line: {color: '#1f2937', width: 2}},
+                        {x: uk.map(d=>d.date), y: uk.map(d=>d.value), name: 'UK Gilt 10Y', line: {color: '#dc2626', width: 2}},
+                        {x: ger.map(d=>d.date), y: ger.map(d=>d.value), name: 'GER Bund 10Y', line: {color: '#d97706', width: 2}}
+                    ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
                 }
                 if(rates.US_CPI && rates.US_Core_PCE && rates.US_PPI) {
                     const cpi = [...rates.US_CPI].reverse(), pce = [...rates.US_Core_PCE].reverse(), ppi = [...rates.US_PPI].reverse();

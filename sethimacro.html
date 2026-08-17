@@ -311,19 +311,25 @@
                 const renderTimelineNode = (event, index, isPast) => {
                     
                     const idMap = {
-                        10: {name: "CPI Inflation", color: "text-red-600", border: "border-t-red-500", tick: "bg-red-500"},
-                        50: {name: "Nonfarm Payrolls", color: "text-blue-600", border: "border-t-blue-500", tick: "bg-blue-500"},
-                        53: {name: "GDP Data", color: "text-emerald-600", border: "border-t-emerald-500", tick: "bg-emerald-500"},
-                        13: {name: "Industrial Prod.", color: "text-purple-600", border: "border-t-purple-500", tick: "bg-purple-500"},
-                        9:  {name: "Retail Sales", color: "text-orange-600", border: "border-t-orange-500", tick: "bg-orange-500"},
-                        46: {name: "PPI Wholesale", color: "text-pink-600", border: "border-t-pink-500", tick: "bg-pink-500"},
-                        // The Crucial Golden Earnings Tag!
-                        "EARNINGS": {name: "Earnings", color: "text-amber-600", border: "border-t-amber-500", tick: "bg-amber-500"}
+                        // US Macro
+                        10: {name: "US CPI", color: "text-red-600", border: "border-t-red-500", tick: "bg-red-500"},
+                        50: {name: "US Payrolls", color: "text-blue-600", border: "border-t-blue-500", tick: "bg-blue-500"},
+                        53: {name: "US GDP", color: "text-emerald-600", border: "border-t-emerald-500", tick: "bg-emerald-500"},
+                        13: {name: "US Ind. Prod", color: "text-purple-600", border: "border-t-purple-500", tick: "bg-purple-500"},
+                        9:  {name: "US Retail", color: "text-orange-600", border: "border-t-orange-500", tick: "bg-orange-500"},
+                        46: {name: "US PPI", color: "text-pink-600", border: "border-t-pink-500", tick: "bg-pink-500"},
+                        // Global Macro
+                        322: {name: "ECB Rate", color: "text-indigo-600", border: "border-t-indigo-500", tick: "bg-indigo-500"},
+                        295: {name: "BOE Rate", color: "text-rose-600", border: "border-t-rose-500", tick: "bg-rose-500"},
+                        254: {name: "EU HICP", color: "text-cyan-600", border: "border-t-cyan-500", tick: "bg-cyan-500"},
+                        356: {name: "UK CPI", color: "text-fuchsia-600", border: "border-t-fuchsia-500", tick: "bg-fuchsia-500"},
+                        172: {name: "China GDP", color: "text-amber-700", border: "border-t-amber-600", tick: "bg-amber-600"},
+                        // Corporate Earnings
+                        "EARNINGS": {name: "Earnings", color: "text-amber-500", border: "border-t-amber-400", tick: "bg-amber-400"}
                     };
                     
                     const config = idMap[event.release_id] || {name: "Macro Release", color: "text-gray-600", border: "border-t-gray-500", tick: "bg-gray-500"};
                     
-                    // Dynamically inject the specific Ticker (e.g. "NVDA Earnings")
                     const finalEventName = event.release_id === "EARNINGS" ? `${event.ticker} Earnings` : config.name;
                     
                     const isUp = index % 2 === 0;

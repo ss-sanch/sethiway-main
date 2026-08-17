@@ -40,21 +40,25 @@
         <span id="loading-text" class="text-sm font-bold text-blue-800 tracking-wide">Initializing Global Terminal...</span>
     </div>
 
-    <!-- MAIN DASHBOARD CONTENT (Starts Translucent) -->
-    <div id="macro-dashboard-content" class="flex-grow p-8 opacity-30 transition-opacity duration-1000 pointer-events-none">
 
     <div class="flex-grow p-8">
-        <!-- GLOBAL HEADER -->
-        <div class="max-w-7xl mx-auto text-center mb-10">
-            <h1 class="text-4xl md:text-5xl font-black tracking-tight text-gray-900 mb-2">SETHIMACRO</h1>
-            <p class="text-gray-500 font-light tracking-widest uppercase text-sm">Global Macroeconomic & Risk Terminal</p>
-            
-            <!-- SECTOR NAVIGATION -->
-            <div class="flex flex-wrap justify-center gap-4 mt-8">
-                <a href="#pillar-jobs" class="px-6 py-2 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 transition shadow-sm">💼 Job Market</a>
-                <a href="#pillar-rates" class="px-6 py-2 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 transition shadow-sm">📉 Inflation & Rates</a>
-                <a href="#pillar-gdp" class="px-6 py-2 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 transition shadow-sm">🏭 GDP & Output</a>
-                <a href="#pillar-fx" class="px-6 py-2 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 transition shadow-sm">💱 Currencies</a>
+        <!-- DASHBOARD HEADER -->
+        <div class="text-center mb-10">
+            <h1 class="text-5xl font-black tracking-tight text-gray-900 mb-2">SETHIMACRO</h1>
+            <p class="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-6">Global Macroeconomic & Risk Terminal</p>
+
+            <!-- MOVED DYNAMIC LOADING BANNER -->
+            <div id="global-loader" class="mx-auto flex justify-center items-center py-2 px-6 bg-blue-50 border border-blue-100 rounded-full max-w-md transition-all duration-500 mb-6 shadow-sm overflow-hidden">
+                <svg class="animate-spin h-4 w-4 text-blue-600 mr-3 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <span id="loading-text" class="text-xs font-bold text-blue-800 tracking-wider uppercase">Initializing Global Terminal...</span>
+            </div>
+
+            <!-- THE 4 FUNCTIONAL SECTOR BUTTONS -->
+            <div class="flex flex-wrap justify-center gap-3">
+                <a href="#job-market" class="px-6 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 shadow-sm transition">💼 Job Market</a>
+                <a href="#inflation-rates" class="px-6 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 shadow-sm transition">📉 Inflation & Rates</a>
+                <a href="#gdp-output" class="px-6 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 shadow-sm transition">🏭 GDP & Output</a>
+                <a href="#currencies" class="px-6 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 shadow-sm transition">💱 Currencies</a>
             </div>
         </div>
 
@@ -138,7 +142,7 @@
         <!-- ========================================== -->
         <!-- PILLAR 1: JOB MARKET & EMPLOYMENT -->
         <!-- ========================================== -->
-        <div id="pillar-jobs" class="max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
+        <div id="job-market" class="scroll-mt-24 max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
             <h2 class="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight">Section 1: Job Market & Employment</h2>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
@@ -155,7 +159,7 @@
         <!-- ========================================== -->
         <!-- PILLAR 2: INFLATION, RATES & YIELDS -->
         <!-- ========================================== -->
-        <div id="pillar-rates" class="max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
+        <div id="inflation-rates" class="scroll-mt-24 max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
             <h2 class="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight">Section 2: Inflation, Rates & Yields</h2>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
@@ -176,7 +180,7 @@
         <!-- ========================================== -->
         <!-- PILLAR 3: GDP & ECONOMIC SECTORS -->
         <!-- ========================================== -->
-        <div id="pillar-gdp" class="max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
+        <div id="gdp-output" class="scroll-mt-24 max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
             <h2 class="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight">Section 3: GDP & Output</h2>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
@@ -193,7 +197,7 @@
         <!-- ========================================== -->
         <!-- PILLAR 4: CURRENCIES & FX -->
         <!-- ========================================== -->
-        <div id="pillar-fx" class="max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
+        <div id="currencies" class="scroll-mt-24 max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
             <h2 class="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight">Section 4: Currencies & FX</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">

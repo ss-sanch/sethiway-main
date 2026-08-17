@@ -186,20 +186,28 @@
         <!-- PILLAR 2: INFLATION, RATES & YIELDS -->
         <!-- ========================================== -->
         <div id="inflation-rates" class="scroll-mt-24 max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
-            <h2 class="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight">Section 2: Inflation, Rates & Yields</h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <h2 class="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight">Section 2: Inflation & Rates</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-lg font-bold mb-4 border-b border-gray-100 pb-2">Global Central Bank Rates</h3>
-                    <div id="chart-cb-rates" style="height: 350px; width: 100%;"></div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-md font-bold text-gray-800">Global Central Bank Rates</h3>
+                        <button onclick="toggleModal('modal-cb-rates')" class="text-gray-400 hover:text-green-600 transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </div>
+                    <div id="chart-cb-rates" style="height: 300px; width: 100%;"></div>
                 </div>
+
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-lg font-bold mb-4 border-b border-gray-100 pb-2">Global Sovereign Spreads (10Y)</h3>
-                    <div id="chart-sov-yields" style="height: 350px; width: 100%;"></div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-md font-bold text-gray-800">Global 10Y Sovereign Spreads</h3>
+                        <button onclick="toggleModal('modal-spreads')" class="text-gray-400 hover:text-red-500 transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </div>
+                    <div id="chart-spreads" style="height: 300px; width: 100%;"></div>
                 </div>
-            </div>
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                <h3 class="text-lg font-bold mb-4 border-b border-gray-100 pb-2">Advanced US Inflation Tracker (CPI vs PCE vs PPI)</h3>
-                <div id="chart-us-inflation" style="height: 350px; width: 100%;"></div>
             </div>
         </div>
 
@@ -315,6 +323,26 @@
             </button>
             <h3 class="text-xl font-black text-gray-900 mb-2">Nonfarm Payrolls (NFP)</h3>
             <p class="text-sm text-gray-600 leading-relaxed">The holy grail of monthly economic data. It represents the total number of paid workers added to the US economy (excluding farm employees). A massive "beat" above Wall Street consensus can send bond yields soaring, while a severe "miss" instantly sparks recession fears.</p>
+        </div>
+    </div>
+
+    <div id="modal-cb-rates" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[200] flex justify-center items-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 relative border-t-4 border-t-green-600">
+            <button onclick="toggleModal('modal-cb-rates')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-2">Central Bank Rates</h3>
+            <p class="text-sm text-gray-600 leading-relaxed">Tracks the benchmark interest rates set by the US Federal Reserve and the European Central Bank. Divergence here drives global currency flows. If the Fed keeps rates higher than the ECB, capital floods into the US Dollar seeking higher yield.</p>
+        </div>
+    </div>
+
+    <div id="modal-spreads" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[200] flex justify-center items-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 relative border-t-4 border-t-red-500">
+            <button onclick="toggleModal('modal-spreads')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-2">10Y Sovereign Spreads</h3>
+            <p class="text-sm text-gray-600 leading-relaxed">Compares the yield on 10-Year government bonds (US Treasuries, UK Gilts, German Bunds). A widening gap between the US and Europe signals stronger US economic growth expectations and acts as a massive leading indicator for global exchange rates.</p>
         </div>
     </div>
 
@@ -514,7 +542,16 @@
 
                 // 4. PILLAR 2: RATES
                 if(rates.Fed_Funds && rates.ECB_Rate) {
-                    const fed = [...rates.Fed_Funds].reverse(), ecb = [...rates.ECB_Rate].reverse();
+                    let fed = [...rates.Fed_Funds].reverse();
+                    let ecb = [...rates.ECB_Rate].reverse();
+                    
+                    // QUANT TRICK 1: Perfect Timeline Synchronization
+                    // Creates a mathematical intersection of dates that exist in BOTH datasets
+                    const fedDates = new Set(fed.map(d => d.date));
+                    const ecbDates = new Set(ecb.map(d => d.date));
+                    fed = fed.filter(d => ecbDates.has(d.date));
+                    ecb = ecb.filter(d => fedDates.has(d.date));
+
                     Plotly.newPlot('chart-cb-rates', [
                         {x: fed.map(d=>d.date), y: fed.map(d=>d.value), name: 'Fed Funds', line: {shape: 'hv', color: '#059669', width: 2}},
                         {x: ecb.map(d=>d.date), y: ecb.map(d=>d.value), name: 'ECB Rate', line: {shape: 'hv', color: '#2563eb', width: 2}}
@@ -522,13 +559,29 @@
                 }
                 
                 if(rates.US_10Y && rates.UK_10Y && rates.GER_10Y) {
-                    const us = [...rates.US_10Y].reverse(), uk = [...rates.UK_10Y].reverse(), ger = [...rates.GER_10Y].reverse();
+                    let us = [...rates.US_10Y].reverse();
+                    let uk = [...rates.UK_10Y].reverse();
+                    let ger = [...rates.GER_10Y].reverse();
+
+                    // QUANT TRICK 2: 3-Way Date Intersection
+                    // Forces all 3 global sovereign bonds to start and end on the exact same month
+                    const usDates = new Set(us.map(d => d.date));
+                    const ukDates = new Set(uk.map(d => d.date));
+                    const gerDates = new Set(ger.map(d => d.date));
+                    
+                    const commonDates = new Set([...usDates].filter(d => ukDates.has(d) && gerDates.has(d)));
+                    
+                    us = us.filter(d => commonDates.has(d.date));
+                    uk = uk.filter(d => commonDates.has(d.date));
+                    ger = ger.filter(d => commonDates.has(d.date));
+
                     Plotly.newPlot('chart-spreads', [
                         {x: us.map(d=>d.date), y: us.map(d=>d.value), name: 'US 10Y', line: {color: '#1f2937', width: 2}},
                         {x: uk.map(d=>d.date), y: uk.map(d=>d.value), name: 'UK Gilt 10Y', line: {color: '#dc2626', width: 2}},
                         {x: ger.map(d=>d.date), y: ger.map(d=>d.value), name: 'GER Bund 10Y', line: {color: '#d97706', width: 2}}
                     ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
                 }
+                
                 if(rates.US_CPI && rates.US_Core_PCE && rates.US_PPI) {
                     const cpi = [...rates.US_CPI].reverse(), pce = [...rates.US_Core_PCE].reverse(), ppi = [...rates.US_PPI].reverse();
                     Plotly.newPlot('chart-us-inflation', [

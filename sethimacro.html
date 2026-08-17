@@ -141,22 +141,42 @@
             
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-md font-bold text-gray-800 mb-4">Global Unemployment</h3>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-md font-bold text-gray-800">Global Unemployment</h3>
+                        <button onclick="toggleModal('modal-unemp')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </div>
                     <div id="chart-unemp" style="height: 300px; width: 100%;"></div>
                 </div>
 
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-md font-bold text-gray-800 mb-4">US Wage Growth (YoY %)</h3>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-md font-bold text-gray-800">US Wage Growth (YoY %)</h3>
+                        <button onclick="toggleModal('modal-wages')" class="text-gray-400 hover:text-amber-500 transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </div>
                     <div id="chart-wages" style="height: 300px; width: 100%;"></div>
                 </div>
 
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-md font-bold text-gray-800 mb-4">US Job Openings (JOLTS)</h3>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-md font-bold text-gray-800">US Job Openings (JOLTS)</h3>
+                        <button onclick="toggleModal('modal-jolts')" class="text-gray-400 hover:text-purple-600 transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </div>
                     <div id="chart-jolts" style="height: 300px; width: 100%;"></div>
                 </div>
 
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-md font-bold text-gray-800 mb-4">US Nonfarm Payrolls</h3>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-md font-bold text-gray-800">US Nonfarm Payrolls</h3>
+                        <button onclick="toggleModal('modal-nfp')" class="text-gray-400 hover:text-blue-500 transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </div>
                     <div id="chart-nfp" style="height: 300px; width: 100%;"></div>
                 </div>
             </div>
@@ -255,6 +275,46 @@
             <h2 class="text-2xl font-black text-gray-900 mb-4">Dollar Index (DXY) Momentum</h2>
             <p class="text-gray-600 mb-6">Tracks the rolling 30-day percentage change in the strength of the US Dollar against a basket of foreign currencies. A rising dollar often pressures emerging market debt and multinational corporate earnings.</p>
             <button onclick="toggleModal('modal-dxy')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800">Close</button>
+        </div>
+    </div>
+
+    <div id="modal-unemp" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[200] flex justify-center items-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 relative">
+            <button onclick="toggleModal('modal-unemp')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-2">Global Unemployment</h3>
+            <p class="text-sm text-gray-600 leading-relaxed">Tracks the percentage of the labor force actively looking for work. Comparing the US, UK, and Eurozone reveals divergence in global economic health and central bank policy timing. A rising trend here is the ultimate leading indicator for interest rate cuts.</p>
+        </div>
+    </div>
+
+    <div id="modal-wages" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[200] flex justify-center items-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 relative border-t-4 border-t-amber-500">
+            <button onclick="toggleModal('modal-wages')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-2">Wage Growth (The Spiral)</h3>
+            <p class="text-sm text-gray-600 leading-relaxed">Measures the year-over-year change in average hourly earnings. This is heavily monitored due to the <strong>Wage-Price Spiral</strong>: if wages grow too fast, corporations raise product prices to compensate, forcing the Fed to keep interest rates higher for longer to combat sticky inflation.</p>
+        </div>
+    </div>
+
+    <div id="modal-jolts" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[200] flex justify-center items-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 relative border-t-4 border-t-purple-500">
+            <button onclick="toggleModal('modal-jolts')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-2">JOLTS (Job Openings)</h3>
+            <p class="text-sm text-gray-600 leading-relaxed">The Job Openings and Labor Turnover Survey tracks the total number of unfilled jobs in the US. Extremely high openings indicate a "tight" labor market where workers have leverage to demand higher pay. The Fed targets lower JOLTS numbers to safely declare victory over inflation.</p>
+        </div>
+    </div>
+
+    <div id="modal-nfp" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[200] flex justify-center items-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 relative border-t-4 border-t-blue-500">
+            <button onclick="toggleModal('modal-nfp')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-2">Nonfarm Payrolls (NFP)</h3>
+            <p class="text-sm text-gray-600 leading-relaxed">The holy grail of monthly economic data. It represents the total number of paid workers added to the US economy (excluding farm employees). A massive "beat" above Wall Street consensus can send bond yields soaring, while a severe "miss" instantly sparks recession fears.</p>
         </div>
     </div>
 

@@ -186,9 +186,10 @@
         <!-- PILLAR 2: INFLATION, RATES & YIELDS -->
         <!-- ========================================== -->
         <div id="inflation-rates" class="scroll-mt-24 max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
-            <h2 class="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight">Section 2: Inflation & Rates</h2>
+            <h2 class="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight">Section 2: Inflation, Rates & Yields</h2>
             
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- 1. Central Bank Rates -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-md font-bold text-gray-800">Global Central Bank Rates</h3>
@@ -199,6 +200,7 @@
                     <div id="chart-cb-rates" style="height: 300px; width: 100%;"></div>
                 </div>
 
+                <!-- 2. Sovereign Yield Spreads -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-md font-bold text-gray-800">Global 10Y Sovereign Spreads</h3>
@@ -207,6 +209,28 @@
                         </button>
                     </div>
                     <div id="chart-spreads" style="height: 300px; width: 100%;"></div>
+                </div>
+
+                <!-- 3. Advanced US Inflation Tracker -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-md font-bold text-gray-800">US Inflation vs Fed Target (YoY)</h3>
+                        <button onclick="toggleModal('modal-inflation')" class="text-gray-400 hover:text-orange-500 transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </div>
+                    <div id="chart-inflation" style="height: 300px; width: 100%;"></div>
+                </div>
+
+                <!-- 4. Real Yields vs Breakevens -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-md font-bold text-gray-800">10Y Real Yield vs Inflation Expectations</h3>
+                        <button onclick="toggleModal('modal-real-yield')" class="text-gray-400 hover:text-blue-500 transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </div>
+                    <div id="chart-real-yields" style="height: 300px; width: 100%;"></div>
                 </div>
             </div>
         </div>
@@ -343,6 +367,28 @@
             </button>
             <h3 class="text-xl font-black text-gray-900 mb-2">10Y Sovereign Spreads</h3>
             <p class="text-sm text-gray-600 leading-relaxed">Compares the yield on 10-Year government bonds (US Treasuries, UK Gilts, German Bunds). A widening gap between the US and Europe signals stronger US economic growth expectations and acts as a massive leading indicator for global exchange rates.</p>
+        </div>
+    </div>
+
+    <!-- Advanced Inflation Modal -->
+    <div id="modal-inflation" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[200] flex justify-center items-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 relative border-t-4 border-t-orange-500">
+            <button onclick="toggleModal('modal-inflation')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-2">US Inflation Components</h3>
+            <p class="text-sm text-gray-600 leading-relaxed">Tracks the deterioration of purchasing power. <strong>Headline CPI</strong> is what consumers feel. <strong>Core PCE</strong> strips out volatile food/energy and is the Fed's preferred metric. <strong>PPI</strong> measures wholesale costs at the factory door, acting as a leading indicator for future CPI spikes.</p>
+        </div>
+    </div>
+
+    <!-- Real Yields Modal -->
+    <div id="modal-real-yield" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[200] flex justify-center items-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 relative border-t-4 border-t-blue-500">
+            <button onclick="toggleModal('modal-real-yield')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-2">Real Yields & Breakevens</h3>
+            <p class="text-sm text-gray-600 leading-relaxed">The ultimate drivers of asset valuation. <strong>Breakevens</strong> show the market's expected inflation rate over the next 10 years. <strong>Real Yields (TIPS)</strong> show the true cost of borrowing after adjusting for inflation. When Real Yields surge, tech stocks and gold typically sell off heavily.</p>
         </div>
     </div>
 
@@ -581,14 +627,31 @@
                         {x: ger.map(d=>d.date), y: ger.map(d=>d.value), name: 'GER Bund 10Y', line: {color: '#d97706', width: 2}}
                     ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
                 }
-                
-                if(rates.US_CPI && rates.US_Core_PCE && rates.US_PPI) {
-                    const cpi = [...rates.US_CPI].reverse(), pce = [...rates.US_Core_PCE].reverse(), ppi = [...rates.US_PPI].reverse();
-                    Plotly.newPlot('chart-us-inflation', [
-                        {x: cpi.map(d=>d.date), y: cpi.map(d=>d.value), name: 'Headline CPI', line: {color: '#dc2626'}},
-                        {x: pce.map(d=>d.date), y: pce.map(d=>d.value), name: 'Core PCE', line: {color: '#2563eb'}},
-                        {x: ppi.map(d=>d.date), y: ppi.map(d=>d.value), name: 'PPI', line: {color: '#10b981', dash: 'dot'}}
-                    ], layoutBase, {displayModeBar: false});
+
+                if(rates.CPI && rates.PCE && rates.PPI) {
+                    const cpi = [...rates.CPI].reverse();
+                    const pce = [...rates.PCE].reverse();
+                    const ppi = [...rates.PPI].reverse();
+
+                    const fedTarget = { x: [cpi[0].date, cpi[cpi.length-1].date], y: [2, 2], name: 'Fed Target (2%)', type: 'scatter', hoverinfo: 'none', line: {color: '#9ca3af', width: 2, dash: 'dash'} };
+
+                    Plotly.newPlot('chart-inflation', [
+                        {x: cpi.map(d=>d.date), y: cpi.map(d=>d.value), name: 'Headline CPI', line: {color: '#dc2626', width: 2}},
+                        {x: pce.map(d=>d.date), y: pce.map(d=>d.value), name: 'Core PCE', line: {color: '#2563eb', width: 2}},
+                        {x: ppi.map(d=>d.date), y: ppi.map(d=>d.value), name: 'PPI (Wholesale)', line: {color: '#f59e0b', width: 2, dash: 'dot'}},
+                        fedTarget
+                    ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
+                }
+
+                // New Real Yields vs Expectations
+                if(rates.Breakeven && rates.Real_Yield) {
+                    const breakeven = [...rates.Breakeven].reverse();
+                    const realYield = [...rates.Real_Yield].reverse();
+
+                    Plotly.newPlot('chart-real-yields', [
+                        {x: breakeven.map(d=>d.date), y: breakeven.map(d=>d.value), name: '10Y Breakeven (Inflation Exp.)', fill: 'tozeroy', fillcolor: 'rgba(239, 68, 68, 0.1)', line: {color: '#ef4444', width: 2}},
+                        {x: realYield.map(d=>d.date), y: realYield.map(d=>d.value), name: '10Y Real Yield', fill: 'tozeroy', fillcolor: 'rgba(59, 130, 246, 0.1)', line: {color: '#3b82f6', width: 2}}
+                    ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
                 }
 
                 // 5. PILLAR 3: GDP

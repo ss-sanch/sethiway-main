@@ -892,7 +892,7 @@
             tableBody.innerHTML = '';
             
             try {
-                const promises = peers.map(p => fetch(`${API_URL}/api/stock/${p}`).then(res => res.json()).catch(() => null));
+                const promises = peers.map(p => fetch(`${API_URL}/api/stock/${p}?is_peer=true`).then(res => res.json()).catch(() => null));
                 let results = await Promise.all(promises);
                 results = results.filter(r => r !== null);
                 

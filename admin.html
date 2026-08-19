@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sethiway | Telemetry Command Center</title>
+    <title>Sethiway | Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
 </head>
@@ -30,9 +30,17 @@
                 <h1 class="text-4xl font-black tracking-tight text-gray-900">Telemetry <span class="text-blue-600">Command Center</span></h1>
                 <p class="text-gray-500 font-semibold uppercase tracking-widest text-sm mt-1">Live Global Analytics</p>
             </div>
-            <div class="text-right">
-                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Lifetime Events</p>
-                <p id="total-events" class="text-4xl font-black text-gray-900">0</p>
+            <div class="flex items-end gap-6">
+                <!-- THE NEW REFRESH BUTTON -->
+                <button onclick="refreshDashboard()" id="refresh-btn" class="mb-1 flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-bold text-sm transition-colors border border-blue-100 shadow-sm active:scale-95">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    <span id="refresh-text">Refresh Data</span>
+                </button>
+                
+                <div class="text-right">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Lifetime Events</p>
+                    <p id="total-events" class="text-4xl font-black text-gray-900">0</p>
+                </div>
             </div>
         </div>
 
@@ -75,6 +83,7 @@
     <!-- THE JAVASCRIPT ENGINE -->
     <script>
         const API_BASE = "https://sethistock-api.onrender.com"; 
+        let masterSecret = ""; // <-- ADD THIS LINE
 
         async function authenticate() {
             const secret = document.getElementById('admin-secret').value;
@@ -93,6 +102,7 @@
                 }
                 
                 const data = await res.json();
+                masterSecret = secret;
                 
                 // Animate lock screen away and reveal dashboard
                 document.getElementById('login-screen').classList.add('hidden');
@@ -102,6 +112,31 @@
             } catch (error) {
                 err.classList.remove('hidden');
                 btn.innerText = "Unlock Vault";
+            }
+        }
+
+        async function refreshDashboard() {
+            if (!masterSecret) return; // Failsafe: Do nothing if not logged in
+            
+            const textEl = document.getElementById('refresh-text');
+            const btn = document.getElementById('refresh-btn');
+            
+            // Visual feedback
+            textEl.innerText = "Syncing...";
+            btn.classList.add('animate-pulse');
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/telemetry?secret=${encodeURIComponent(masterSecret)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    renderDashboard(data); // Instantly redraws all charts with new data!
+                }
+            } catch (error) {
+                console.error("Failed to refresh vault data.");
+            } finally {
+                // Restore button state
+                textEl.innerText = "Refresh Data";
+                btn.classList.remove('animate-pulse');
             }
         }
 

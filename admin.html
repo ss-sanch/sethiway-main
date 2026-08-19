@@ -197,6 +197,21 @@
                 </tr>`;
             }).join('');
         }
+
+        // ==========================================
+        // AUTO-UNLOCK ENGINE
+        // ==========================================
+        window.onload = () => {
+            const savedKey = localStorage.getItem('sethiway_vault_key');
+            if (savedKey) {
+                // Inject the key into the input and trigger the login
+                document.getElementById('admin-secret').value = savedKey;
+                authenticate();
+                
+                // Clear it from memory immediately for security
+                localStorage.removeItem('sethiway_vault_key');
+            }
+        };
     </script>
 </body>
 </html>

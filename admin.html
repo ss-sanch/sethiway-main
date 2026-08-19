@@ -3,39 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sethiway | Admin Dashboard</title>
+    <title>Sethiway | Telemetry Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased min-h-screen flex flex-col">
 
-    <!-- THE SECURE LOCK SCREEN -->
-    <div id="login-screen" class="flex-grow flex items-center justify-center transition-opacity duration-500">
-        <div class="bg-white p-10 rounded-3xl shadow-2xl max-w-md w-full border border-gray-100 text-center">
-            <svg class="w-12 h-12 mx-auto text-gray-900 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z"></path></svg>
-            <h1 class="text-3xl font-black tracking-tight mb-1">SETHIWAY.</h1>
-            <p class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-8">Admin Telemetry Vault</p>
-            
-            <input type="password" id="admin-secret" placeholder="Enter Master Password" class="w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 font-mono text-center text-lg mb-4 transition-all">
-            <button id="login-btn" onclick="authenticate()" class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl hover:bg-gray-800 transition-all shadow-md active:scale-95">Unlock Vault</button>
-            <p id="login-error" class="text-red-500 text-sm font-bold mt-4 hidden bg-red-50 py-2 rounded-lg border border-red-100">Access Denied. Invalid Credentials.</p>
+    <!-- INITIALIZING SCREEN -->
+    <div id="loading-screen" class="flex-grow flex flex-col items-center justify-center transition-opacity duration-500">
+        <svg class="animate-spin w-10 h-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <p class="text-sm font-bold text-gray-500 uppercase tracking-widest">Decrypting Vault...</p>
+    </div>
+
+    <!-- ERROR SCREEN (IF BYPASS ATTEMPTED) -->
+    <div id="error-screen" class="hidden flex-grow flex items-center justify-center">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            <h2 class="text-2xl font-black text-gray-900 mb-2">Access Denied</h2>
+            <p class="text-gray-500 mb-6">You must authenticate through the Sethiway Hub.</p>
+            <a href="index.html" class="px-6 py-3 bg-gray-900 text-white font-bold rounded-lg hover:bg-gray-800 transition">Return to Hub</a>
         </div>
     </div>
 
-    <!-- THE LIVE DASHBOARD (HIDDEN BY DEFAULT) -->
-    <div id="dashboard-screen" class="hidden flex-grow p-6 md:p-10 max-w-[1600px] mx-auto w-full">
+    <!-- THE LIVE DASHBOARD -->
+    <div id="dashboard-screen" class="hidden flex-grow p-6 md:p-10 max-w-[1600px] mx-auto w-full transition-opacity duration-700">
         <!-- Header -->
-        <div class="flex justify-between items-end mb-10 border-b border-gray-200 pb-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 border-b border-gray-200 pb-6 gap-6">
             <div>
-                <h1 class="text-4xl font-black tracking-tight text-gray-900">Sethiway <span class="text-blue-600">Admin Dashboard</span></h1>
+                <h1 class="text-4xl font-black tracking-tight text-gray-900">Telemetry <span class="text-blue-600">Command Center</span></h1>
                 <p class="text-gray-500 font-semibold uppercase tracking-widest text-sm mt-1">Live Global Analytics</p>
             </div>
             <div class="flex items-end gap-6">
-                <!-- THE NEW REFRESH BUTTON -->
-                <button onclick="refreshDashboard()" id="refresh-btn" class="mb-1 flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-bold text-sm transition-colors border border-blue-100 shadow-sm active:scale-95">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                    <span id="refresh-text">Refresh Data</span>
-                </button>
+                <div class="flex flex-col gap-2">
+                    <!-- Refresh Button -->
+                    <button onclick="refreshDashboard()" id="refresh-btn" class="flex justify-center items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-bold text-sm transition-colors border border-blue-100 shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        <span id="refresh-text">Refresh Data</span>
+                    </button>
+                    <!-- Lock Vault Button -->
+                    <button onclick="lockVault()" class="flex justify-center items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg font-bold text-sm transition-colors border border-red-100 shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        <span>Lock Vault</span>
+                    </button>
+                </div>
                 
                 <div class="text-right">
                     <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Lifetime Events</p>
@@ -46,13 +58,10 @@
 
         <!-- Chart Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            <!-- Top Tickers Chart -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 lg:col-span-2">
                 <h3 class="text-lg font-bold mb-4 border-b border-gray-50 pb-2">Most Searched Tickers</h3>
                 <div id="chart-tickers" style="height: 350px; width: 100%;"></div>
             </div>
-
-            <!-- Project Breakdown Chart -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <h3 class="text-lg font-bold mb-4 border-b border-gray-50 pb-2">Traffic by Project</h3>
                 <div id="chart-projects" style="height: 350px; width: 100%;"></div>
@@ -69,7 +78,7 @@
                             <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Timestamp (UTC)</th>
                             <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Platform</th>
                             <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Action</th>
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Data / Ticker</th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Ticker</th>
                         </tr>
                     </thead>
                     <tbody id="table-logs">
@@ -83,45 +92,46 @@
     <!-- THE JAVASCRIPT ENGINE -->
     <script>
         const API_BASE = "https://sethistock-api.onrender.com"; 
-        let masterSecret = ""; // <-- ADD THIS LINE
+        const masterSecret = localStorage.getItem('sethiway_vault_key');
 
-        async function authenticate() {
-            const secret = document.getElementById('admin-secret').value;
-            const btn = document.getElementById('login-btn');
-            const err = document.getElementById('login-error');
-            
-            btn.innerText = "Authenticating...";
-            err.classList.add('hidden');
-            
+        // Execute immediately on page load
+        window.onload = async () => {
+            if (!masterSecret) {
+                // If they bypassed index.html, block them immediately
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('error-screen').classList.remove('hidden');
+                return;
+            }
+            await fetchAndRender();
+        };
+
+        async function fetchAndRender() {
             try {
-                // Ping the secure admin endpoint on your backend
-                const res = await fetch(`${API_BASE}/api/admin/telemetry?secret=${encodeURIComponent(secret)}`);
+                const res = await fetch(`${API_BASE}/api/admin/telemetry?secret=${encodeURIComponent(masterSecret)}`);
                 
-                if (!res.ok) {
-                    throw new Error("Invalid password");
-                }
+                if (!res.ok) throw new Error("Unauthorized");
                 
                 const data = await res.json();
-                masterSecret = secret;
                 
-                // Animate lock screen away and reveal dashboard
-                document.getElementById('login-screen').classList.add('hidden');
+                // Hide loader and smoothly fade in dashboard
+                document.getElementById('loading-screen').classList.add('hidden');
                 document.getElementById('dashboard-screen').classList.remove('hidden');
                 
                 renderDashboard(data);
             } catch (error) {
-                err.classList.remove('hidden');
-                btn.innerText = "Unlock Vault";
+                // If the stored password is wrong or expired
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('error-screen').classList.remove('hidden');
+                localStorage.removeItem('sethiway_vault_key');
             }
         }
 
         async function refreshDashboard() {
-            if (!masterSecret) return; // Failsafe: Do nothing if not logged in
+            if (!masterSecret) return;
             
             const textEl = document.getElementById('refresh-text');
             const btn = document.getElementById('refresh-btn');
             
-            // Visual feedback
             textEl.innerText = "Syncing...";
             btn.classList.add('animate-pulse');
             
@@ -129,27 +139,23 @@
                 const res = await fetch(`${API_BASE}/api/admin/telemetry?secret=${encodeURIComponent(masterSecret)}`);
                 if (res.ok) {
                     const data = await res.json();
-                    renderDashboard(data); // Instantly redraws all charts with new data!
+                    renderDashboard(data); 
                 }
             } catch (error) {
                 console.error("Failed to refresh vault data.");
             } finally {
-                // Restore button state
                 textEl.innerText = "Refresh Data";
                 btn.classList.remove('animate-pulse');
             }
         }
 
-        // Allow pressing "Enter" to submit password
-        document.getElementById("admin-secret").addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                authenticate();
-            }
-        });
+        function lockVault() {
+            // Delete the key from memory and redirect to homepage
+            localStorage.removeItem('sethiway_vault_key');
+            window.location.href = 'index.html';
+        }
 
         function renderDashboard(data) {
-            // 1. Set Total Events
             document.getElementById('total-events').innerText = data.total_events.toLocaleString();
             
             const layoutBase = {
@@ -157,37 +163,25 @@
                 margin: { t: 20, r: 20, l: 40, b: 40 }, font: { color: '#6b7280' }
             };
 
-            // 2. Render Top Tickers Bar Chart
+            // Bar Chart
             const tickers = data.top_tickers.map(t => t.ticker);
             const counts = data.top_tickers.map(t => t.count);
-            
             Plotly.newPlot('chart-tickers', [{
-                x: tickers, y: counts, type: 'bar',
-                marker: { color: '#2563eb', borderRadius: 4 }
-            }], { 
-                ...layoutBase, 
-                xaxis: { fixedrange: true }, yaxis: { fixedrange: true } 
-            }, {displayModeBar: false});
+                x: tickers, y: counts, type: 'bar', marker: { color: '#2563eb', borderRadius: 4 }
+            }], { ...layoutBase, xaxis: { fixedrange: true }, yaxis: { fixedrange: true } }, {displayModeBar: false});
             
-            // 3. Render Project Breakdown Donut Chart
+            // Pie Chart
             const projNames = Object.keys(data.project_breakdown);
             const projVals = Object.values(data.project_breakdown);
-            
             Plotly.newPlot('chart-projects', [{
                 labels: projNames, values: projVals, type: 'pie', hole: 0.5,
                 marker: { colors: ['#111827', '#3b82f6', '#10b981', '#f59e0b'] }
-            }], { 
-                ...layoutBase, margin: { t: 20, b: 20, l: 20, r: 20 } 
-            }, {displayModeBar: false});
+            }], { ...layoutBase, margin: { t: 20, b: 20, l: 20, r: 20 } }, {displayModeBar: false});
             
-            // 4. Render Activity Table
-            const tableBody = document.getElementById('table-logs');
-            tableBody.innerHTML = data.recent_logs.map(log => {
-                const dateStr = new Date(log.created_at).toLocaleString('en-GB', { 
-                    month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit', second:'2-digit' 
-                });
+            // Table
+            document.getElementById('table-logs').innerHTML = data.recent_logs.map(log => {
+                const dateStr = new Date(log.created_at).toLocaleString('en-GB', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit', second:'2-digit' });
                 const tickerCell = log.ticker ? `<span class="bg-blue-50 text-blue-700 font-bold px-3 py-1 rounded-full text-xs">${log.ticker}</span>` : `<span class="text-gray-400">-</span>`;
-                
                 return `
                 <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                     <td class="p-4 text-sm text-gray-500 font-mono">${dateStr}</td>
@@ -197,21 +191,6 @@
                 </tr>`;
             }).join('');
         }
-
-        // ==========================================
-        // AUTO-UNLOCK ENGINE
-        // ==========================================
-        window.onload = () => {
-            const savedKey = localStorage.getItem('sethiway_vault_key');
-            if (savedKey) {
-                // Inject the key into the input and trigger the login
-                document.getElementById('admin-secret').value = savedKey;
-                authenticate();
-                
-                // Clear it from memory immediately for security
-                localStorage.removeItem('sethiway_vault_key');
-            }
-        };
     </script>
 </body>
 </html>

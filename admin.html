@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sethiway | Telemetry Command Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- THE SECURE LOCK SCREEN -->
+    <div id="login-screen" class="flex-grow flex items-center justify-center transition-opacity duration-500">
+        <div class="bg-white p-10 rounded-3xl shadow-2xl max-w-md w-full border border-gray-100 text-center">
+            <svg class="w-12 h-12 mx-auto text-gray-900 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z"></path></svg>
+            <h1 class="text-3xl font-black tracking-tight mb-1">SETHIWAY.</h1>
+            <p class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-8">Admin Telemetry Vault</p>
+            
+            <input type="password" id="admin-secret" placeholder="Enter Master Password" class="w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 font-mono text-center text-lg mb-4 transition-all">
+            <button id="login-btn" onclick="authenticate()" class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl hover:bg-gray-800 transition-all shadow-md active:scale-95">Unlock Vault</button>
+            <p id="login-error" class="text-red-500 text-sm font-bold mt-4 hidden bg-red-50 py-2 rounded-lg border border-red-100">Access Denied. Invalid Credentials.</p>
+        </div>
+    </div>
+
+    <!-- THE LIVE DASHBOARD (HIDDEN BY DEFAULT) -->
+    <div id="dashboard-screen" class="hidden flex-grow p-6 md:p-10 max-w-[1600px] mx-auto w-full">
+        <!-- Header -->
+        <div class="flex justify-between items-end mb-10 border-b border-gray-200 pb-6">
+            <div>
+                <h1 class="text-4xl font-black tracking-tight text-gray-900">Telemetry <span class="text-blue-600">Command Center</span></h1>
+                <p class="text-gray-500 font-semibold uppercase tracking-widest text-sm mt-1">Live Global Analytics</p>
+            </div>
+            <div class="text-right">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Lifetime Events</p>
+                <p id="total-events" class="text-4xl font-black text-gray-900">0</p>
+            </div>
+        </div>
+
+        <!-- Chart Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <!-- Top Tickers Chart -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 lg:col-span-2">
+                <h3 class="text-lg font-bold mb-4 border-b border-gray-50 pb-2">Most Searched Tickers</h3>
+                <div id="chart-tickers" style="height: 350px; width: 100%;"></div>
+            </div>
+
+            <!-- Project Breakdown Chart -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h3 class="text-lg font-bold mb-4 border-b border-gray-50 pb-2">Traffic by Project</h3>
+                <div id="chart-projects" style="height: 350px; width: 100%;"></div>
+            </div>
+        </div>
+
+        <!-- Raw Data Table -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 overflow-hidden">
+            <h3 class="text-lg font-bold mb-4 border-b border-gray-50 pb-2">Recent Live Activity (Last 25 Events)</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 border-y border-gray-100">
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Timestamp (UTC)</th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Platform</th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Action</th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Data / Ticker</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-logs">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- THE JAVASCRIPT ENGINE -->
+    <script>
+        const API_BASE = "https://sethistock-api.onrender.com"; 
+
+        async function authenticate() {
+            const secret = document.getElementById('admin-secret').value;
+            const btn = document.getElementById('login-btn');
+            const err = document.getElementById('login-error');
+            
+            btn.innerText = "Authenticating...";
+            err.classList.add('hidden');
+            
+            try {
+                // Ping the secure admin endpoint on your backend
+                const res = await fetch(`${API_BASE}/api/admin/telemetry?secret=${encodeURIComponent(secret)}`);
+                
+                if (!res.ok) {
+                    throw new Error("Invalid password");
+                }
+                
+                const data = await res.json();
+                
+                // Animate lock screen away and reveal dashboard
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard-screen').classList.remove('hidden');
+                
+                renderDashboard(data);
+            } catch (error) {
+                err.classList.remove('hidden');
+                btn.innerText = "Unlock Vault";
+            }
+        }
+
+        // Allow pressing "Enter" to submit password
+        document.getElementById("admin-secret").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                authenticate();
+            }
+        });
+
+        function renderDashboard(data) {
+            // 1. Set Total Events
+            document.getElementById('total-events').innerText = data.total_events.toLocaleString();
+            
+            const layoutBase = {
+                paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+                margin: { t: 20, r: 20, l: 40, b: 40 }, font: { color: '#6b7280' }
+            };
+
+            // 2. Render Top Tickers Bar Chart
+            const tickers = data.top_tickers.map(t => t.ticker);
+            const counts = data.top_tickers.map(t => t.count);
+            
+            Plotly.newPlot('chart-tickers', [{
+                x: tickers, y: counts, type: 'bar',
+                marker: { color: '#2563eb', borderRadius: 4 }
+            }], { 
+                ...layoutBase, 
+                xaxis: { fixedrange: true }, yaxis: { fixedrange: true } 
+            }, {displayModeBar: false});
+            
+            // 3. Render Project Breakdown Donut Chart
+            const projNames = Object.keys(data.project_breakdown);
+            const projVals = Object.values(data.project_breakdown);
+            
+            Plotly.newPlot('chart-projects', [{
+                labels: projNames, values: projVals, type: 'pie', hole: 0.5,
+                marker: { colors: ['#111827', '#3b82f6', '#10b981', '#f59e0b'] }
+            }], { 
+                ...layoutBase, margin: { t: 20, b: 20, l: 20, r: 20 } 
+            }, {displayModeBar: false});
+            
+            // 4. Render Activity Table
+            const tableBody = document.getElementById('table-logs');
+            tableBody.innerHTML = data.recent_logs.map(log => {
+                const dateStr = new Date(log.created_at).toLocaleString('en-GB', { 
+                    month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit', second:'2-digit' 
+                });
+                const tickerCell = log.ticker ? `<span class="bg-blue-50 text-blue-700 font-bold px-3 py-1 rounded-full text-xs">${log.ticker}</span>` : `<span class="text-gray-400">-</span>`;
+                
+                return `
+                <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                    <td class="p-4 text-sm text-gray-500 font-mono">${dateStr}</td>
+                    <td class="p-4 text-sm font-bold text-gray-800">${log.project}</td>
+                    <td class="p-4 text-sm text-gray-600">${log.action}</td>
+                    <td class="p-4">${tickerCell}</td>
+                </tr>`;
+            }).join('');
+        }
+    </script>
+</body>
+</html>

@@ -216,42 +216,37 @@
         </div>
     </section>
 
-    <!-- THE TROJAN HORSE LOGIN MODAL -->
+    <!-- THE SECURE ADMIN PORTAL MODAL -->
     <div id="login-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm transition-opacity">
-        <div class="bg-white p-8 md:p-10 rounded-2xl shadow-2xl max-w-md w-full mx-4 relative">
+        <div class="bg-white p-8 md:p-10 rounded-2xl shadow-2xl max-w-md w-full mx-4 relative overflow-hidden">
             <!-- Close Button -->
-            <button onclick="document.getElementById('login-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-900 transition">
+            <button onclick="document.getElementById('login-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-900 transition z-10">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
             
             <div class="text-center mb-6">
                 <h3 class="text-2xl font-black text-gray-900">Sign In</h3>
-                <p class="text-sm text-gray-500 mt-2 font-light">Access your SethiPortfolio & Watchlists.</p>
+                <p class="text-sm text-gray-500 mt-2 font-light">Sethiway Hub Restricted Access</p>
             </div>
 
             <form id="portal-form" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Username / Email</label>
-                    <input type="text" id="portal-user" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition" placeholder="user@example.com">
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Username</label>
+                    <input type="text" id="portal-user" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition" placeholder="Enter username">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Password</label>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Master Password</label>
                     <input type="password" id="portal-pass" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition" placeholder="••••••••">
                 </div>
-                <button type="submit" class="w-full py-3 mt-2 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition shadow-md">
+                <button type="submit" class="w-full py-3 mt-2 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition shadow-md">
                     Authenticate
                 </button>
             </form>
 
-            <!-- The Public Teaser Message -->
-            <div id="portal-teaser" class="hidden mt-6 p-4 bg-blue-50 border border-blue-100 rounded-xl text-center">
-                <span class="inline-block px-2 py-1 bg-blue-200 text-blue-800 text-[10px] font-black uppercase tracking-widest rounded-md mb-2">Closed Beta</span>
-                <p class="text-sm text-blue-900 font-semibold">SethiPortfolio accounts are currently invite-only.</p>
-                <p class="text-xs text-blue-700 mt-1">Public access for custom watchlists is launching soon.</p>
-            </div>
-            
-            <div class="mt-6 text-center">
-                <p class="text-xs text-gray-400">Don't have an account? <a href="#" onclick="document.getElementById('portal-teaser').classList.remove('hidden')" class="text-blue-600 font-bold hover:underline">Create one</a></p>
+            <!-- Rejection Message for Public Users -->
+            <div id="portal-error" class="hidden mt-6 p-4 bg-red-50 border border-red-100 rounded-xl text-center">
+                <p class="text-sm text-red-600 font-bold">Access Denied</p>
+                <p class="text-xs text-red-500 mt-1">This portal is currently restricted to platform administrators. Public access coming soon.</p>
             </div>
         </div>
     </div>
@@ -307,23 +302,26 @@
         });
 
         // ==========================================
-        // THE TROJAN HORSE ROUTER
+        // THE SECURE BACKDOOR ROUTER
         // ==========================================
         document.getElementById('portal-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
             const user = document.getElementById('portal-user').value.trim().toLowerCase();
             const pass = document.getElementById('portal-pass').value;
-            const teaser = document.getElementById('portal-teaser');
+            const errorBox = document.getElementById('portal-error');
+            
+            // Hide error box on new attempt
+            errorBox.classList.add('hidden');
             
             // THE SECRET BACKDOOR
             if (user === 'admin') {
-                // Silently store the master password in the browser and teleport
+                // Save the key for the auto-unlocker and teleport to the vault
                 localStorage.setItem('sethiway_vault_key', pass);
                 window.location.href = 'admin.html';
             } else {
-                // Public Teaser View
-                teaser.classList.remove('hidden');
+                // Reject all public attempts
+                errorBox.classList.remove('hidden');
             }
         });
     </script>

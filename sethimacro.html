@@ -794,9 +794,9 @@
                     const clean = [...dataArr].reverse();
                     Plotly.newPlot(id, [{x: clean.map(d=>d.date), y: clean.map(d=>d.value), line: {color: color}}], layoutMini, {displayModeBar: false});
                 };
-                renderFX('chart-dxy', fx.DXY, '#1f2937');
-                renderFX('chart-gbp', fx.GBP_USD, '#dc2626');
-                renderFX('chart-eur', fx.EUR_USD, '#2563eb');
+                renderFX('chart-dxy', fx.dxy, '#1f2937');
+                renderFX('chart-gbp', fx.gbp_usd, '#dc2626');
+                renderFX('chart-eur', fx.eur_usd, '#2563eb');
                 renderFX('chart-jpy', fx.usd_jpy, '#9333ea');
 
                 // --- END OF DATA PLOTTING: UNLOCK DASHBOARD ---

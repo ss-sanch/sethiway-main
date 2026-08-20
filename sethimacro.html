@@ -727,17 +727,22 @@
                 }
 
                 // 5. PILLAR 3: GDP
-                if(gdp.US_GDP) {
-                    const usgdp = [...gdp.US_GDP].reverse();
+                if(gdp.US_GDP && gdp.UK_GDP && gdp.EU_GDP) {
+                    const usG = [...gdp.US_GDP].reverse(), ukG = [...gdp.UK_GDP].reverse(), euG = [...gdp.EU_GDP].reverse();
                     Plotly.newPlot('chart-gdp', [
-                        {x: usgdp.map(d=>d.date), y: usgdp.map(d=>d.value), type: 'bar', marker: {color: '#3b82f6'}}
-                    ], {...layoutBase, showlegend: false}, {displayModeBar: false});
+                        {x: usG.map(d=>d.date), y: usG.map(d=>d.value), name: 'US GDP', line: {color: '#2563eb', width: 2}},
+                        {x: ukG.map(d=>d.date), y: ukG.map(d=>d.value), name: 'UK GDP', line: {color: '#dc2626', width: 2}},
+                        {x: euG.map(d=>d.date), y: euG.map(d=>d.value), name: 'EU GDP', line: {color: '#10b981', width: 2}}
+                    ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
                 }
-                if(gdp.US_Ind_Prod) {
-                    const ind = [...gdp.US_Ind_Prod].reverse();
-                    Plotly.newPlot('chart-ind-prod', [
-                        {x: ind.map(d=>d.date), y: ind.map(d=>d.value), type: 'scatter', fill: 'tozeroy', line: {color: '#6366f1'}}
-                    ], {...layoutBase, showlegend: false}, {displayModeBar: false});
+
+                // THE FIX: Explicitly draw the Industrial Production Chart
+                if(gdp.IndPro) {
+                    const indpro = [...gdp.IndPro].reverse();
+                    const indColors = indpro.map(d => d.value >= 0 ? '#1f2937' : '#ef4444');
+                    Plotly.newPlot('chart-indpro', [
+                        {x: indpro.map(d=>d.date), y: indpro.map(d=>d.value), name: 'Industrial Production', type: 'bar', marker: {color: indColors}}
+                    ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 }, showlegend: false }, {displayModeBar: false});
                 }
 
                 if(gdp.Retail_Sales) {

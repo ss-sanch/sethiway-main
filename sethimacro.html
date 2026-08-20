@@ -876,7 +876,7 @@
         }
 
         // FETCH AI MACRO SYNTHESIS (BULLETPROOF ROUTER)
-        fetch('/api/macro-ai')
+        fetch('https://sethimacro.onrender.com/api/macro-ai')
             .then(response => response.json())
             .then(data => {
                 if(data && data.executive_summary) {

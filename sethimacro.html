@@ -863,18 +863,37 @@
             }
         }
 
+        // FETCH AI MACRO SYNTHESIS (BULLETPROOF ROUTER)
         fetch('/api/macro-ai')
             .then(response => response.json())
             .then(data => {
                 if(data.executive_summary) {
-                    document.getElementById('ai-executive').innerText = data.executive_summary;
-                    document.getElementById('ai-jobs').innerText = data.jobs;
-                    document.getElementById('ai-inflation').innerText = data.inflation;
-                    document.getElementById('ai-gdp').innerText = data.gdp;
-                    document.getElementById('ai-fx').innerText = data.fx;
+                    // Safely update elements ONLY if they exist on the page
+                    const execBox = document.getElementById('ai-executive');
+                    if (execBox) execBox.innerText = data.executive_summary;
+                    
+                    const jobsBox = document.getElementById('ai-jobs');
+                    if (jobsBox) jobsBox.innerText = data.jobs;
+                    
+                    const infBox = document.getElementById('ai-inflation');
+                    if (infBox) infBox.innerText = data.inflation;
+                    
+                    const gdpBox = document.getElementById('ai-gdp');
+                    if (gdpBox) gdpBox.innerText = data.gdp;
+                    
+                    const fxBox = document.getElementById('ai-fx');
+                    if (fxBox) fxBox.innerText = data.fx;
+                } else {
+                    // If the backend returns an error instead of data
+                    const execBox = document.getElementById('ai-executive');
+                    if (execBox) execBox.innerText = "AI Synthesis offline. Please check backend Render logs for Gemini API key errors.";
                 }
             })
-            .catch(error => console.error("Error loading AI Synthesis:", error));
+            .catch(error => {
+                console.error("Error loading AI Synthesis:", error);
+                const execBox = document.getElementById('ai-executive');
+                if (execBox) execBox.innerText = "Network timeout connecting to the AI macro engine. Please refresh.";
+            });
         
         fetchGlobalData();
     </script>

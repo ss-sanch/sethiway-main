@@ -240,14 +240,46 @@
         <!-- ========================================== -->
         <div id="gdp-output" class="scroll-mt-24 max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
             <h2 class="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight">Section 3: GDP & Output</h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-lg font-bold mb-4 border-b border-gray-100 pb-2">US Real GDP Growth (YoY %)</h3>
-                    <div id="chart-gdp" style="height: 350px; width: 100%;"></div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-md font-bold text-gray-800">Global Real GDP Growth</h3>
+                        <button onclick="toggleModal('modal-gdp')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </div>
+                    <div id="chart-gdp" style="height: 300px; width: 100%;"></div>
                 </div>
+
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-lg font-bold mb-4 border-b border-gray-100 pb-2">US Industrial Production</h3>
-                    <div id="chart-ind-prod" style="height: 350px; width: 100%;"></div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-md font-bold text-gray-800">US Industrial Production (YoY)</h3>
+                        <button onclick="toggleModal('modal-indpro')" class="text-gray-400 hover:text-gray-800 transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </div>
+                    <div id="chart-indpro" style="height: 300px; width: 100%;"></div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-md font-bold text-gray-800">US Retail Sales Growth (YoY)</h3>
+                        <button onclick="toggleModal('modal-retail')" class="text-gray-400 hover:text-emerald-500 transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </div>
+                    <div id="chart-retail" style="height: 300px; width: 100%;"></div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-md font-bold text-gray-800">US Consumer Sentiment (UMich)</h3>
+                        <button onclick="toggleModal('modal-sentiment')" class="text-gray-400 hover:text-amber-500 transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </div>
+                    <div id="chart-sentiment" style="height: 300px; width: 100%;"></div>
                 </div>
             </div>
         </div>
@@ -389,6 +421,46 @@
             </button>
             <h3 class="text-xl font-black text-gray-900 mb-2">Real Yields & Breakevens</h3>
             <p class="text-sm text-gray-600 leading-relaxed">The ultimate drivers of asset valuation. <strong>Breakevens</strong> show the market's expected inflation rate over the next 10 years. <strong>Real Yields (TIPS)</strong> show the true cost of borrowing after adjusting for inflation. When Real Yields surge, tech stocks and gold typically sell off heavily.</p>
+        </div>
+    </div>
+
+    <div id="modal-gdp" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[200] flex justify-center items-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 relative border-t-4 border-t-blue-600">
+            <button onclick="toggleModal('modal-gdp')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-2">Global Real GDP Growth</h3>
+            <p class="text-sm text-gray-600 leading-relaxed">The broadest measure of economic activity, adjusted for inflation. Tracking the US, UK, and Eurozone side-by-side reveals global economic divergence. A slowing GDP combined with high inflation forces central banks into a difficult "Stagflation" corner.</p>
+        </div>
+    </div>
+
+    <div id="modal-indpro" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[200] flex justify-center items-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 relative border-t-4 border-t-gray-800">
+            <button onclick="toggleModal('modal-indpro')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-2">Industrial Production</h3>
+            <p class="text-sm text-gray-600 leading-relaxed">Measures the raw output of factories, mines, and utilities in the United States. Because industrial activity is highly cyclical, a sharp contraction here serves as a reliable coincident indicator that a corporate earnings recession is underway.</p>
+        </div>
+    </div>
+
+    <div id="modal-retail" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[200] flex justify-center items-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 relative border-t-4 border-t-emerald-500">
+            <button onclick="toggleModal('modal-retail')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-2">Retail Sales (The Engine)</h3>
+            <p class="text-sm text-gray-600 leading-relaxed">Consumer spending accounts for roughly 70% of the entire US GDP. Retail Sales provides a real-time snapshot of the consumer's wallet. If retail spending remains resilient despite high interest rates, the economy typically avoids recession.</p>
+        </div>
+    </div>
+
+    <div id="modal-sentiment" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[200] flex justify-center items-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 relative border-t-4 border-t-amber-500">
+            <button onclick="toggleModal('modal-sentiment')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-2">Consumer Sentiment</h3>
+            <p class="text-sm text-gray-600 leading-relaxed">The University of Michigan Consumer Sentiment index is a leading indicator. It doesn't tell us what consumers spent yesterday—it predicts what they will spend tomorrow. Plummeting sentiment often precedes a severe pullback in retail sales and broader economic contraction.</p>
         </div>
     </div>
 
@@ -666,6 +738,21 @@
                     Plotly.newPlot('chart-ind-prod', [
                         {x: ind.map(d=>d.date), y: ind.map(d=>d.value), type: 'scatter', fill: 'tozeroy', line: {color: '#6366f1'}}
                     ], {...layoutBase, showlegend: false}, {displayModeBar: false});
+                }
+
+                if(gdp.Retail_Sales) {
+                    const retail = [...gdp.Retail_Sales].reverse();
+                    const retailColors = retail.map(d => d.value >= 0 ? '#10b981' : '#ef4444');
+                    Plotly.newPlot('chart-retail', [
+                        {x: retail.map(d=>d.date), y: retail.map(d=>d.value), name: 'Retail Sales Growth', type: 'bar', marker: {color: retailColors}}
+                    ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 }, showlegend: false }, {displayModeBar: false});
+                }
+
+                if(gdp.Sentiment) {
+                    const sentiment = [...gdp.Sentiment].reverse();
+                    Plotly.newPlot('chart-sentiment', [
+                        {x: sentiment.map(d=>d.date), y: sentiment.map(d=>d.value), name: 'Consumer Sentiment', type: 'scatter', line: {color: '#f59e0b', width: 2}, fill: 'tozeroy', fillcolor: 'rgba(245, 158, 11, 0.1)'}
+                    ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 }, showlegend: false }, {displayModeBar: false});
                 }
 
                 // 6. PILLAR 4: FX

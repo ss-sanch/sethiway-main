@@ -151,7 +151,10 @@
         <!-- ========================================== -->
         <div id="job-market" class="scroll-mt-24 max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
             <h2 class="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight">Section 1: Job Market & Employment</h2>
-            <p id="ai-jobs" class="text-sm text-gray-500 max-w-3xl mb-6"></p>
+            <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-4 mb-6 shadow-sm max-w-5xl">
+                <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-1">AI Sector Synthesis</h4>
+                <p id="ai-jobs" class="text-sm text-gray-700 font-medium">Awaiting labor market analysis...</p>
+            </div>
             
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
@@ -201,7 +204,10 @@
         <!-- ========================================== -->
         <div id="inflation-rates" class="scroll-mt-24 max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
             <h2 class="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight">Section 2: Inflation, Rates & Yields</h2>
-            <p id="ai-inflation" class="text-sm text-gray-500 max-w-3xl mb-6"></p>
+            <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-4 mb-6 shadow-sm max-w-5xl">
+                <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-1">AI Sector Synthesis</h4>
+                <p id="ai-inflation" class="text-sm text-gray-700 font-medium">Awaiting yield curve and inflation analysis...</p>
+            </div>
             
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- 1. Central Bank Rates -->
@@ -255,7 +261,10 @@
         <!-- ========================================== -->
         <div id="gdp-output" class="scroll-mt-24 max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
             <h2 class="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight">Section 3: GDP & Output</h2>
-            <p id="ai-gdp" class="text-sm text-gray-500 max-w-3xl mb-6"></p>
+            <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-4 mb-6 shadow-sm max-w-5xl">
+                <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-1">AI Sector Synthesis</h4>
+                <p id="ai-gdp" class="text-sm text-gray-700 font-medium">Awaiting global output analysis...</p>
+            </div>
             
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
@@ -306,7 +315,10 @@
         <div id="currencies" class="scroll-mt-24 max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
             <div class="flex flex-col md:flex-row md:items-center justify-between mb-6">
                 <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight mb-4 md:mb-0">Section 4: Currencies & FX</h2>
-                <p id="ai-fx" class="text-sm text-gray-500 max-w-3xl mb-6"></p>
+                <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-4 mb-6 shadow-sm max-w-5xl">
+                    <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-1">AI Sector Synthesis</h4>
+                    <p id="ai-fx" class="text-sm text-gray-700 font-medium">Awaiting currency regime analysis...</p>
+                </div>
                 <div class="flex space-x-2">
                     <button onclick="toggleModal('modal-regimes')" class="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full font-semibold hover:bg-blue-100 transition">Currency Regimes</button>
                     <button onclick="toggleModal('modal-parity')" class="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full font-semibold hover:bg-blue-100 transition">Interest Rate Parity</button>
@@ -867,8 +879,7 @@
         fetch('/api/macro-ai')
             .then(response => response.json())
             .then(data => {
-                if(data.executive_summary) {
-                    // Safely update elements ONLY if they exist on the page
+                if(data && data.executive_summary) {
                     const execBox = document.getElementById('ai-executive');
                     if (execBox) execBox.innerText = data.executive_summary;
                     
@@ -884,15 +895,14 @@
                     const fxBox = document.getElementById('ai-fx');
                     if (fxBox) fxBox.innerText = data.fx;
                 } else {
-                    // If the backend returns an error instead of data
                     const execBox = document.getElementById('ai-executive');
-                    if (execBox) execBox.innerText = "AI Synthesis offline. Please check backend Render logs for Gemini API key errors.";
+                    if (execBox) execBox.innerText = "AI Synthesis offline. Please check backend logs.";
                 }
             })
             .catch(error => {
-                console.error("Error loading AI Synthesis:", error);
+                console.error("AI Fetch Error:", error);
                 const execBox = document.getElementById('ai-executive');
-                if (execBox) execBox.innerText = "Network timeout connecting to the AI macro engine. Please refresh.";
+                if (execBox) execBox.innerText = "AI engine timeout. Utilizing raw quantitative data streams.";
             });
         
         fetchGlobalData();

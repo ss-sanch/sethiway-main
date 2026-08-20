@@ -288,23 +288,31 @@
         <!-- PILLAR 4: CURRENCIES & FX -->
         <!-- ========================================== -->
         <div id="currencies" class="scroll-mt-24 max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
-            <h2 class="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tight">Section 4: Currencies & FX</h2>
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-6">
+                <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight mb-4 md:mb-0">Section 4: Currencies & FX</h2>
+                <div class="flex space-x-2">
+                    <button onclick="toggleModal('modal-regimes')" class="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full font-semibold hover:bg-blue-100 transition">Currency Regimes</button>
+                    <button onclick="toggleModal('modal-parity')" class="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full font-semibold hover:bg-blue-100 transition">Interest Rate Parity</button>
+                    <button onclick="toggleModal('modal-carrytrade')" class="text-xs bg-purple-50 text-purple-600 px-3 py-1.5 rounded-full font-semibold hover:bg-purple-100 transition border border-purple-200">The Yen Carry Trade</button>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 relative overflow-hidden">
                     <h3 class="text-sm font-bold text-gray-500 mb-2">Dollar Index (DXY)</h3>
                     <div id="chart-dxy" style="height: 200px; width: 100%;"></div>
                 </div>
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 relative overflow-hidden">
                     <h3 class="text-sm font-bold text-gray-500 mb-2">GBP/USD (Cable)</h3>
                     <div id="chart-gbp" style="height: 200px; width: 100%;"></div>
                 </div>
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 relative overflow-hidden">
                     <h3 class="text-sm font-bold text-gray-500 mb-2">EUR/USD (Fiber)</h3>
                     <div id="chart-eur" style="height: 200px; width: 100%;"></div>
                 </div>
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
-                    <h3 class="text-sm font-bold text-gray-500 mb-2">USD/CNY</h3>
-                    <div id="chart-cny" style="height: 200px; width: 100%;"></div>
+                <div class="bg-white rounded-2xl shadow-sm border border-purple-200 p-4 relative overflow-hidden">
+                    <h3 class="text-sm font-bold text-gray-500 mb-2">USD/JPY (Yen)</h3>
+                    <div id="chart-jpy" style="height: 200px; width: 100%;"></div>
                 </div>
             </div>
         </div>
@@ -789,7 +797,7 @@
                 renderFX('chart-dxy', fx.DXY, '#1f2937');
                 renderFX('chart-gbp', fx.GBP_USD, '#dc2626');
                 renderFX('chart-eur', fx.EUR_USD, '#2563eb');
-                renderFX('chart-cny', fx.USD_CNY, '#b91c1c');
+                renderFX('chart-jpy', fx.usd_jpy, '#9333ea');
 
                 // --- END OF DATA PLOTTING: UNLOCK DASHBOARD ---
                 clearInterval(loadingInterval);

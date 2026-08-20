@@ -728,12 +728,19 @@
 
                 // 5. PILLAR 3: GDP
                 if(gdp.US_GDP && gdp.UK_GDP && gdp.EU_GDP) {
-                    const usG = [...gdp.US_GDP].reverse(), ukG = [...gdp.UK_GDP].reverse(), euG = [...gdp.EU_GDP].reverse();
+                    const usG = [...gdp.US_GDP].reverse();
+                    const ukG = [...gdp.UK_GDP].reverse();
+                    const euG = [...gdp.EU_GDP].reverse();
+
                     Plotly.newPlot('chart-gdp', [
-                        {x: usG.map(d=>d.date), y: usG.map(d=>d.value), name: 'US GDP', line: {color: '#2563eb', width: 2}},
-                        {x: ukG.map(d=>d.date), y: ukG.map(d=>d.value), name: 'UK GDP', line: {color: '#dc2626', width: 2}},
-                        {x: euG.map(d=>d.date), y: euG.map(d=>d.value), name: 'EU GDP', line: {color: '#10b981', width: 2}}
-                    ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
+                        {x: usG.map(d=>d.date), y: usG.map(d=>d.value), name: 'US GDP (YoY %)', line: {color: '#2563eb', width: 2}},
+                        {x: ukG.map(d=>d.date), y: ukG.map(d=>d.value), name: 'UK GDP (YoY %)', line: {color: '#dc2626', width: 2}},
+                        {x: euG.map(d=>d.date), y: euG.map(d=>d.value), name: 'EU GDP (YoY %)', line: {color: '#10b981', width: 2}}
+                    ], {
+                        ...layoutBase,
+                        yaxis: { ...layoutBase.yaxis, zeroline: true, zerolinecolor: '#9ca3af', zerolinewidth: 1.5 },
+                        margin: { t: 10, r: 30, l: 40, b: 40 }
+                    }, {displayModeBar: false});
                 }
 
                 // THE FIX: Explicitly draw the Industrial Production Chart

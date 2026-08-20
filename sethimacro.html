@@ -728,9 +728,22 @@
 
                 // 5. PILLAR 3: GDP
                 if(gdp.US_GDP && gdp.UK_GDP && gdp.EU_GDP) {
-                    const usG = [...gdp.US_GDP].reverse();
-                    const ukG = [...gdp.UK_GDP].reverse();
-                    const euG = [...gdp.EU_GDP].reverse();
+                    let usG = [...gdp.US_GDP].reverse();
+                    let ukG = [...gdp.UK_GDP].reverse();
+                    let euG = [...gdp.EU_GDP].reverse();
+
+                    // QUANT DATE INTERSECTION: Match common quarters across US, UK, and EU
+                    const usDates = new Set(usG.map(d => d.date));
+                    const ukDates = new Set(ukG.map(d => d.date));
+                    const euDates = new Set(euG.map(d => d.date));
+                    
+                    const commonDates = new Set([...usDates].filter(d => ukDates.has(d) && euDates.has(d)));
+                    
+                    if (commonDates.size > 0) {
+                        usG = usG.filter(d => commonDates.has(d.date));
+                        ukG = ukG.filter(d => commonDates.has(d.date));
+                        euG = euG.filter(d => commonDates.has(d.date));
+                    }
 
                     Plotly.newPlot('chart-gdp', [
                         {x: usG.map(d=>d.date), y: usG.map(d=>d.value), name: 'US GDP (YoY %)', line: {color: '#2563eb', width: 2}},

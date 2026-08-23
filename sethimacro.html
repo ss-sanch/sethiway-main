@@ -243,7 +243,7 @@
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- 1. Central Bank Rates -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                     <div class="flex justify-between items-center mb-4">
@@ -286,6 +286,28 @@
                         </button>
                     </div>
                     <div id="chart-real-yields" style="height: 300px; width: 100%;"></div>
+                </div>
+
+                <!-- 5. US Yield Curve (Term Structure) -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-md font-bold text-gray-800">US Yield Curve Term Structure</h3>
+                        <button onclick="toggleModal('modal-term')" class="text-gray-400 hover:text-indigo-500 transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </div>
+                    <div id="chart-term-structure" style="height: 300px; width: 100%;"></div>
+                </div>
+
+                <!-- 6. 10Y-2Y Spread -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-md font-bold text-gray-800">10Y-2Y Yield Spread Inversion</h3>
+                        <button onclick="toggleModal('modal-inversion')" class="text-gray-400 hover:text-indigo-500 transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </div>
+                    <div id="chart-yield-spread" style="height: 300px; width: 100%;"></div>
                 </div>
             </div>
         </div>
@@ -677,10 +699,12 @@
 
         async function fetchGlobalData() {
             try {
-                const [jobsRes, ratesRes, gdpRes, fxRes, sigRes, calRes] = await Promise.all([
+                // ADDED yieldCurveRes to the array
+                const [jobsRes, ratesRes, gdpRes, fxRes, sigRes, calRes, yieldCurveRes] = await Promise.all([
                     fetch(`${API_BASE}/pillar-jobs`), fetch(`${API_BASE}/pillar-rates`),
                     fetch(`${API_BASE}/pillar-gdp`), fetch(`${API_BASE}/pillar-fx`),
-                    fetch(`${API_BASE}/quant-signals`), fetch(`${API_BASE}/calendar-timeline`)
+                    fetch(`${API_BASE}/quant-signals`), fetch(`${API_BASE}/calendar-timeline`),
+                    fetch(`${API_BASE}/pillar-yield-curve`) // <-- NEW ENDPOINT
                 ]);
 
                 const jobs = await jobsRes.json();
@@ -689,6 +713,7 @@
                 const fx = await fxRes.json();
                 const sig = await sigRes.json();
                 const cal = await calRes.json();
+                const yieldCurveData = await yieldCurveRes.json(); // <-- NEW PARSER
 
                 // 1. POPULATE KPI BAR
                 if(sig.Sahm_Rule) {
@@ -873,6 +898,47 @@
                         {x: breakeven.map(d=>d.date), y: breakeven.map(d=>d.value), name: '10Y Breakeven (Inflation Exp.)', fill: 'tozeroy', fillcolor: 'rgba(239, 68, 68, 0.1)', line: {color: '#ef4444', width: 2}},
                         {x: realYield.map(d=>d.date), y: realYield.map(d=>d.value), name: '10Y Real Yield', fill: 'tozeroy', fillcolor: 'rgba(59, 130, 246, 0.1)', line: {color: '#3b82f6', width: 2}}
                     ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
+                }
+
+                if(yieldCurveData && yieldCurveData.Term_Structure) {
+                    const ts = yieldCurveData.Term_Structure;
+                    const maturities = ["3M", "2Y", "5Y", "10Y", "30Y"];
+                    
+                    // Safely extract the current value (index 0) and 1 year ago (index ~250)
+                    const getVal = (arr, idx) => arr && arr.length > idx ? arr[idx].value : null;
+                    const todayYields = maturities.map(m => getVal(ts[m], 0));
+                    const oneYearAgoYields = maturities.map(m => getVal(ts[m], ts[m].length > 250 ? 250 : ts[m].length - 1));
+
+                    Plotly.newPlot('chart-term-structure', [
+                        {x: maturities, y: todayYields, name: 'Today', type: 'scatter', mode: 'lines+markers', line: {color: '#2563eb', width: 3, shape: 'spline'}, marker: {size: 8}},
+                        {x: maturities, y: oneYearAgoYields, name: '1 Year Ago', type: 'scatter', mode: 'lines+markers', line: {color: '#9ca3af', width: 2, dash: 'dash', shape: 'spline'}}
+                    ], { 
+                        ...layoutBase, 
+                        yaxis: { ...layoutBase.yaxis, title: 'Yield (%)' },
+                        margin: { t: 10, r: 30, l: 40, b: 40 }
+                    }, {displayModeBar: false});
+                }
+
+                if(yieldCurveData && yieldCurveData.Inversion_Spread) {
+                    const spread = [...yieldCurveData.Inversion_Spread].reverse();
+                    
+                    // The Critical Zero-Line Threshold
+                    const zeroLine = { 
+                        x: [spread[0].date, spread[spread.length-1].date], 
+                        y: [0, 0], 
+                        name: 'Zero Line', type: 'scatter', mode: 'lines', 
+                        line: {color: '#ef4444', width: 2, dash: 'dot'}, hoverinfo: 'none'
+                    };
+
+                    Plotly.newPlot('chart-yield-spread', [
+                        {x: spread.map(d=>d.date), y: spread.map(d=>d.value), name: '10Y-2Y Spread', type: 'scatter', mode: 'lines', line: {color: '#8b5cf6', width: 2}, fill: 'tozeroy', fillcolor: 'rgba(139, 92, 246, 0.1)'},
+                        zeroLine
+                    ], { 
+                        ...layoutBase, 
+                        yaxis: { ...layoutBase.yaxis, title: 'Spread (%)' },
+                        showlegend: false,
+                        margin: { t: 10, r: 30, l: 40, b: 40 }
+                    }, {displayModeBar: false});
                 }
 
                 // 5. PILLAR 3: GDP

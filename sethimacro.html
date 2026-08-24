@@ -864,7 +864,7 @@
         async function fetchGlobalData() {
             try {
                 // ADDED yieldCurveRes to the array
-                const [jobsRes, ratesRes, gdpRes, fxRes, sigRes, calRes, yieldCurveRes] = await Promise.all([
+                const [jobsRes, ratesRes, gdpRes, fxRes, sigRes, calRes, yieldCurveRes, commRes] = await Promise.all([
                     fetch(`${API_BASE}/pillar-jobs`), fetch(`${API_BASE}/pillar-rates`),
                     fetch(`${API_BASE}/pillar-gdp`), fetch(`${API_BASE}/pillar-fx`),
                     fetch(`${API_BASE}/quant-signals`), fetch(`${API_BASE}/calendar-timeline`),

@@ -193,7 +193,17 @@
                 
                 <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 relative flex flex-col justify-between">
                     <div class="flex justify-between items-center mb-6">
-                        <h4 class="text-xl font-bold tracking-tight text-gray-900">Reverse DCF Calculator</h4>
+                        <div class="flex items-center gap-3">
+                            <h4 class="text-xl font-bold tracking-tight text-gray-900">Reverse DCF Calculator</h4>
+                            <!-- MACRO-PEG BADGE -->
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 border border-indigo-100 rounded-md" title="Discount Rate is dynamically pegged to live US 10Y Real Yields via SethiMacro">
+                                <span class="relative flex h-2 w-2">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                                </span>
+                                <span class="text-[10px] font-bold text-indigo-700 uppercase tracking-widest">Macro-Pegged</span>
+                            </div>
+                        </div>
                         <button onclick="toggleModal('dcf-modal')" class="text-gray-400 hover:text-blue-600 transition-colors" title="Learn about DCF Valuation">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </button>
@@ -818,6 +828,7 @@
                 state.fcf = data.fcf; state.shares = data.shares; state.price = data.current_price; 
                 state.stats = data.stats;
                 
+                calibrateMacroBridge();
                 calculateDCF();
                 updateWatchlistBtn();
 
@@ -1155,6 +1166,43 @@
                 annotations: [{ x: state.price, y: yLabels.length - 0.5, text: 'Current Price', showarrow: false, yshift: 15, font: {color: '#ef4444', size: 10, weight: 'bold'} }]
             };
             Plotly.newPlot('football-field', [trace], layout, {displayModeBar: false, responsive: true});
+        }
+
+        async function calibrateMacroBridge() {
+            try {
+                // 1. Ping the live SethiMacro backend (Pillar 2: Rates)
+                // Ensure this URL matches your actual live SethiMacro API domain!
+                const res = await fetch('https://sethimacro.onrender.com/api/pillar-rates'); // Change URL if needed
+                
+                if (res.ok) {
+                    const macroData = await res.json();
+                    
+                    // 2. Extract the live 10-Year Real Yield (Index 0 is the most recent)
+                    if (macroData.Real_Yield && macroData.Real_Yield.length > 0) {
+                        const latestRealYield = macroData.Real_Yield[0].value;
+                        const equityRiskPremium = 5.0; // Standard Wall St ERP
+                        
+                        // 3. Calculate dynamic WACC (Discount Rate)
+                        const dynamicDiscountRate = (latestRealYield + equityRiskPremium).toFixed(1);
+                        
+                        // 4. INJECT INTO SETHISTOCK UI using your exact IDs
+                        const discNum = document.getElementById('disc-num');
+                        const discSld = document.getElementById('disc-sld');
+                        
+                        if (discNum) discNum.value = dynamicDiscountRate;
+                        if (discSld) discSld.value = dynamicDiscountRate;
+                        
+                        // 5. Force the DCF engine to recalculate immediately
+                        if (typeof calculateDCF === "function") {
+                            calculateDCF();
+                        }
+                        
+                        console.log(`Macro Bridge Success: Pegged Discount Rate to ${dynamicDiscountRate}%`);
+                    }
+                }
+            } catch (error) {
+                console.warn("Macro Bridge disconnected. Defaulting to manual DCF rate.", error);
+            }
         }
 
         function calculateDCF() {

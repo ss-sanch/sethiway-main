@@ -1192,7 +1192,7 @@
 
                 // 7. COMMODITIES & CREDIT SPREADS
                 if(commData) {
-                    if(commData.Oil && commData.Oil.length > 0) {
+                    if(commData.Oil && commData.Oil.length > 0 && document.getElementById('chart-oil')) {
                         const oil = [...commData.Oil].reverse();
                         Plotly.newPlot('chart-oil', [{
                             x: oil.map(d=>d.date), y: oil.map(d=>d.value), name: 'WTI Oil',
@@ -1201,7 +1201,7 @@
                         }], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
                     }
 
-                    if(commData.Gold && commData.Gold.length > 0) {
+                    if(commData.Gold && commData.Gold.length > 0 && document.getElementById('chart-gold')) {
                         const gold = [...commData.Gold].reverse();
                         Plotly.newPlot('chart-gold', [{
                             x: gold.map(d=>d.date), y: gold.map(d=>d.value), name: 'Gold',
@@ -1210,7 +1210,7 @@
                         }], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
                     }
 
-                    if(commData.Credit_Spread && commData.Credit_Spread.length > 0) {
+                    if(commData.Credit_Spread && commData.Credit_Spread.length > 0 && document.getElementById('chart-credit')) {
                         const credit = [...commData.Credit_Spread].reverse();
                         Plotly.newPlot('chart-credit', [{
                             x: credit.map(d=>d.date), y: credit.map(d=>d.value), name: 'HY Spread',
@@ -1222,10 +1222,14 @@
 
             } catch (error) {
                 console.error("Error loading SethiMacro data:", error);
-                // Even if it fails, unlock the UI so the user isn't frozen forever
-                clearInterval(loadingInterval);
-                document.getElementById('loading-text').innerText = "Data Sync Failed. Please Refresh.";
-                document.getElementById('macro-dashboard-content').classList.remove('pointer-events-none');
+                if(typeof loadingInterval !== 'undefined') clearInterval(loadingInterval);
+                
+                const errText = document.getElementById('loading-text');
+                // EXPOSE THE RAW JAVASCRIPT ERROR TO THE SCREEN:
+                if(errText) errText.innerText = `JS Crash: ${error.message}`; 
+                
+                const dash = document.getElementById('macro-dashboard-content');
+                if(dash) dash.classList.remove('pointer-events-none');
             }
         }
 

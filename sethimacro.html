@@ -26,6 +26,7 @@
             <a href="#inflation-rates" class="hover:text-blue-600 transition">Inflation & Rates</a>
             <a href="#gdp-output" class="hover:text-blue-600 transition">GDP & Output</a>
             <a href="#currencies" class="hover:text-blue-600 transition">Currencies</a>
+            <a href="#pillar-commodities" class="hover:text-blue-600 transition">Commodities & Credit</a>
             
             <span class="text-gray-200">|</span> <!-- Visual Divider -->
             
@@ -51,6 +52,7 @@
                 <a href="#inflation-rates" class="px-6 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 shadow-sm transition">📉 Inflation & Rates</a>
                 <a href="#gdp-output" class="px-6 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 shadow-sm transition">🏭 GDP & Output</a>
                 <a href="#currencies" class="px-6 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 shadow-sm transition">💱 Currencies</a>
+                <a href="#pillar-commodities" class="px-6 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 shadow-sm transition"> 📦 Commodities & Credit</a>
             </div>
         </div>
 
@@ -465,6 +467,60 @@
             </div>
         </div>
 
+        <!-- ========================================== -->
+        <!-- PILLAR 5: COMMODITIES & CREDIT RISK        -->
+        <!-- ========================================== -->
+        <div id="pillar-commodities" class="scroll-mt-24 w-full max-w-[1600px] px-4 lg:px-8 mx-auto mb-16 pt-8 border-t border-gray-200">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-6">
+                <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight shrink-0">Commodities & Credit Risk</h2>
+                <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-4 shadow-sm flex-1">
+                    <div class="flex items-center justify-between mb-1">
+                        <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider">Physical & Credit Stress</h4>
+                        <button onclick="toggleModal('modal-ai-disclaimer')" class="text-blue-500 hover:text-blue-700 transition cursor-pointer" title="AI Disclaimer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-700 font-medium leading-relaxed">Tracking energy inputs, safe-haven flows, and high-yield corporate default risk.</p>
+                </div>
+            </div>
+
+            <!-- 3-COLUMN BALANCED GRID -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- 1. WTI Crude Oil -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-md font-bold text-gray-800">WTI Crude Oil ($/bbl)</h3>
+                        <button onclick="toggleModal('modal-oil')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </div>
+                    <div id="chart-oil" style="height: 300px; width: 100%;"></div>
+                </div>
+
+                <!-- 2. Gold Fixing -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-md font-bold text-gray-800">Gold (USD / Troy Oz)</h3>
+                        <button onclick="toggleModal('modal-gold')" class="text-gray-400 hover:text-amber-600 transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </div>
+                    <div id="chart-gold" style="height: 300px; width: 100%;"></div>
+                </div>
+
+                <!-- 3. High-Yield OAS -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-md font-bold text-gray-800">US High-Yield OAS Spread</h3>
+                        <button onclick="toggleModal('modal-credit')" class="text-gray-400 hover:text-red-600 transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </div>
+                    <div id="chart-credit" style="height: 300px; width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+
     <section class="max-w-4xl mx-auto mb-16 pt-8 border-t border-gray-200 px-4">
             <div class="bg-gray-50 rounded-2xl p-8 text-center border border-gray-200 shadow-sm">
                 <h2 class="text-2xl font-bold text-gray-800 mb-2">Spotted a bug or have a feature idea?</h2>
@@ -676,6 +732,33 @@
         </div>
     </div>
 
+    <!-- Oil Modal -->
+    <div id="modal-oil" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[200] flex justify-center items-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 relative border-t-4 border-t-sky-500">
+            <button onclick="toggleModal('modal-oil')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            <h3 class="text-xl font-black text-gray-900 mb-2">WTI Crude Oil</h3>
+            <p class="text-sm text-gray-600 leading-relaxed">The benchmark price for global light sweet crude. Energy prices act as the primary catalyst for headline inflation swings and consumer discretionary spending drag.</p>
+        </div>
+    </div>
+
+    <!-- Gold Modal -->
+    <div id="modal-gold" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[200] flex justify-center items-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 relative border-t-4 border-t-amber-500">
+            <button onclick="toggleModal('modal-gold')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            <h3 class="text-xl font-black text-gray-900 mb-2">Gold Price (London Fix)</h3>
+            <p class="text-sm text-gray-600 leading-relaxed">Gold trades inversely to real bond yields and sovereign currency purchasing power. It serves as institutional hedge against inflation, geopolitical risk, and monetary debasement.</p>
+        </div>
+    </div>
+
+    <!-- Credit Spread Modal -->
+    <div id="modal-credit" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[200] flex justify-center items-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 relative border-t-4 border-t-red-500">
+            <button onclick="toggleModal('modal-credit')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            <h3 class="text-xl font-black text-gray-900 mb-2">High-Yield Option-Adjusted Spread (OAS)</h3>
+            <p class="text-sm text-gray-600 leading-relaxed">Measures the yield premium junk-rated corporate bonds pay above US Treasuries. Rapid widening signals liquidity shortages and impending corporate distress before it reflects in equities.</p>
+        </div>
+    </div>
+
     <div id="modal-ai-disclaimer" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 relative">
             <div class="flex justify-between items-center pb-3 border-b border-gray-100 mb-4">
@@ -785,7 +868,8 @@
                     fetch(`${API_BASE}/pillar-jobs`), fetch(`${API_BASE}/pillar-rates`),
                     fetch(`${API_BASE}/pillar-gdp`), fetch(`${API_BASE}/pillar-fx`),
                     fetch(`${API_BASE}/quant-signals`), fetch(`${API_BASE}/calendar-timeline`),
-                    fetch(`${API_BASE}/pillar-yield-curve`) // <-- NEW ENDPOINT
+                    fetch(`${API_BASE}/pillar-yield-curve`), // <-- NEW ENDPOINT
+                    fetch(`${API_BASE}/pillar-commodities`)
                 ]);
 
                 const jobs = await jobsRes.json();
@@ -795,6 +879,7 @@
                 const sig = await sigRes.json();
                 const cal = await calRes.json();
                 const yieldCurveData = await yieldCurveRes.json(); // <-- NEW PARSER
+                const commData = await commRes.json();
 
                 // 1. POPULATE KPI BAR
                 if(sig.Sahm_Rule) {
@@ -1103,6 +1188,36 @@
                 if (dashContent) {
                     dashContent.classList.remove('opacity-30', 'pointer-events-none');
                     dashContent.classList.add('opacity-100');
+                }
+
+                // 7. COMMODITIES & CREDIT SPREADS
+                if(commData) {
+                    if(commData.Oil && commData.Oil.length > 0) {
+                        const oil = [...commData.Oil].reverse();
+                        Plotly.newPlot('chart-oil', [{
+                            x: oil.map(d=>d.date), y: oil.map(d=>d.value), name: 'WTI Oil',
+                            type: 'scatter', mode: 'lines', line: {color: '#0284c7', width: 2},
+                            fill: 'tozeroy', fillcolor: 'rgba(2, 132, 199, 0.08)'
+                        }], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
+                    }
+
+                    if(commData.Gold && commData.Gold.length > 0) {
+                        const gold = [...commData.Gold].reverse();
+                        Plotly.newPlot('chart-gold', [{
+                            x: gold.map(d=>d.date), y: gold.map(d=>d.value), name: 'Gold',
+                            type: 'scatter', mode: 'lines', line: {color: '#d97706', width: 2},
+                            fill: 'tozeroy', fillcolor: 'rgba(217, 119, 6, 0.08)'
+                        }], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
+                    }
+
+                    if(commData.Credit_Spread && commData.Credit_Spread.length > 0) {
+                        const credit = [...commData.Credit_Spread].reverse();
+                        Plotly.newPlot('chart-credit', [{
+                            x: credit.map(d=>d.date), y: credit.map(d=>d.value), name: 'HY Spread',
+                            type: 'scatter', mode: 'lines', line: {color: '#dc2626', width: 2},
+                            fill: 'tozeroy', fillcolor: 'rgba(220, 38, 38, 0.08)'
+                        }], { ...layoutBase, yaxis: { ...layoutBase.yaxis, title: 'Spread (%)' }, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
+                    }
                 }
 
             } catch (error) {

@@ -56,52 +56,93 @@
 
         <div id="macro-dashboard-content" class="opacity-30 transition-opacity duration-1000 pointer-events-none">
 
-        <!-- EXECUTIVE KPI BAR -->
-        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
-            <!-- Sahm Rule -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-purple-500 relative">
-                <button onclick="toggleModal('modal-sahm')" class="absolute top-4 right-4 text-gray-300 hover:text-purple-600 transition z-10 cursor-pointer">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </button>
-                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 pr-6">Sahm Recession Rule</h3>
-                <div class="flex items-end gap-2">
-                    <span id="kpi-sahm-val" class="text-2xl font-black text-gray-900">--</span>
-                    <span id="kpi-sahm-stat" class="text-sm font-semibold mb-1"></span>
+        <!-- EXECUTIVE KPI BAR (5-CARD PROMINENT LAYOUT) -->
+        <div class="max-w-[1600px] px-4 lg:px-8 mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
+            
+            <!-- 1. PROMINENT GAUGE: Composite Macro Risk Barometer -->
+            <div class="bg-white rounded-xl shadow-md border-2 border-indigo-100 p-4 border-t-4 border-t-indigo-600 flex flex-col justify-between relative">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-black text-indigo-900 uppercase tracking-wider">Macro Risk Barometer</h3>
+                    <button onclick="toggleModal('modal-risk-barometer')" class="text-gray-400 hover:text-indigo-600 transition cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                </div>
+                <div class="flex items-center justify-center my-[-8px]">
+                    <div id="gauge-macro-risk" style="height: 100px; width: 170px;"></div>
+                </div>
+                <div class="text-center">
+                    <span id="kpi-risk-regime" class="text-xs font-bold text-gray-700 uppercase tracking-tight">Calculating...</span>
                 </div>
             </div>
-            <!-- Yield Spread -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-blue-500 relative">
-                <button onclick="toggleModal('modal-spread')" class="absolute top-4 right-4 text-gray-300 hover:text-blue-600 transition z-10 cursor-pointer">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </button>
-                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 pr-6">Global Yield Spread</h3>
-                <div class="flex items-end gap-2">
-                    <span id="kpi-spread-val" class="text-2xl font-black text-gray-900">--</span>
-                    <span id="kpi-spread-stat" class="text-sm font-semibold mb-1 text-gray-500">US 10Y vs UK 10Y</span>
+
+            <!-- 2. Sahm Rule -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-purple-500 flex flex-col justify-between">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Sahm Recession Rule</h3>
+                    <button onclick="toggleModal('modal-sahm')" class="text-gray-400 hover:text-purple-600 transition cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                </div>
+                <div>
+                    <div class="flex items-end gap-2">
+                        <span id="kpi-sahm-val" class="text-2xl font-black text-gray-900">--</span>
+                        <span id="kpi-sahm-stat" class="text-sm font-semibold mb-1"></span>
+                    </div>
+                    <p class="text-[11px] text-gray-400 mt-1">Threshold: 0.50%</p>
                 </div>
             </div>
-            <!-- Fed Policy -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-emerald-500 relative">
-                <button onclick="toggleModal('modal-fed')" class="absolute top-4 right-4 text-gray-300 hover:text-emerald-600 transition z-10 cursor-pointer">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </button>
-                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 pr-6">Fed Policy Gap</h3>
-                <div class="flex items-end gap-2">
-                    <span id="kpi-fed-val" class="text-2xl font-black text-gray-900">--</span>
-                    <span id="kpi-fed-stat" class="text-sm font-semibold mb-1"></span>
+
+            <!-- 3. Yield Spread -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-blue-500 flex flex-col justify-between">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">10Y-2Y Yield Spread</h3>
+                    <button onclick="toggleModal('modal-spread')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                </div>
+                <div>
+                    <div class="flex items-end gap-2">
+                        <span id="kpi-spread-val" class="text-2xl font-black text-gray-900">--</span>
+                        <span id="kpi-spread-stat" class="text-sm font-semibold mb-1 text-gray-500">US 10Y - 2Y</span>
+                    </div>
+                    <p class="text-[11px] text-gray-400 mt-1">Inversion Indicator</p>
                 </div>
             </div>
-            <!-- DXY -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-gray-800 relative">
-                <button onclick="toggleModal('modal-dxy')" class="absolute top-4 right-4 text-gray-300 hover:text-gray-900 transition z-10 cursor-pointer">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </button>
-                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 pr-6">Dollar Index (DXY)</h3>
-                <div class="flex items-end gap-2">
-                    <span id="kpi-dxy-val" class="text-2xl font-black text-gray-900">--</span>
-                    <span id="kpi-dxy-stat" class="text-sm font-semibold mb-1"></span>
+
+            <!-- 4. Fed Policy Gap -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-emerald-500 flex flex-col justify-between">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Fed Policy Gap</h3>
+                    <button onclick="toggleModal('modal-fed')" class="text-gray-400 hover:text-emerald-600 transition cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                </div>
+                <div>
+                    <div class="flex items-end gap-2">
+                        <span id="kpi-fed-val" class="text-2xl font-black text-gray-900">--</span>
+                        <span id="kpi-fed-stat" class="text-sm font-semibold mb-1"></span>
+                    </div>
+                    <p class="text-[11px] text-gray-400 mt-1">Taylor Rule Gap</p>
                 </div>
             </div>
+
+            <!-- 5. DXY Strength -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-gray-800 flex flex-col justify-between">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Dollar Index (DXY)</h3>
+                    <button onclick="toggleModal('modal-dxy')" class="text-gray-400 hover:text-gray-800 transition cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                </div>
+                <div>
+                    <div class="flex items-end gap-2">
+                        <span id="kpi-dxy-val" class="text-2xl font-black text-gray-900">--</span>
+                        <span id="kpi-dxy-stat" class="text-sm font-semibold mb-1"></span>
+                    </div>
+                    <p class="text-[11px] text-gray-400 mt-1">Global FX Anchor</p>
+                </div>
+            </div>
+
         </div>
 
         <!-- TOP EXECUTIVE AI SUMMARY CONTAINER -->
@@ -613,6 +654,23 @@
         </div>
     </div>
 
+    <!-- Macro Risk Barometer Modal -->
+    <div id="modal-risk-barometer" class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[200] flex justify-center items-center p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 relative border-t-4 border-t-indigo-600">
+            <button onclick="toggleModal('modal-risk-barometer')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-2">Macro Risk Barometer (0–100)</h3>
+            <p class="text-sm text-gray-600 leading-relaxed mb-3">A composite quantitative indicator synthesizing three distinct macroeconomic vulnerabilities into a single systemic score:</p>
+            <ul class="text-xs text-gray-600 space-y-1.5 list-disc pl-4">
+                <li><strong>Labor Fragility (40%):</strong> Sensitivity to Sahm Rule acceleration.</li>
+                <li><strong>Term Structure Stress (35%):</strong> Inversion depth of the 10Y–2Y spread.</li>
+                <li><strong>Monetary Restrictiveness (25%):</strong> Taylor Rule policy rate gap.</li>
+            </ul>
+            <p class="text-xs text-gray-500 mt-3 font-medium">Scores above 65 signal elevated recession probability and systemic market stress.</p>
+        </div>
+    </div>
+
     <div id="modal-ai-disclaimer" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 relative">
             <div class="flex justify-between items-center pb-3 border-b border-gray-100 mb-4">
@@ -751,6 +809,34 @@
                     document.getElementById('kpi-dxy-val').innerText = sig.DXY_Strength.value;
                     document.getElementById('kpi-dxy-stat').innerText = sig.DXY_Strength.status;
                     document.getElementById('kpi-dxy-stat').className = sig.DXY_Strength.status.includes("+") ? "text-sm font-semibold mb-1 text-green-600" : "text-sm font-semibold mb-1 text-red-600";
+                }
+                if(sig.Risk_Barometer) {
+                    const riskScore = sig.Risk_Barometer.score;
+                    const regimeEl = document.getElementById('kpi-risk-regime');
+                    regimeEl.innerText = sig.Risk_Barometer.regime;
+                    regimeEl.className = `text-xs font-bold uppercase tracking-tight ${sig.Risk_Barometer.color}`;
+
+                    Plotly.newPlot('gauge-macro-risk', [{
+                        type: "indicator",
+                        mode: "gauge+number",
+                        value: riskScore,
+                        number: { font: { size: 18, color: '#111827', family: 'sans-serif' } },
+                        gauge: {
+                            axis: { range: [0, 100], visible: false },
+                            bar: { color: riskScore >= 65 ? '#ef4444' : (riskScore >= 35 ? '#f59e0b' : '#10b981'), width: 5 },
+                            bgcolor: "white",
+                            borderwidth: 0,
+                            steps: [
+                                { range: [0, 35], color: "rgba(16, 185, 129, 0.2)" },
+                                { range: [35, 65], color: "rgba(245, 158, 11, 0.2)" },
+                                { range: [65, 100], color: "rgba(239, 68, 68, 0.2)" }
+                            ]
+                        }
+                    }], {
+                        margin: { t: 5, b: 5, l: 15, r: 15 },
+                        paper_bgcolor: 'rgba(0,0,0,0)',
+                        font: { color: '#374151' }
+                    }, {displayModeBar: false, staticPlot: true});
                 }
 
                 // 2. POPULATE ENDLESS CATALYST TIMELINE (Hybrid Macro + Corporate)

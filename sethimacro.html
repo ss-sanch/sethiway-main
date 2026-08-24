@@ -35,6 +35,11 @@
         </div>
     </nav>
 
+    <!-- THIN BLUE PROGRESS BAR -->
+    <div id="progress-container" class="w-full h-1 bg-transparent overflow-hidden sticky top-[88px] z-40 transition-opacity duration-500">
+        <div id="progress-bar" class="h-full bg-blue-600 w-0 transition-all duration-300 ease-out shadow-[0_0_10px_rgba(37,99,235,0.8)]"></div>
+    </div>
+
 
     <div class="flex-grow px-4 md:px-8 pt-8 pb-0">
         <!-- DASHBOARD HEADER -->
@@ -56,7 +61,7 @@
             </div>
         </div>
 
-        <div id="macro-dashboard-content" class="opacity-30 transition-opacity duration-1000 pointer-events-none">
+    <div id="macro-dashboard-content" class="opacity-30 transition-opacity duration-1000 pointer-events-none">
 
         <!-- EXECUTIVE KPI BAR (COMPACT UNIFORM LAYOUT) -->
         <div class="max-w-[1600px] px-4 lg:px-8 mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
@@ -525,6 +530,7 @@
                 </div>
             </div>
         </div>
+    </div>    
 
     <section class="max-w-4xl mx-auto mb-0 pb-16 pt-8 border-t border-gray-200 px-4">
             <div class="bg-gray-50 rounded-2xl p-8 text-center border border-gray-200 shadow-sm">
@@ -858,12 +864,21 @@
             "Connecting to Federal Reserve (FRED)..."
         ];
         let phraseIndex = 0;
+        let progress = 0;
         const loadingTextEl = document.getElementById("loading-text");
+        const progBar = document.getElementById("progress-bar");
+        const progContainer = document.getElementById("progress-container");
         
-        // Swap phrases every 1.5 seconds
+        // Swap phrases and drive progress bar
         const loadingInterval = setInterval(() => {
             phraseIndex = (phraseIndex + 1) % loadingPhrases.length;
             if(loadingTextEl) loadingTextEl.innerText = loadingPhrases[phraseIndex];
+            
+            // Advance progress bar randomly up to 90%
+            if (progress < 90) {
+                progress += Math.random() * 15;
+                if(progBar) progBar.style.width = `${progress}%`;
+            }
         }, 1500);
 
         const layoutBase = {
@@ -1191,10 +1206,16 @@
                 const globalLoader = document.getElementById('global-loader');
                 const dashContent = document.getElementById('macro-dashboard-content');
                 
-                // Slide banner up and fade out
+                // Shoot progress to 100% then fade out
+                if (progBar) progBar.style.width = '100%';
+                setTimeout(() => {
+                    if (progContainer) progContainer.classList.add('opacity-0');
+                }, 500);
+                
+                // Shrink and fade the spinner pill
                 if (globalLoader) {
-                    globalLoader.classList.add('h-0', 'py-0', 'opacity-0', 'overflow-hidden'); 
-                    setTimeout(() => globalLoader.remove(), 500); // Remove from DOM after transition
+                    globalLoader.classList.add('opacity-0', 'scale-95'); 
+                    setTimeout(() => globalLoader.style.display = 'none', 500); 
                 }
                 
                 // Fade in the actual dashboard and restore clicking

@@ -440,6 +440,10 @@
             </div>
             <p class="text-gray-600 text-sm mb-6">This engine uses distinct mathematical models to calculate a range of intrinsic values for the target company, creating a comprehensive "Football Field" of potential target entry prices.</p>
             <div class="space-y-5 text-gray-700 text-sm leading-relaxed">
+                
+                <!-- NEW: Macro-Pegged Explanation -->
+                <p><strong class="text-indigo-600 font-black">Macro-Pegged Discount Rate:</strong> Your baseline discount rate is dynamically tethered to the live US 10-Year Real Treasury Yield via the SethiMacro terminal, plus a standard 5.0% Equity Risk Premium. This ensures your valuation automatically adapts to today's live macroeconomic risk environment.</p>
+                
                 <p><strong class="text-blue-600 font-black">Exit Multiple DCF:</strong> Calculates terminal value based on a multiple of the final year's cash flow. Best for established, steady-state businesses.</p>
                 <p><strong class="text-green-600 font-black">Gordon Growth DCF:</strong> Assumes the company will grow cash flows perpetually at a stable rate. Highly sensitive to the Perpetual Growth Rate input. If the discount rate is lower than the growth rate, this model mathematically breaks and returns N/A.</p>
             </div>

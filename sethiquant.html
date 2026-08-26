@@ -5,31 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SethiQuant | Quantitative Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        html { scroll-behavior: smooth; }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
 
-    <!-- SETHIWAY UNIFIED NAVIGATION -->
-    <nav class="flex justify-between items-center py-6 px-6 md:px-10 bg-white shadow-sm sticky top-0 z-50">
+    <!-- SETHIWAY UNIFIED NAVIGATION (Matching SethiMacro Header) -->
+    <nav class="flex justify-between items-center py-6 px-6 md:px-10 bg-white shadow-sm sticky top-0 z-[100]">
         <a href="index.html" class="flex items-center">
-            <h1 class="text-2xl font-black tracking-tighter">SETHIWAY.</h1>
+            <img src="logo.png" alt="Sethiway Logo" class="h-8 w-auto invert opacity-90 hover:opacity-100 transition">
         </a>
-        <div class="hidden md:flex space-x-8 text-sm font-semibold uppercase tracking-wide">
-            <a href="index.html#portfolio" class="hover:text-blue-600 transition">Portfolio</a>
+        
+        <div class="hidden lg:flex items-center space-x-6 text-sm font-semibold uppercase tracking-wide text-gray-500">
+            <a href="#black-scholes" class="hover:text-blue-600 transition">Black-Scholes</a>
+            <a href="#greeks-matrix" class="hover:text-blue-600 transition">Greeks Matrix</a>
+            
+            <span class="text-gray-200">|</span>
+            
             <a href="sethistock.html" class="hover:text-blue-600 transition">SethiStock</a>
             <a href="sethimacro.html" class="hover:text-blue-600 transition">SethiMacro</a>
-            <a href="#" class="text-blue-600 transition border-b-2 border-blue-600 pb-1">SethiQuant</a>
+            <a href="index.html" class="px-5 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition shadow-md">Back to Hub</a>
         </div>
     </nav>
 
-    <div class="flex-grow p-8">
-        <!-- GLOBAL HEADER -->
+    <!-- MAIN QUANTITATIVE TERMINAL -->
+    <div class="flex-grow p-6 md:p-10">
+        <!-- GLOBAL TITLE -->
         <div class="max-w-7xl mx-auto text-center mb-10">
             <h1 class="text-4xl md:text-5xl font-black tracking-tight text-gray-900 mb-2">SETHI<span class="text-blue-600">QUANT</span></h1>
-            <p class="text-gray-500 font-light tracking-widest uppercase text-sm">Deterministic Mathematical Pricing Engine</p>
+            <p class="text-gray-500 font-light tracking-widest uppercase text-sm">Deterministic Mathematical & Derivatives Pricing Engine</p>
         </div>
 
         <!-- BLACK-SCHOLES TERMINAL -->
-        <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div id="black-scholes" class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
             
             <!-- INPUT PARAMETERS -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 lg:col-span-1 flex flex-col h-full">
@@ -70,27 +79,27 @@
             </div>
 
             <!-- OUTPUT DASHBOARD -->
-            <div class="lg:col-span-2 flex flex-col gap-6">
+            <div id="greeks-matrix" class="lg:col-span-2 flex flex-col gap-6">
                 <!-- Theoretical Price Box -->
                 <div class="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-8 flex flex-col items-center justify-center relative overflow-hidden">
                     <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-blue-600 rounded-full opacity-20 blur-3xl"></div>
-                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2 z-10">Theoretical Premium</h3>
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2 z-10">Theoretical Option Value</h3>
                     <h1 id="out-price" class="text-6xl md:text-7xl font-black text-white z-10">$0.00</h1>
                 </div>
 
                 <!-- The Greeks Matrix -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 flex-grow">
-                    <h3 class="text-xl font-bold mb-6 border-b border-gray-100 pb-4 text-gray-900">The Greeks</h3>
+                    <h3 class="text-xl font-bold mb-6 border-b border-gray-100 pb-4 text-gray-900">The Greeks Risk Sensitivities</h3>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                         <div class="flex flex-col p-4 bg-gray-50 rounded-xl border border-gray-100">
                             <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Delta (Δ)</span>
                             <span id="out-delta" class="text-2xl font-black mt-2 text-gray-900">0.000</span>
-                            <span class="text-[10px] text-gray-400 mt-1">Price sensitivity</span>
+                            <span class="text-[10px] text-gray-400 mt-1">Underlying sensitivity</span>
                         </div>
                         <div class="flex flex-col p-4 bg-gray-50 rounded-xl border border-gray-100">
                             <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Gamma (Γ)</span>
                             <span id="out-gamma" class="text-2xl font-black mt-2 text-gray-900">0.000</span>
-                            <span class="text-[10px] text-gray-400 mt-1">Delta sensitivity</span>
+                            <span class="text-[10px] text-gray-400 mt-1">Delta convexity</span>
                         </div>
                         <div class="flex flex-col p-4 bg-gray-50 rounded-xl border border-gray-100">
                             <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Theta (Θ)</span>
@@ -107,23 +116,60 @@
             </div>
 
         </div>
+
+        <!-- FEEDBACK CARD (Matching SethiMacro Feedback Form) -->
+        <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-200 p-8 md:p-10 mb-12">
+            <div class="text-center max-w-xl mx-auto mb-8">
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">Spotted a bug or have a feature idea?</h3>
+                <p class="text-gray-500 text-sm font-light">
+                    SethiQuant is continuously evolving. Let me know what quant model, pricing engine, or backtest feature we should build next.
+                </p>
+            </div>
+
+            <form id="idea-form" class="space-y-4 max-w-xl mx-auto">
+                <input type="hidden" name="access_key" value="cd2ce7dc-37bf-4573-9c3b-680d8ccf17aa">
+                <input type="hidden" name="subject" value="New Feature Idea for SethiQuant">
+                <input type="checkbox" name="botcheck" style="display: none;">
+
+                <div>
+                    <input type="email" name="email" required placeholder="Your Email Address" class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 text-sm focus:outline-none focus:border-blue-500 transition">
+                </div>
+                <div>
+                    <textarea name="message" required rows="3" placeholder="Your idea, feedback, or quantitative model to build..." class="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 text-sm focus:outline-none focus:border-blue-500 transition"></textarea>
+                </div>
+                <button type="submit" class="w-full py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition shadow-sm text-sm">
+                    Send Feedback
+                </button>
+            </form>
+
+            <div id="feedback-success" class="hidden text-center mt-4 text-emerald-600 font-semibold text-sm">
+                Thank you! Your feedback has been transmitted securely.
+            </div>
+        </div>
     </div>
 
-    <!-- SETHIWAY UNIFIED FOOTER -->
-    <footer class="bg-gray-900 text-white py-12 px-6 mt-12">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
-            <div class="mb-6 md:mb-0">
-                <h2 class="text-xl font-black tracking-tighter">SETHIWAY.</h2>
+    <!-- SETHIWAY UNIFIED FOOTER (Matching SethiMacro Dark Footer) -->
+    <footer class="bg-gray-900 text-white pt-12 pb-8 px-6 md:px-10 w-full mt-auto">
+        <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-6 md:mb-0 flex items-center">
+                <img src="logo.png" alt="Sethiway Logo" class="h-8 w-auto opacity-90 hover:opacity-100 transition">
             </div>
-            <div class="text-gray-400 font-light text-sm text-center md:text-right">
-                &copy; 2026 Sethiway. All rights reserved.
+            <div class="flex space-x-6 text-sm font-bold text-gray-400 uppercase tracking-widest">
+                <a href="https://linkedin.com/in/sanchit-sethi17" target="_blank" class="hover:text-white transition">LinkedIn</a>
+            </div>
+        </div>
+        <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center mt-8 pt-8 border-t border-gray-800 text-xs text-gray-500 font-semibold">
+            <p>&copy; 2026 Sethiway. All rights reserved. <span class="mx-2">|</span> Made in the UK.</p>
+            <div class="flex space-x-4 mt-4 md:mt-0">
+                <a href="#" class="hover:text-gray-300 transition">Privacy Policy</a>
+                <a href="#" class="hover:text-gray-300 transition">Terms of Service</a>
             </div>
         </div>
     </footer>
 
-    <!-- BLACK-SCHOLES API ENGINE -->
+    <!-- LOGIC & API SCRIPT -->
     <script>
-        // 🚨 IMPORTANT: Replace with your actual live SethiStock Render API URL!
+        // Points directly to the shared SethiStock master server on Render
         const API_BASE = "https://sethistock-api.onrender.com/api"; 
 
         document.getElementById('bs-form').addEventListener('submit', async (e) => {
@@ -136,7 +182,6 @@
             errorMsg.classList.add('hidden');
 
             try {
-                // Convert UI inputs to math formats (Days to Years, % to Decimals)
                 const payload = {
                     option_type: document.getElementById('op-type').value,
                     S: parseFloat(document.getElementById('op-s').value),
@@ -155,7 +200,6 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.detail || "Calculus engine failed.");
 
-                // Map data to the UI
                 document.getElementById('out-price').innerText = `$${data.results.theoretical_price.toFixed(2)}`;
                 document.getElementById('out-delta').innerText = data.results.greeks.delta.toFixed(4);
                 document.getElementById('out-gamma').innerText = data.results.greeks.gamma.toFixed(4);
@@ -171,9 +215,30 @@
             }
         });
 
-        // ==========================================
-        // TELEMETRY: ANONYMOUS VISITOR TRACKING
-        // ==========================================
+        // Feedback Form Engine (Web3Forms)
+        const ideaForm = document.getElementById('idea-form');
+        ideaForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = ideaForm.querySelector('button[type="submit"]');
+            btn.innerText = "Transmitting...";
+            btn.disabled = true;
+            try {
+                const formData = new FormData(ideaForm);
+                const res = await fetch('https://api.web3forms.com/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(Object.fromEntries(formData))
+                });
+                if(res.ok) {
+                    ideaForm.reset();
+                    document.getElementById('feedback-success').classList.remove('hidden');
+                }
+            } catch(e) {}
+            btn.innerText = "Send Feedback";
+            btn.disabled = false;
+        });
+
+        // Anonymous Telemetry Log
         setTimeout(() => {
             let visitorId = localStorage.getItem('sethiway_visitor_id');
             if (!visitorId) {

@@ -27,6 +27,11 @@
         </div>
     </nav>
 
+    <!-- THIN BLUE PROGRESS BAR -->
+    <div id="progress-container" class="w-full h-1 bg-transparent overflow-hidden sticky top-[88px] z-40 transition-opacity duration-500 opacity-0">
+        <div id="progress-bar" class="h-full bg-blue-600 w-0 transition-all duration-300 ease-out shadow-[0_0_10px_rgba(37,99,235,0.8)]"></div>
+    </div>
+
     <div class="bg-white border-b border-gray-200 px-6 py-3 w-full overflow-x-auto whitespace-nowrap hidden md:flex items-center space-x-4" id="watchlist-ribbon">
         <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">My Watchlist:</span>
         <div id="watchlist-container" class="flex space-x-2"></div>
@@ -43,12 +48,10 @@
         </form>
         <p id="error-message" class="text-red-500 mt-4 hidden font-semibold"></p>
 
-        <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-3 flex items-center justify-center gap-3 mt-6 shadow-sm mx-auto max-w-4xl">
-            <span class="relative flex h-3 w-3">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
-            </span>
-            <p class="text-sm font-medium text-blue-800">SethiStock provides advanced financial modeling, including a Reverse DCF, Mini-LBO, and Peer Comparisons.</p>
+        <!-- DYNAMIC LOADING BUBBLE (Hidden by default) -->
+        <div id="loading-bubble" class="hidden mx-auto mt-6 flex justify-center items-center py-2 px-6 bg-blue-50 border border-blue-100 rounded-full max-w-md transition-all duration-500 shadow-sm overflow-hidden">
+            <svg class="animate-spin h-4 w-4 text-blue-600 mr-3 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <span id="loading-bubble-text" class="text-xs font-bold text-blue-800 tracking-wider uppercase">Initializing SethiStock...</span>
         </div>
 
     </header>
@@ -703,26 +706,35 @@
             dash.classList.add('opacity-50'); // Dim the dashboard while loading
 
             // --- NEW: SKELETON LOADER INJECTION ---
-            const loaderHTML = `
-                <div class="flex justify-center items-center h-6">
-                    <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                </div>`;
-            
-            // Inject the pulsing bar into all metric boxes so the user knows data is coming
-            const statBoxes = [
-                "current-price", "pe-ratio", "market-cap", "fcf-yield", 
-                "sethi-score", "dcf-target", "gordon-growth", "graham-number",
-                "beta", "dividend-yield", "ev-ebitda", "profit-margin", "roe"
-            ];
-            
+            const loaderHTML = `<div class="animate-pulse h-6 bg-gray-700 rounded w-3/4 mx-auto"></div>`;
+            const statBoxes = ["current-price", "pe-ratio", "market-cap", "fcf-yield", "sethi-score", "dcf-target", "gordon-growth", "graham-number", "beta", "dividend-yield", "ev-ebitda", "profit-margin", "roe"];
             statBoxes.forEach(id => {
-                // We bypass the Null-Shield here directly to force the loader in
                 const element = _originalGetElementById.call(document, id); 
                 if (element) element.innerHTML = loaderHTML;
             });
+
+            // --- NEW: PROGRESS BAR & BUBBLE ENGINE ---
+            const progContainer = document.getElementById("progress-container");
+            const progBar = document.getElementById("progress-bar");
+            const loadingBubble = document.getElementById("loading-bubble");
+            const loadingBubbleText = document.getElementById("loading-bubble-text");
+            
+            if (progContainer) { progContainer.classList.remove("opacity-0"); progBar.style.width = "0%"; }
+            if (loadingBubble) { loadingBubble.classList.remove("hidden"); }
+
+            const loadingPhrases = ["Connecting to market data...", "Crunching Reverse DCF...", "Evaluating SEC Insider trades...", "Calculating SethiScore...", "Benchmarking peers..."];
+            let phraseIndex = 0;
+            let progress = 0;
+            
+            const loadingInterval = setInterval(() => {
+                phraseIndex = (phraseIndex + 1) % loadingPhrases.length;
+                if(loadingBubbleText) loadingBubbleText.innerText = loadingPhrases[phraseIndex];
+                
+                if (progress < 90) {
+                    progress += Math.random() * 15;
+                    if(progBar) progBar.style.width = `${progress}%`;
+                }
+            }, 1500);
 
             try {
                 const res = await fetch(`${API_URL}/api/stock/${state.ticker}`);
@@ -824,7 +836,22 @@
                         listTarget.style.paddingLeft = "0";
                         listTarget.innerHTML = checklistHTML;
                     }
-                }
+
+                clearInterval(loadingInterval);
+                if (progBar) progBar.style.width = '100%';
+                setTimeout(() => {
+                    if (progContainer) progContainer.classList.add('opacity-0');
+                    if (loadingBubble) loadingBubble.classList.add('hidden');
+                }, 500);
+
+            } catch (error) {
+                // --- NEW: FAIL-SAFE UNLOCK (Place inside your Catch block) ---
+                clearInterval(loadingInterval);
+                if(loadingBubbleText) loadingBubbleText.innerText = "Data Sync Failed.";
+                setTimeout(() => {
+                    if (progContainer) progContainer.classList.add('opacity-0');
+                    if (loadingBubble) loadingBubble.classList.add('hidden');
+                }, 1500);
 
                 document.getElementById('company-summary').innerText = data.summary || "Summary not available.";
                 

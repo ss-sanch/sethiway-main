@@ -510,6 +510,25 @@
 
     <!-- LOGIC & API SCRIPT -->
     <script>
+        // ==========================================
+        // UI INTERACTION: BULLETPROOF MODAL TOGGLES
+        // ==========================================
+        function toggleModal(modalID) {
+            const modal = document.getElementById(modalID);
+            
+            // Null-Shield: Prevents fatal crashes if a modal HTML block is missing
+            if (!modal) {
+                console.error(`DOM Error: Could not find modal with ID '${modalID}'`);
+                return; 
+            }
+            
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+        
         // Points directly to the shared SethiStock master server on Render
         const API_BASE = "https://sethistock-api.onrender.com/api"; 
 

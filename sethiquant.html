@@ -42,7 +42,12 @@
             
             <!-- INPUT PARAMETERS -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 lg:col-span-1 flex flex-col h-full">
-                <h2 class="text-xl font-bold mb-6 border-b border-gray-100 pb-4 text-gray-900">Black-Scholes Inputs</h2>
+                <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                    <h2 class="text-xl font-bold text-gray-900">Black-Scholes Inputs</h2>
+                    <button type="button" onclick="toggleModal('modal-bs-inputs')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer" title="Learn about inputs">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                </div>
                 <form id="bs-form" class="space-y-4 flex-grow">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Option Type</label>
@@ -83,7 +88,12 @@
                 <!-- Theoretical Price Box -->
                 <div class="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-8 flex flex-col items-center justify-center relative overflow-hidden">
                     <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-blue-600 rounded-full opacity-20 blur-3xl"></div>
-                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2 z-10">Theoretical Option Value</h3>
+                    <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                        <h3 class="text-xl font-bold text-gray-900">The Greeks Risk Sensitivities</h3>
+                        <button type="button" onclick="toggleModal('modal-greeks')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer" title="Learn about The Greeks">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </div>
                     <h1 id="out-price" class="text-6xl md:text-7xl font-black text-white z-10">$0.00</h1>
                 </div>
 
@@ -148,6 +158,39 @@
         </div>
     </div>
 
+    <!-- MODAL: BLACK-SCHOLES INPUTS -->
+    <div id="modal-bs-inputs" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full relative">
+            <button onclick="toggleModal('modal-bs-inputs')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-4 border-b pb-2">Black-Scholes Parameters</h3>
+            <ul class="space-y-4 text-sm text-gray-600">
+                <li><strong class="text-blue-600">Underlying Price ($S$):</strong> The current market price of the asset.</li>
+                <li><strong class="text-blue-600">Strike Price ($K$):</strong> The predetermined price at which the option can be exercised.</li>
+                <li><strong class="text-blue-600">Days to Expiry ($T$):</strong> Time remaining until the contract expires. (The engine automatically converts this to an annualized decimal).</li>
+                <li><strong class="text-blue-600">Implied Volatility ($\sigma$):</strong> The market's theoretical forecast of how much the security's price will move. Higher IV directly inflates option premiums.</li>
+                <li><strong class="text-blue-600">Risk-Free Rate ($r$):</strong> The theoretical baseline return of an investment with zero risk, typically pegged to the US 10-Year Treasury Yield.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- MODAL: THE GREEKS -->
+    <div id="modal-greeks" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full relative">
+            <button onclick="toggleModal('modal-greeks')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-4 border-b pb-2">The Greeks (Risk Matrix)</h3>
+            <ul class="space-y-4 text-sm text-gray-600">
+                <li><strong class="text-gray-900">Delta ($\Delta$):</strong> Directional risk. Estimates how much the option's price will change for every $1 move in the underlying asset.</li>
+                <li><strong class="text-gray-900">Gamma ($\Gamma$):</strong> Convexity risk. The rate of change in Delta for a $1 move in the underlying. Highest for at-the-money options.</li>
+                <li><strong class="text-red-600">Theta ($\Theta$):</strong> Time decay. Measures how much theoretical value the option loses each day simply as time passes, assuming all else is equal.</li>
+                <li><strong class="text-gray-900">Vega ($\mathcal{V}$):</strong> Volatility risk. How much the option's premium will adjust for a 1% change in Implied Volatility.</li>
+            </ul>
+        </div>
+    </div>
+
     <!-- SETHIWAY UNIFIED FOOTER (Matching SethiMacro Dark Footer) -->
     <footer class="bg-gray-900 text-white pt-12 pb-8 px-6 md:px-10 w-full mt-auto">
         <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center">
@@ -171,6 +214,18 @@
     <script>
         // Points directly to the shared SethiStock master server on Render
         const API_BASE = "https://sethistock-api.onrender.com/api"; 
+
+        // ==========================================
+        // UI INTERACTION: MODAL TOGGLES
+        // ==========================================
+        function toggleModal(modalID) {
+            const modal = document.getElementById(modalID);
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
 
         document.getElementById('bs-form').addEventListener('submit', async (e) => {
             e.preventDefault();

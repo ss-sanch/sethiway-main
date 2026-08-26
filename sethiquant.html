@@ -341,6 +341,75 @@
 
         </div>
 
+        <!-- BINOMIAL OPTIONS PRICING (AMERICAN) -->
+        <div id="binomial-pricer" class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+            
+            <!-- INPUT PARAMETERS -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 lg:col-span-1 flex flex-col h-full">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                    <h2 class="text-xl font-bold text-gray-900">Binomial Pricer (American)</h2>
+                    <button type="button" onclick="toggleModal('modal-binomial')" class="text-gray-400 hover:text-emerald-600 transition cursor-pointer" title="Learn about Binomial Trees">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                </div>
+                <form id="bin-form" class="space-y-4 flex-grow">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Option Type</label>
+                        <select id="bin-type" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-700 outline-none focus:border-emerald-500 transition">
+                            <option value="call">American Call</option>
+                            <option value="put">American Put</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Price ($)</label>
+                            <input type="number" id="bin-s" step="0.01" required value="150.00" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-emerald-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Strike ($)</label>
+                            <input type="number" id="bin-k" step="0.01" required value="155.00" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-emerald-500 transition">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Days</label>
+                            <input type="number" id="bin-days" required value="30" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-emerald-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Steps (N)</label>
+                            <input type="number" id="bin-n" required value="100" max="1000" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-emerald-500 transition">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">IV (%)</label>
+                            <input type="number" id="bin-iv" step="0.1" required value="20.0" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-emerald-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Rate (%)</label>
+                            <input type="number" id="bin-r" step="0.1" required value="5.0" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-emerald-500 transition">
+                        </div>
+                    </div>
+                    <button type="submit" id="bin-btn" class="w-full mt-4 py-3 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition shadow-md">
+                        Calculate Lattice
+                    </button>
+                </form>
+                <p id="bin-error" class="text-red-500 text-sm font-semibold mt-4 hidden text-center"></p>
+            </div>
+
+            <!-- OUTPUT DASHBOARD -->
+            <div class="lg:col-span-2 flex flex-col gap-6">
+                <!-- American Premium Box -->
+                <div class="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-8 flex flex-col items-center justify-center relative overflow-hidden flex-grow">
+                    <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-emerald-600 rounded-full opacity-20 blur-3xl"></div>
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2 z-10">American Option Premium</h3>
+                    <h1 id="out-bin-price" class="text-6xl md:text-8xl font-black text-white z-10">$0.00</h1>
+                    <p class="text-gray-500 text-sm mt-4 z-10 italic">Computed using a dynamic <span id="out-bin-steps">100</span>-step recursive lattice.</p>
+                </div>
+            </div>
+
+        </div>
+
         <!-- QUANTITATIVE LEGAL DISCLAIMER -->
         <div class="max-w-7xl mx-auto px-6 md:px-10 pb-8 text-center">
             <p class="text-[10px] md:text-xs text-gray-400 font-medium leading-relaxed max-w-4xl mx-auto">
@@ -457,6 +526,22 @@
                 <li><strong class="text-indigo-600">Value at Risk (VaR):</strong> The maximum expected loss over a specific timeframe at a given confidence level. E.g., a 99% VaR of -10% means there is only a 1% probability the asset drops more than 10%.</li>
                 <li><strong class="text-red-600">Expected Shortfall (CVaR):</strong> While VaR tells you the threshold, CVaR tells you the average severity of the loss <em>if</em> that 1% worst-case scenario actually occurs.</li>
                 <li><strong class="text-gray-900">Stochastic Shocks:</strong> The backend calculates 5 years of historical drift and volatility, applying random normal shocks ($Z$) to project 10,000 unique forward paths.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- MODAL: BINOMIAL PRICER -->
+    <div id="modal-binomial" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full relative">
+            <button onclick="toggleModal('modal-binomial')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-4 border-b pb-2">Cox-Ross-Rubinstein (CRR) Model</h3>
+            <p class="text-sm text-gray-600 mb-4">Unlike the Black-Scholes model which can only price European options, this engine uses a recursive binomial lattice to price <strong class="text-gray-900">American options</strong>, accounting for the premium of early exercise.</p>
+            <ul class="space-y-4 text-sm text-gray-600">
+                <li><strong class="text-emerald-600">The Lattice Build:</strong> The algorithm mathematically constructs a tree of future price probabilities. It calculates the magnitude of an "Up" shock ($u$) and a "Down" shock ($d$) based on the asset's implied volatility.</li>
+                <li><strong class="text-gray-900">Dynamic Programming:</strong> Starting from the expiration date, the algorithm steps backwards through time. At every single node, it compares the <em>Continuation Value</em> (holding the option) against the <em>Intrinsic Value</em> (exercising the option immediately).</li>
+                <li><strong class="text-gray-900">Early Exercise Premium:</strong> Because the engine continually selects the maximum value between holding and exercising, the resulting premium accurately reflects the strategic optionality inherent in American derivatives.</li>
             </ul>
         </div>
     </div>
@@ -664,6 +749,51 @@
                 chartDiv.innerHTML = `<div class="text-sm text-red-400 italic">Backtest execution failed.</div>`;
             } finally {
                 btn.innerHTML = 'Analyse Strategy'; // UK English
+                btn.disabled = false;
+            }
+        });
+
+        // ==========================================
+        // BINOMIAL AMERICAN OPTIONS ENGINE
+        // ==========================================
+        document.getElementById('bin-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('bin-btn');
+            const errorMsg = document.getElementById('bin-error');
+            
+            btn.innerHTML = 'Calculating...'; 
+            btn.disabled = true;
+            errorMsg.classList.add('hidden');
+
+            try {
+                const payload = {
+                    option_type: document.getElementById('bin-type').value,
+                    S: parseFloat(document.getElementById('bin-s').value),
+                    K: parseFloat(document.getElementById('bin-k').value),
+                    T: parseFloat(document.getElementById('bin-days').value) / 365.0, 
+                    sigma: parseFloat(document.getElementById('bin-iv').value) / 100.0,
+                    r: parseFloat(document.getElementById('bin-r').value) / 100.0,
+                    N: parseInt(document.getElementById('bin-n').value)
+                };
+
+                const res = await fetch(`${API_BASE}/quant/binomial-american`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || "Lattice calculation failed.");
+
+                // Map data to the UI
+                document.getElementById('out-bin-price').innerText = `$${data.results.american_price.toFixed(2)}`;
+                document.getElementById('out-bin-steps').innerText = data.parameters.steps;
+
+            } catch (err) {
+                errorMsg.innerText = err.message;
+                errorMsg.classList.remove('hidden');
+            } finally {
+                btn.innerHTML = 'Calculate Lattice'; 
                 btn.disabled = false;
             }
         });

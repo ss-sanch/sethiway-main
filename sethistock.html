@@ -836,6 +836,7 @@
                         listTarget.style.paddingLeft = "0";
                         listTarget.innerHTML = checklistHTML;
                     }
+                }
 
                 clearInterval(loadingInterval);
                 if (progBar) progBar.style.width = '100%';
@@ -843,15 +844,6 @@
                     if (progContainer) progContainer.classList.add('opacity-0');
                     if (loadingBubble) loadingBubble.classList.add('hidden');
                 }, 500);
-
-            } catch (error) {
-                // --- NEW: FAIL-SAFE UNLOCK (Place inside your Catch block) ---
-                clearInterval(loadingInterval);
-                if(loadingBubbleText) loadingBubbleText.innerText = "Data Sync Failed.";
-                setTimeout(() => {
-                    if (progContainer) progContainer.classList.add('opacity-0');
-                    if (loadingBubble) loadingBubble.classList.add('hidden');
-                }, 1500);
 
                 document.getElementById('company-summary').innerText = data.summary || "Summary not available.";
                 
@@ -919,6 +911,12 @@
                 }, 150);
 
             } catch (err) {
+                clearInterval(loadingInterval);
+                if(loadingBubbleText) loadingBubbleText.innerText = "Data Sync Failed.";
+                setTimeout(() => {
+                    if (progContainer) progContainer.classList.add('opacity-0');
+                    if (loadingBubble) loadingBubble.classList.add('hidden');
+                }, 1500);
                 document.getElementById('error-message').innerText = err.message;
                 document.getElementById('error-message').classList.remove('hidden');
             } finally {

@@ -1301,6 +1301,28 @@
             });
         
         fetchGlobalData();
+
+        // ==========================================
+        // TELEMETRY: ANONYMOUS VISITOR TRACKING
+        // ==========================================
+        setTimeout(() => {
+            let visitorId = localStorage.getItem('sethiway_visitor_id');
+            if (!visitorId) {
+                visitorId = crypto.randomUUID();
+                localStorage.setItem('sethiway_visitor_id', visitorId);
+            }
+
+            // Using the telemetry endpoint we previously built in app.py
+            fetch(`https://sethistock-api.onrender.com/api/telemetry/log`, { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    project: 'SethiMacro',
+                    action: 'page_view',
+                    visitor_id: visitorId
+                })
+            }).catch(() => {}); // Fails silently
+        }, 1000);
     </script>
 </body>
 </html>

@@ -286,13 +286,24 @@
             btn.innerHTML = 'Sending...';
             btn.disabled = true;
 
+            // ==========================================
+            // TELEMETRY: ANONYMOUS VISITOR TRACKING
+            // ==========================================
+            // 1. Check for an existing ID, or create a new one
+            let visitorId = localStorage.getItem('sethiway_visitor_id');
+            if (!visitorId) {
+                visitorId = crypto.randomUUID();
+                localStorage.setItem('sethiway_visitor_id', visitorId);
+            }
+
             fetch('https://api.web3forms.com/submit', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: json
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    project: 'Sethiway Hub', // Change to 'SethiStock' or 'SethiMacro' in those files
+                    action: 'page_view',
+                    visitor_id: visitorId    // <--- NEW: The ID is now attached to the payload!
+                })
             })
             .then(async (response) => {
                 if (response.status == 200) {

@@ -49,9 +49,15 @@
                     </button>
                 </div>
                 
-                <div class="text-right">
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Lifetime Events</p>
-                    <p id="total-events" class="text-4xl font-black text-gray-900">0</p>
+                <div class="flex items-end gap-8 text-right border-l border-gray-200 pl-8 ml-4">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Unique Visitors</p>
+                        <p id="unique-visitors" class="text-4xl font-black text-gray-900">0</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Visits</p>
+                        <p id="total-events" class="text-4xl font-black text-blue-600">0</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -156,7 +162,8 @@
         }
 
         function renderDashboard(data) {
-            document.getElementById('total-events').innerText = data.total_events.toLocaleString();
+            document.getElementById('unique-visitors').innerText = (data.unique_visitors || 0).toLocaleString();
+            document.getElementById('total-events').innerText = (data.total_events || 0).toLocaleString();
             
             const layoutBase = {
                 paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',

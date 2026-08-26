@@ -266,6 +266,81 @@
 
         </div>
 
+        <!-- MONTE CARLO VaR ENGINE -->
+        <div id="monte-carlo-var" class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+            
+            <!-- INPUT PARAMETERS -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 lg:col-span-1 flex flex-col h-full">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                    <h2 class="text-xl font-bold text-gray-900">Monte Carlo VaR</h2>
+                    <button type="button" onclick="toggleModal('modal-var')" class="text-gray-400 hover:text-indigo-600 transition cursor-pointer" title="Learn about VaR">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                </div>
+                <form id="var-form" class="space-y-4 flex-grow">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Target Asset</label>
+                        <input type="text" id="var-ticker" required value="JPM" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 uppercase outline-none focus:border-indigo-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Simulation Algorithm</label>
+                        <select disabled class="w-full bg-gray-100 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-500 outline-none cursor-not-allowed">
+                            <option>Geometric Brownian Motion</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Days Forward</label>
+                            <input type="number" id="var-days" required value="30" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-indigo-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Paths</label>
+                            <input type="number" id="var-sims" required value="10000" disabled class="w-full bg-gray-100 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-500 outline-none cursor-not-allowed">
+                        </div>
+                    </div>
+                    <button type="submit" id="var-btn" class="w-full mt-4 py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition shadow-md">
+                        Run 10,000 Simulations
+                    </button>
+                </form>
+                <p id="var-error" class="text-red-500 text-sm font-semibold mt-4 hidden text-center"></p>
+            </div>
+
+            <!-- OUTPUT DASHBOARD -->
+            <div class="lg:col-span-2 flex flex-col gap-6">
+                <!-- KPI Banner -->
+                <div class="grid grid-cols-3 gap-4 md:gap-6">
+                    <div class="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-4 md:p-6 flex flex-col justify-center relative overflow-hidden">
+                        <div class="absolute top-0 right-0 -mt-6 -mr-6 w-20 h-20 bg-indigo-500 rounded-full opacity-20 blur-2xl"></div>
+                        <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 z-10">99% CVaR (Expected Shortfall)</h3>
+                        <h1 id="out-var-cvar" class="text-2xl md:text-3xl font-black text-red-500 z-10">0.00%</h1>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 md:p-6 flex flex-col justify-center">
+                        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">99% Value at Risk</h3>
+                        <h1 id="out-var-99" class="text-2xl md:text-3xl font-black text-gray-900">0.00%</h1>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 md:p-6 flex flex-col justify-center">
+                        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">95% Value at Risk</h3>
+                        <h1 id="out-var-95" class="text-2xl md:text-3xl font-black text-gray-900">0.00%</h1>
+                    </div>
+                </div>
+
+                <!-- Monte Carlo Plotly Chart -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex-grow flex flex-col">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                        <h3 class="text-lg font-bold text-gray-900">GBM Price Paths (50 Sampled)</h3>
+                        <span id="out-var-price" class="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">Current Price: $0.00</span>
+                    </div>
+                    <!-- Rigid container to prevent flex-box rendering bugs -->
+                    <div id="var-chart" style="height: 350px; width: 100%;" class="w-full relative">
+                        <div class="absolute inset-0 flex justify-center items-center text-sm text-gray-400 italic">
+                            Awaiting Monte Carlo execution...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
         <!-- QUANTITATIVE LEGAL DISCLAIMER -->
         <div class="max-w-7xl mx-auto px-6 md:px-10 pb-8 text-center">
             <p class="text-[10px] md:text-xs text-gray-400 font-medium leading-relaxed max-w-4xl mx-auto">
@@ -366,6 +441,22 @@
                 <li><strong class="text-teal-600">SMA Crossover:</strong> A trend-following strategy. The algorithm generates a "Buy" signal when the Fast Moving Average crosses above the Slow Moving Average (Golden Cross), and sells into cash when it crosses below (Death Cross).</li>
                 <li><strong class="text-gray-900">Max Drawdown:</strong> The largest peak-to-trough drop in the strategy's portfolio value. A critical measure of downside risk.</li>
                 <li><strong class="text-gray-900">Annualised Volatility:</strong> The standard deviation of the strategy's daily returns, scaled to a 252-day trading year to measure the dispersion of returns.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- MODAL: MONTE CARLO VaR -->
+    <div id="modal-var" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full relative">
+            <button onclick="toggleModal('modal-var')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-4 border-b pb-2">Market Risk: Monte Carlo VaR</h3>
+            <p class="text-sm text-gray-600 mb-4">This engine models extreme portfolio tail-risk by running 10,000 distinct price simulations using <strong class="text-gray-900">Geometric Brownian Motion (GBM)</strong>, a stochastic calculus model used by institutional trading desks to forecast asset behaviour.</p>
+            <ul class="space-y-4 text-sm text-gray-600">
+                <li><strong class="text-indigo-600">Value at Risk (VaR):</strong> The maximum expected loss over a specific timeframe at a given confidence level. E.g., a 99% VaR of -10% means there is only a 1% probability the asset drops more than 10%.</li>
+                <li><strong class="text-red-600">Expected Shortfall (CVaR):</strong> While VaR tells you the threshold, CVaR tells you the average severity of the loss <em>if</em> that 1% worst-case scenario actually occurs.</li>
+                <li><strong class="text-gray-900">Stochastic Shocks:</strong> The backend calculates 5 years of historical drift and volatility, applying random normal shocks ($Z$) to project 10,000 unique forward paths.</li>
             </ul>
         </div>
     </div>
@@ -573,6 +664,82 @@
                 chartDiv.innerHTML = `<div class="text-sm text-red-400 italic">Backtest execution failed.</div>`;
             } finally {
                 btn.innerHTML = 'Analyse Strategy'; // UK English
+                btn.disabled = false;
+            }
+        });
+
+        // ==========================================
+        // MONTE CARLO VaR ENGINE
+        // ==========================================
+        document.getElementById('var-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('var-btn');
+            const errorMsg = document.getElementById('var-error');
+            const chartDiv = document.getElementById('var-chart');
+            
+            btn.innerHTML = 'Simulating...'; 
+            btn.disabled = true;
+            errorMsg.classList.add('hidden');
+            chartDiv.innerHTML = `<div class="absolute inset-0 flex justify-center items-center bg-indigo-50/50 rounded animate-pulse text-indigo-500 text-sm font-bold">Simulating 10,000 Paths...</div>`;
+
+            try {
+                const payload = {
+                    ticker: document.getElementById('var-ticker').value,
+                    days_forward: parseInt(document.getElementById('var-days').value),
+                    simulations: 10000
+                };
+
+                const res = await fetch(`${API_BASE}/quant/monte-carlo-var`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || "Simulation failed.");
+
+                // Map KPIs
+                const kpis = data.results.kpis;
+                document.getElementById('out-var-cvar').innerText = `${kpis.cvar_99}%`;
+                document.getElementById('out-var-99').innerText = `${kpis.var_99}%`;
+                document.getElementById('out-var-95').innerText = `${kpis.var_95}%`;
+                document.getElementById('out-var-price').innerText = `Current Price: $${data.results.current_price.toFixed(2)}`;
+                
+                // Process the 2D Array for Plotly
+                // The backend sends rows (days) of columns (paths). We need to extract each path individually.
+                const chartData = data.results.chart;
+                const traces = [];
+                const numPaths = chartData.paths[0].length; 
+
+                for (let i = 0; i < numPaths; i++) {
+                    const singlePath = chartData.paths.map(row => row[i]);
+                    traces.push({
+                        x: chartData.days,
+                        y: singlePath,
+                        type: 'scatter',
+                        mode: 'lines',
+                        line: { color: 'rgba(99, 102, 241, 0.15)', width: 1 }, // Faded indigo for the "Spaghetti" effect
+                        showlegend: false,
+                        hoverinfo: 'none'
+                    });
+                }
+
+                // Render Plotly Chart
+                chartDiv.innerHTML = ''; 
+                Plotly.newPlot('var-chart', traces, {
+                    margin: { t: 10, r: 20, l: 40, b: 30 },
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    xaxis: { showgrid: false, zeroline: false, title: 'Days Forward', titlefont: { size: 10, color: '#9ca3af' } },
+                    yaxis: { showgrid: true, gridcolor: '#f3f4f6', zeroline: false, tickprefix: '$' }
+                }, {displayModeBar: false, responsive: true});
+
+            } catch (err) {
+                errorMsg.innerText = err.message;
+                errorMsg.classList.remove('hidden');
+                chartDiv.innerHTML = `<div class="text-sm text-red-400 italic absolute inset-0 flex justify-center items-center">Simulation execution failed.</div>`;
+            } finally {
+                btn.innerHTML = 'Run 10,000 Simulations'; 
                 btn.disabled = false;
             }
         });

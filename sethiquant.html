@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SethiQuant | Quantitative Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
+
+    <!-- SETHIWAY UNIFIED NAVIGATION -->
+    <nav class="flex justify-between items-center py-6 px-6 md:px-10 bg-white shadow-sm sticky top-0 z-50">
+        <a href="index.html" class="flex items-center">
+            <h1 class="text-2xl font-black tracking-tighter">SETHIWAY.</h1>
+        </a>
+        <div class="hidden md:flex space-x-8 text-sm font-semibold uppercase tracking-wide">
+            <a href="index.html#portfolio" class="hover:text-blue-600 transition">Portfolio</a>
+            <a href="sethistock.html" class="hover:text-blue-600 transition">SethiStock</a>
+            <a href="sethimacro.html" class="hover:text-blue-600 transition">SethiMacro</a>
+            <a href="#" class="text-blue-600 transition border-b-2 border-blue-600 pb-1">SethiQuant</a>
+        </div>
+    </nav>
+
+    <div class="flex-grow p-8">
+        <!-- GLOBAL HEADER -->
+        <div class="max-w-7xl mx-auto text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-black tracking-tight text-gray-900 mb-2">SETHI<span class="text-blue-600">QUANT</span></h1>
+            <p class="text-gray-500 font-light tracking-widest uppercase text-sm">Deterministic Mathematical Pricing Engine</p>
+        </div>
+
+        <!-- BLACK-SCHOLES TERMINAL -->
+        <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- INPUT PARAMETERS -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 lg:col-span-1 flex flex-col h-full">
+                <h2 class="text-xl font-bold mb-6 border-b border-gray-100 pb-4 text-gray-900">Black-Scholes Inputs</h2>
+                <form id="bs-form" class="space-y-4 flex-grow">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Option Type</label>
+                        <select id="op-type" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-700 outline-none focus:border-blue-500 transition">
+                            <option value="call">Call Option</option>
+                            <option value="put">Put Option</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Underlying Price ($)</label>
+                        <input type="number" id="op-s" step="0.01" required value="150.00" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Strike Price ($)</label>
+                        <input type="number" id="op-k" step="0.01" required value="155.00" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Days to Expiry</label>
+                        <input type="number" id="op-days" required value="30" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Implied Volatility (%)</label>
+                        <input type="number" id="op-iv" step="0.1" required value="20.0" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Risk-Free Rate (%)</label>
+                        <input type="number" id="op-r" step="0.1" required value="5.0" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
+                    </div>
+                    <button type="submit" id="bs-btn" class="w-full mt-4 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition shadow-md">
+                        Calculate Pricing
+                    </button>
+                </form>
+                <p id="bs-error" class="text-red-500 text-sm font-semibold mt-4 hidden text-center"></p>
+            </div>
+
+            <!-- OUTPUT DASHBOARD -->
+            <div class="lg:col-span-2 flex flex-col gap-6">
+                <!-- Theoretical Price Box -->
+                <div class="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-8 flex flex-col items-center justify-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-blue-600 rounded-full opacity-20 blur-3xl"></div>
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2 z-10">Theoretical Premium</h3>
+                    <h1 id="out-price" class="text-6xl md:text-7xl font-black text-white z-10">$0.00</h1>
+                </div>
+
+                <!-- The Greeks Matrix -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 flex-grow">
+                    <h3 class="text-xl font-bold mb-6 border-b border-gray-100 pb-4 text-gray-900">The Greeks</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div class="flex flex-col p-4 bg-gray-50 rounded-xl border border-gray-100">
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Delta (Δ)</span>
+                            <span id="out-delta" class="text-2xl font-black mt-2 text-gray-900">0.000</span>
+                            <span class="text-[10px] text-gray-400 mt-1">Price sensitivity</span>
+                        </div>
+                        <div class="flex flex-col p-4 bg-gray-50 rounded-xl border border-gray-100">
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Gamma (Γ)</span>
+                            <span id="out-gamma" class="text-2xl font-black mt-2 text-gray-900">0.000</span>
+                            <span class="text-[10px] text-gray-400 mt-1">Delta sensitivity</span>
+                        </div>
+                        <div class="flex flex-col p-4 bg-gray-50 rounded-xl border border-gray-100">
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Theta (Θ)</span>
+                            <span id="out-theta" class="text-2xl font-black mt-2 text-red-600">0.000</span>
+                            <span class="text-[10px] text-gray-400 mt-1">Daily time decay</span>
+                        </div>
+                        <div class="flex flex-col p-4 bg-gray-50 rounded-xl border border-gray-100">
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Vega (V)</span>
+                            <span id="out-vega" class="text-2xl font-black mt-2 text-gray-900">0.000</span>
+                            <span class="text-[10px] text-gray-400 mt-1">1% IV sensitivity</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SETHIWAY UNIFIED FOOTER -->
+    <footer class="bg-gray-900 text-white py-12 px-6 mt-12">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-6 md:mb-0">
+                <h2 class="text-xl font-black tracking-tighter">SETHIWAY.</h2>
+            </div>
+            <div class="text-gray-400 font-light text-sm text-center md:text-right">
+                &copy; 2026 Sethiway. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- BLACK-SCHOLES API ENGINE -->
+    <script>
+        // 🚨 IMPORTANT: Replace with your actual live SethiStock Render API URL!
+        const API_BASE = "https://sethistock-api.onrender.com/api"; 
+
+        document.getElementById('bs-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('bs-btn');
+            const errorMsg = document.getElementById('bs-error');
+            
+            btn.innerHTML = 'Calculating...';
+            btn.disabled = true;
+            errorMsg.classList.add('hidden');
+
+            try {
+                // Convert UI inputs to math formats (Days to Years, % to Decimals)
+                const payload = {
+                    option_type: document.getElementById('op-type').value,
+                    S: parseFloat(document.getElementById('op-s').value),
+                    K: parseFloat(document.getElementById('op-k').value),
+                    T: parseFloat(document.getElementById('op-days').value) / 365.0, 
+                    sigma: parseFloat(document.getElementById('op-iv').value) / 100.0,
+                    r: parseFloat(document.getElementById('op-r').value) / 100.0
+                };
+
+                const res = await fetch(`${API_BASE}/quant/black-scholes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || "Calculus engine failed.");
+
+                // Map data to the UI
+                document.getElementById('out-price').innerText = `$${data.results.theoretical_price.toFixed(2)}`;
+                document.getElementById('out-delta').innerText = data.results.greeks.delta.toFixed(4);
+                document.getElementById('out-gamma').innerText = data.results.greeks.gamma.toFixed(4);
+                document.getElementById('out-theta').innerText = data.results.greeks.theta.toFixed(4);
+                document.getElementById('out-vega').innerText = data.results.greeks.vega.toFixed(4);
+
+            } catch (err) {
+                errorMsg.innerText = err.message;
+                errorMsg.classList.remove('hidden');
+            } finally {
+                btn.innerHTML = 'Calculate Pricing';
+                btn.disabled = false;
+            }
+        });
+
+        // ==========================================
+        // TELEMETRY: ANONYMOUS VISITOR TRACKING
+        // ==========================================
+        setTimeout(() => {
+            let visitorId = localStorage.getItem('sethiway_visitor_id');
+            if (!visitorId) {
+                visitorId = crypto.randomUUID();
+                localStorage.setItem('sethiway_visitor_id', visitorId);
+            }
+            fetch(`${API_BASE}/telemetry/log`, { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ project: 'SethiQuant', action: 'page_view', visitor_id: visitorId })
+            }).catch(() => {});
+        }, 1000); 
+    </script>
+</body>
+</html>

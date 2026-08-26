@@ -8,6 +8,7 @@
     <style>
         html { scroll-behavior: smooth; }
     </style>
+    <script src="[https://cdn.plot.ly/plotly-2.32.0.min.js](https://cdn.plot.ly/plotly-2.32.0.min.js)"></script>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
 
@@ -133,7 +134,7 @@
             <!-- INPUT PARAMETERS -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 lg:col-span-1 flex flex-col h-full">
                 <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
-                    <h2 class="text-xl font-bold text-gray-900">Markowitz OptimiSer</h2>
+                    <h2 class="text-xl font-bold text-gray-900">Markowitz Optimiser</h2>
                     <button type="button" onclick="toggleModal('modal-markowitz')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer" title="Learn about MPT">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </button>
@@ -183,7 +184,79 @@
                     <h3 class="text-xl font-bold mb-6 border-b border-gray-100 pb-4 text-gray-900">Optimal Asset Allocation</h3>
                     <div id="mkw-weights-container" class="grid grid-cols-2 md:grid-cols-5 gap-4">
                         <!-- Weights injected here via JavaScript -->
-                        <div class="text-sm text-gray-400 italic col-span-full">Awaiting optimization run...</div>
+                        <div class="text-sm text-gray-400 italic col-span-full">Awaiting optimisation run...</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ALGORITHMIC BACKTESTING ENGINE -->
+        <div id="algorithmic-backtester" class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+            
+            <!-- INPUT PARAMETERS -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 lg:col-span-1 flex flex-col h-full">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                    <h2 class="text-xl font-bold text-gray-900">Algorithmic Backtester</h2>
+                    <button type="button" onclick="toggleModal('modal-backtest')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer" title="Learn about Backtesting">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                </div>
+                <form id="bt-form" class="space-y-4 flex-grow">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Target Asset</label>
+                        <input type="text" id="bt-ticker" required value="SPY" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 uppercase outline-none focus:border-blue-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Trading Strategy</label>
+                        <select disabled class="w-full bg-gray-100 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-500 outline-none cursor-not-allowed">
+                            <option>SMA Crossover</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Fast SMA</label>
+                            <input type="number" id="bt-short" required value="50" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Slow SMA</label>
+                            <input type="number" id="bt-long" required value="200" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
+                        </div>
+                    </div>
+                    <button type="submit" id="bt-btn" class="w-full mt-4 py-3 bg-teal-600 text-white font-bold rounded-lg hover:bg-teal-700 transition shadow-md">
+                        Analyse Strategy
+                    </button>
+                </form>
+                <p id="bt-error" class="text-red-500 text-sm font-semibold mt-4 hidden text-center"></p>
+            </div>
+
+            <!-- OUTPUT DASHBOARD -->
+            <div class="lg:col-span-2 flex flex-col gap-6">
+                <!-- KPI Banner -->
+                <div class="grid grid-cols-3 gap-4 md:gap-6">
+                    <div class="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-4 md:p-6 flex flex-col justify-center relative overflow-hidden">
+                        <div class="absolute top-0 right-0 -mt-6 -mr-6 w-20 h-20 bg-teal-500 rounded-full opacity-20 blur-2xl"></div>
+                        <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 z-10">Strategy Return</h3>
+                        <h1 id="out-bt-ret" class="text-2xl md:text-3xl font-black text-white z-10">0.00%</h1>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 md:p-6 flex flex-col justify-center">
+                        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Max Drawdown</h3>
+                        <h1 id="out-bt-dd" class="text-2xl md:text-3xl font-black text-red-500">0.00%</h1>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 md:p-6 flex flex-col justify-center">
+                        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Annualised Volatility</h3>
+                        <h1 id="out-bt-vol" class="text-2xl md:text-3xl font-black text-gray-900">0.00%</h1>
+                    </div>
+                </div>
+
+                <!-- Equity Curve Chart -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex-grow flex flex-col">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                        <h3 class="text-lg font-bold text-gray-900">Historical Equity Curve (Base 100)</h3>
+                        <span id="out-bh-ret" class="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">Buy & Hold: 0.00%</span>
+                    </div>
+                    <div id="bt-chart" class="w-full flex-grow flex justify-center items-center min-h-[250px]">
+                        <span class="text-sm text-gray-400 italic">Awaiting backtest execution...</span>
                     </div>
                 </div>
             </div>
@@ -267,6 +340,22 @@
                 <li><strong class="text-gray-900">Expected Return:</strong> The weighted average of historical annualized returns.</li>
                 <li><strong class="text-gray-900">Portfolio Volatility:</strong> The overall risk, calculated using the covariance matrix of the assets to account for diversification benefits.</li>
                 <li><strong class="text-gray-900">Constraints:</strong> The algorithm strictly enforces that weights must sum to 100% and prohibits short-selling (no negative weights).</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- MODAL: ALGORITHMIC BACKTESTING -->
+    <div id="modal-backtest" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full relative">
+            <button onclick="toggleModal('modal-backtest')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-4 border-b pb-2">Algorithmic Backtesting</h3>
+            <p class="text-sm text-gray-600 mb-4">This module tests a rules-based trading strategy against 5 years of historical market data. All signals are shifted by 1 day to strictly eliminate <strong class="text-gray-900">look-ahead bias</strong> (you cannot buy at the closing price of the signal day).</p>
+            <ul class="space-y-4 text-sm text-gray-600">
+                <li><strong class="text-teal-600">SMA Crossover:</strong> A trend-following strategy. The algorithm generates a "Buy" signal when the Fast Moving Average crosses above the Slow Moving Average (Golden Cross), and sells into cash when it crosses below (Death Cross).</li>
+                <li><strong class="text-gray-900">Max Drawdown:</strong> The largest peak-to-trough drop in the strategy's portfolio value. A critical measure of downside risk.</li>
+                <li><strong class="text-gray-900">Annualised Volatility:</strong> The standard deviation of the strategy's daily returns, scaled to a 252-day trading year to measure the dispersion of returns.</li>
             </ul>
         </div>
     </div>
@@ -408,6 +497,73 @@
                 weightsContainer.innerHTML = `<div class="text-sm text-red-400 italic col-span-full">Optimization failed. Check tickers.</div>`;
             } finally {
                 btn.innerHTML = 'Run SLSQP Optimization';
+                btn.disabled = false;
+            }
+        });
+
+        // ==========================================
+        // ALGORITHMIC BACKTESTER ENGINE
+        // ==========================================
+        document.getElementById('bt-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('bt-btn');
+            const errorMsg = document.getElementById('bt-error');
+            const chartDiv = document.getElementById('bt-chart');
+            
+            btn.innerHTML = 'Analysing...'; // UK English enforced
+            btn.disabled = true;
+            errorMsg.classList.add('hidden');
+            chartDiv.innerHTML = `<div class="animate-pulse h-full w-full bg-teal-50/50 rounded flex items-center justify-center text-teal-400 text-sm font-bold min-h-[250px]">Simulating 5 Years of Trading...</div>`;
+
+            try {
+                const payload = {
+                    ticker: document.getElementById('bt-ticker').value,
+                    short_window: parseInt(document.getElementById('bt-short').value),
+                    long_window: parseInt(document.getElementById('bt-long').value)
+                };
+
+                const res = await fetch(`${API_BASE}/quant/backtest`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || "Backtest failed.");
+
+                // Map KPIs
+                const kpis = data.results.kpis;
+                document.getElementById('out-bt-ret').innerText = `${kpis.total_return > 0 ? '+' : ''}${kpis.total_return}%`;
+                document.getElementById('out-bt-dd').innerText = `${kpis.max_drawdown}%`;
+                document.getElementById('out-bt-vol').innerText = `${kpis.annualised_volatility}%`; // UK English
+                document.getElementById('out-bh-ret').innerText = `Buy & Hold: ${kpis.buy_hold_return > 0 ? '+' : ''}${kpis.buy_hold_return}%`;
+                
+                // Color formatting
+                document.getElementById('out-bt-ret').className = kpis.total_return >= 0 ? "text-2xl md:text-3xl font-black text-emerald-400 z-10" : "text-2xl md:text-3xl font-black text-red-400 z-10";
+
+                // Render Plotly Chart
+                chartDiv.innerHTML = ''; // Clear loading state
+                const chartData = data.results.chart;
+                
+                Plotly.newPlot('bt-chart', [
+                    { x: chartData.dates, y: chartData.buy_hold_equity, name: 'Buy & Hold', type: 'scatter', line: {color: '#9ca3af', width: 2, dash: 'dot'} },
+                    { x: chartData.dates, y: chartData.strategy_equity, name: 'SMA Strategy', type: 'scatter', line: {color: '#0d9488', width: 2} }
+                ], {
+                    margin: { t: 10, r: 20, l: 40, b: 30 },
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    showlegend: true,
+                    legend: { orientation: 'h', y: 1.1 },
+                    xaxis: { showgrid: false, zeroline: false },
+                    yaxis: { showgrid: true, gridcolor: '#f3f4f6', zeroline: false }
+                }, {displayModeBar: false, responsive: true});
+
+            } catch (err) {
+                errorMsg.innerText = err.message;
+                errorMsg.classList.remove('hidden');
+                chartDiv.innerHTML = `<div class="text-sm text-red-400 italic">Backtest execution failed.</div>`;
+            } finally {
+                btn.innerHTML = 'Analyse Strategy'; // UK English
                 btn.disabled = false;
             }
         });

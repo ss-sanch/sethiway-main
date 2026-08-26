@@ -127,6 +127,69 @@
 
         </div>
 
+        <!-- MARKOWITZ PORTFOLIO OPTIMIZER -->
+        <div id="markowitz-optimizer" class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+            
+            <!-- INPUT PARAMETERS -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 lg:col-span-1 flex flex-col h-full">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                    <h2 class="text-xl font-bold text-gray-900">Markowitz Optimizer</h2>
+                    <button type="button" onclick="toggleModal('modal-markowitz')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer" title="Learn about MPT">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                </div>
+                <form id="mkw-form" class="space-y-4 flex-grow">
+                    <p class="text-xs text-gray-500 mb-2 font-medium">Enter 2 to 5 ticker symbols to find the mathematically optimal portfolio weighting.</p>
+                    <div class="grid grid-cols-5 gap-2">
+                        <input type="text" id="mkw-t1" required value="AAPL" class="col-span-1 text-center bg-gray-50 border border-gray-200 rounded-lg py-2 font-bold text-gray-900 uppercase focus:border-blue-500 outline-none transition">
+                        <input type="text" id="mkw-t2" required value="MSFT" class="col-span-1 text-center bg-gray-50 border border-gray-200 rounded-lg py-2 font-bold text-gray-900 uppercase focus:border-blue-500 outline-none transition">
+                        <input type="text" id="mkw-t3" value="GOOG" class="col-span-1 text-center bg-gray-50 border border-gray-200 rounded-lg py-2 font-bold text-gray-900 uppercase focus:border-blue-500 outline-none transition">
+                        <input type="text" id="mkw-t4" value="AMZN" class="col-span-1 text-center bg-gray-50 border border-gray-200 rounded-lg py-2 font-bold text-gray-900 uppercase focus:border-blue-500 outline-none transition">
+                        <input type="text" id="mkw-t5" value="META" class="col-span-1 text-center bg-gray-50 border border-gray-200 rounded-lg py-2 font-bold text-gray-900 uppercase focus:border-blue-500 outline-none transition">
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Risk-Free Rate (%)</label>
+                        <input type="number" id="mkw-r" step="0.1" required value="5.0" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
+                    </div>
+                    <button type="submit" id="mkw-btn" class="w-full mt-4 py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition shadow-md">
+                        Run SLSQP Optimization
+                    </button>
+                </form>
+                <p id="mkw-error" class="text-red-500 text-sm font-semibold mt-4 hidden text-center"></p>
+            </div>
+
+            <!-- OUTPUT DASHBOARD -->
+            <div class="lg:col-span-2 flex flex-col gap-6">
+                
+                <!-- KPI Banner -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6 flex flex-col justify-center relative overflow-hidden">
+                        <div class="absolute top-0 right-0 -mt-8 -mr-8 w-24 h-24 bg-indigo-500 rounded-full opacity-20 blur-2xl"></div>
+                        <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 z-10">Max Sharpe Ratio</h3>
+                        <h1 id="out-sharpe" class="text-4xl font-black text-white z-10">0.00</h1>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col justify-center">
+                        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Expected Annual Return</h3>
+                        <h1 id="out-ret" class="text-3xl font-black text-emerald-600">0.00%</h1>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col justify-center">
+                        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Portfolio Volatility (Risk)</h3>
+                        <h1 id="out-vol" class="text-3xl font-black text-red-500">0.00%</h1>
+                    </div>
+                </div>
+
+                <!-- Optimal Weights Matrix -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 flex-grow">
+                    <h3 class="text-xl font-bold mb-6 border-b border-gray-100 pb-4 text-gray-900">Optimal Asset Allocation</h3>
+                    <div id="mkw-weights-container" class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <!-- Weights injected here via JavaScript -->
+                        <div class="text-sm text-gray-400 italic col-span-full">Awaiting optimization run...</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
         <!-- FEEDBACK CARD (Matching SethiMacro Feedback Form) -->
         <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-200 p-8 md:p-10 mb-12">
             <div class="text-center max-w-xl mx-auto mb-8">
@@ -187,6 +250,23 @@
                 <li><strong class="text-gray-900">Gamma ($\Gamma$):</strong> Convexity risk. The rate of change in Delta for a $1 move in the underlying. Highest for at-the-money options.</li>
                 <li><strong class="text-red-600">Theta ($\Theta$):</strong> Time decay. Measures how much theoretical value the option loses each day simply as time passes, assuming all else is equal.</li>
                 <li><strong class="text-gray-900">Vega ($\mathcal{V}$):</strong> Volatility risk. How much the option's premium will adjust for a 1% change in Implied Volatility.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- MODAL: MARKOWITZ MPT -->
+    <div id="modal-markowitz" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full relative">
+            <button onclick="toggleModal('modal-markowitz')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-4 border-b pb-2">Modern Portfolio Theory (MPT)</h3>
+            <p class="text-sm text-gray-600 mb-4">This engine uses SciPy's Sequential Least Squares Programming (SLSQP) algorithm to mathematically calculate the "Tangency Portfolio"—the exact asset allocation that maximizes risk-adjusted returns.</p>
+            <ul class="space-y-4 text-sm text-gray-600">
+                <li><strong class="text-indigo-600">Sharpe Ratio:</strong> A measure of risk-adjusted return. Formula: $S = \frac{R_p - R_f}{\sigma_p}$. The optimizer runs thousands of simulations to find the highest possible ratio.</li>
+                <li><strong class="text-gray-900">Expected Return:</strong> The weighted average of historical annualized returns.</li>
+                <li><strong class="text-gray-900">Portfolio Volatility:</strong> The overall risk, calculated using the covariance matrix of the assets to account for diversification benefits.</li>
+                <li><strong class="text-gray-900">Constraints:</strong> The algorithm strictly enforces that weights must sum to 100% and prohibits short-selling (no negative weights).</li>
             </ul>
         </div>
     </div>
@@ -266,6 +346,68 @@
                 errorMsg.classList.remove('hidden');
             } finally {
                 btn.innerHTML = 'Calculate Pricing';
+                btn.disabled = false;
+            }
+        });
+
+        // ==========================================
+        // MARKOWITZ OPTIMIZER ENGINE
+        // ==========================================
+        document.getElementById('mkw-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('mkw-btn');
+            const errorMsg = document.getElementById('mkw-error');
+            const weightsContainer = document.getElementById('mkw-weights-container');
+            
+            btn.innerHTML = 'Optimizing...';
+            btn.disabled = true;
+            errorMsg.classList.add('hidden');
+            weightsContainer.innerHTML = `<div class="animate-pulse h-8 bg-indigo-50 rounded w-full col-span-full flex items-center justify-center text-indigo-400 text-sm font-bold">Running SLSQP Algorithm...</div>`;
+
+            try {
+                // Collect and clean inputs
+                const rawTickers = [
+                    document.getElementById('mkw-t1').value,
+                    document.getElementById('mkw-t2').value,
+                    document.getElementById('mkw-t3').value,
+                    document.getElementById('mkw-t4').value,
+                    document.getElementById('mkw-t5').value
+                ];
+                const tickers = rawTickers.filter(t => t.trim() !== "");
+                const riskFree = parseFloat(document.getElementById('mkw-r').value) / 100.0;
+
+                const res = await fetch(`${API_BASE}/quant/markowitz`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tickers: tickers, risk_free_rate: riskFree })
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || "Optimization failed.");
+
+                // Map KPIs
+                document.getElementById('out-sharpe').innerText = data.results.max_sharpe_ratio.toFixed(2);
+                document.getElementById('out-ret').innerText = `${data.results.expected_annual_return.toFixed(2)}%`;
+                document.getElementById('out-vol').innerText = `${data.results.expected_annual_volatility.toFixed(2)}%`;
+
+                // Render the Optimal Weights dynamic grid
+                let weightsHTML = '';
+                for (const [ticker, weight] of Object.entries(data.results.optimal_weights)) {
+                    weightsHTML += `
+                        <div class="flex flex-col items-center p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                            <span class="text-sm font-black text-gray-900">${ticker}</span>
+                            <span class="text-xl font-bold text-indigo-600 mt-1">${weight.toFixed(1)}%</span>
+                        </div>
+                    `;
+                }
+                weightsContainer.innerHTML = weightsHTML;
+
+            } catch (err) {
+                errorMsg.innerText = err.message;
+                errorMsg.classList.remove('hidden');
+                weightsContainer.innerHTML = `<div class="text-sm text-red-400 italic col-span-full">Optimization failed. Check tickers.</div>`;
+            } finally {
+                btn.innerHTML = 'Run SLSQP Optimization';
                 btn.disabled = false;
             }
         });

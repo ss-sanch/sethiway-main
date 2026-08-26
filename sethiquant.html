@@ -38,59 +38,84 @@
             <p class="text-gray-500 font-light tracking-widest uppercase text-sm">Deterministic Mathematical & Derivatives Pricing Engine</p>
         </div>
 
-        <!-- BLACK-SCHOLES TERMINAL -->
-        <div id="black-scholes" class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+        <!-- UNIFIED OPTIONS PRICING ENGINE -->
+        <div id="options-engine" class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
             
             <!-- INPUT PARAMETERS -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 lg:col-span-1 flex flex-col h-full">
                 <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
-                    <h2 class="text-xl font-bold text-gray-900">Black-Scholes Inputs</h2>
-                    <button type="button" onclick="toggleModal('modal-bs-inputs')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer" title="Learn about inputs">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </button>
+                    <h2 class="text-xl font-bold text-gray-900">Options Pricing Engine</h2>
+                    <div class="flex gap-3">
+                        <button type="button" onclick="toggleModal('modal-bs-inputs')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer" title="Black-Scholes Info">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                        <button type="button" onclick="toggleModal('modal-binomial')" class="text-gray-400 hover:text-emerald-600 transition cursor-pointer" title="Binomial Info">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                        </button>
+                    </div>
                 </div>
-                <form id="bs-form" class="space-y-4 flex-grow">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Option Type</label>
-                        <select id="op-type" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-700 outline-none focus:border-blue-500 transition">
-                            <option value="call">Call Option</option>
-                            <option value="put">Put Option</option>
-                        </select>
+                <form id="op-form" class="space-y-4 flex-grow">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Exercise Style</label>
+                            <select id="op-style" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 font-bold text-gray-700 outline-none focus:border-blue-500 transition" onchange="toggleBinomialSteps()">
+                                <option value="european">European</option>
+                                <option value="american">American</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Option Type</label>
+                            <select id="op-type" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 font-bold text-gray-700 outline-none focus:border-blue-500 transition">
+                                <option value="call">Call</option>
+                                <option value="put">Put</option>
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Underlying Price ($)</label>
-                        <input type="number" id="op-s" step="0.01" required value="150.00" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Price ($)</label>
+                            <input type="number" id="op-s" step="0.01" required value="150.00" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Strike ($)</label>
+                            <input type="number" id="op-k" step="0.01" required value="155.00" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Strike Price ($)</label>
-                        <input type="number" id="op-k" step="0.01" required value="155.00" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Days to Expiry</label>
+                            <input type="number" id="op-days" required value="30" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
+                        </div>
+                        <div id="container-steps" class="opacity-50 transition-opacity">
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Lattice Steps</label>
+                            <input type="number" id="op-n" required value="100" max="1000" disabled class="w-full bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 font-bold text-gray-400 outline-none cursor-not-allowed">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Days to Expiry</label>
-                        <input type="number" id="op-days" required value="30" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Implied Vol (%)</label>
+                            <input type="number" id="op-iv" step="0.1" required value="20.0" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Risk-Free Rate (%)</label>
+                            <input type="number" id="op-r" step="0.1" required value="5.0" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Implied Volatility (%)</label>
-                        <input type="number" id="op-iv" step="0.1" required value="20.0" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Risk-Free Rate (%)</label>
-                        <input type="number" id="op-r" step="0.1" required value="5.0" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
-                    </div>
-                    <button type="submit" id="bs-btn" class="w-full mt-4 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition shadow-md">
+                    <button type="submit" id="op-btn" class="w-full mt-4 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition shadow-md">
                         Calculate Pricing
                     </button>
                 </form>
-                <p id="bs-error" class="text-red-500 text-sm font-semibold mt-4 hidden text-center"></p>
+                <p id="op-error" class="text-red-500 text-sm font-semibold mt-4 hidden text-center"></p>
             </div>
 
             <!-- OUTPUT DASHBOARD -->
             <div id="greeks-matrix" class="lg:col-span-2 flex flex-col gap-6">
                 <!-- Theoretical Price Box -->
                 <div class="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-8 flex flex-col items-center justify-center relative overflow-hidden">
-                    <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-blue-600 rounded-full opacity-20 blur-3xl"></div>
+                    <div id="price-glow" class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-blue-600 rounded-full opacity-20 blur-3xl transition-colors"></div>
                     <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2 z-10">Theoretical Option Value</h3>
                     <h1 id="out-price" class="text-6xl md:text-7xl font-black text-white z-10">$0.00</h1>
+                    <p id="out-model-note" class="text-gray-500 text-xs mt-3 z-10 italic">Awaiting calculation...</p>
                 </div>
 
                 <!-- The Greeks Matrix -->
@@ -105,22 +130,18 @@
                         <div class="flex flex-col p-4 bg-gray-50 rounded-xl border border-gray-100">
                             <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Delta (Δ)</span>
                             <span id="out-delta" class="text-2xl font-black mt-2 text-gray-900">0.000</span>
-                            <span class="text-[10px] text-gray-400 mt-1">Underlying sensitivity</span>
                         </div>
                         <div class="flex flex-col p-4 bg-gray-50 rounded-xl border border-gray-100">
                             <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Gamma (Γ)</span>
                             <span id="out-gamma" class="text-2xl font-black mt-2 text-gray-900">0.000</span>
-                            <span class="text-[10px] text-gray-400 mt-1">Delta convexity</span>
                         </div>
                         <div class="flex flex-col p-4 bg-gray-50 rounded-xl border border-gray-100">
                             <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Theta (Θ)</span>
                             <span id="out-theta" class="text-2xl font-black mt-2 text-red-600">0.000</span>
-                            <span class="text-[10px] text-gray-400 mt-1">Daily time decay</span>
                         </div>
                         <div class="flex flex-col p-4 bg-gray-50 rounded-xl border border-gray-100">
                             <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Vega (V)</span>
                             <span id="out-vega" class="text-2xl font-black mt-2 text-gray-900">0.000</span>
-                            <span class="text-[10px] text-gray-400 mt-1">1% IV sensitivity</span>
                         </div>
                     </div>
                 </div>
@@ -341,74 +362,6 @@
 
         </div>
 
-        <!-- BINOMIAL OPTIONS PRICING (AMERICAN) -->
-        <div id="binomial-pricer" class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-            
-            <!-- INPUT PARAMETERS -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 lg:col-span-1 flex flex-col h-full">
-                <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
-                    <h2 class="text-xl font-bold text-gray-900">Binomial Pricer (American)</h2>
-                    <button type="button" onclick="toggleModal('modal-binomial')" class="text-gray-400 hover:text-emerald-600 transition cursor-pointer" title="Learn about Binomial Trees">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </button>
-                </div>
-                <form id="bin-form" class="space-y-4 flex-grow">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Option Type</label>
-                        <select id="bin-type" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-700 outline-none focus:border-emerald-500 transition">
-                            <option value="call">American Call</option>
-                            <option value="put">American Put</option>
-                        </select>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Price ($)</label>
-                            <input type="number" id="bin-s" step="0.01" required value="150.00" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-emerald-500 transition">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Strike ($)</label>
-                            <input type="number" id="bin-k" step="0.01" required value="155.00" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-emerald-500 transition">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Days</label>
-                            <input type="number" id="bin-days" required value="30" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-emerald-500 transition">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Steps (N)</label>
-                            <input type="number" id="bin-n" required value="100" max="1000" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-emerald-500 transition">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">IV (%)</label>
-                            <input type="number" id="bin-iv" step="0.1" required value="20.0" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-emerald-500 transition">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Rate (%)</label>
-                            <input type="number" id="bin-r" step="0.1" required value="5.0" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-emerald-500 transition">
-                        </div>
-                    </div>
-                    <button type="submit" id="bin-btn" class="w-full mt-4 py-3 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition shadow-md">
-                        Calculate Lattice
-                    </button>
-                </form>
-                <p id="bin-error" class="text-red-500 text-sm font-semibold mt-4 hidden text-center"></p>
-            </div>
-
-            <!-- OUTPUT DASHBOARD -->
-            <div class="lg:col-span-2 flex flex-col gap-6">
-                <!-- American Premium Box -->
-                <div class="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-8 flex flex-col items-center justify-center relative overflow-hidden flex-grow">
-                    <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-emerald-600 rounded-full opacity-20 blur-3xl"></div>
-                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2 z-10">American Option Premium</h3>
-                    <h1 id="out-bin-price" class="text-6xl md:text-8xl font-black text-white z-10">$0.00</h1>
-                    <p class="text-gray-500 text-sm mt-4 z-10 italic">Computed using a dynamic <span id="out-bin-steps">100</span>-step recursive lattice.</p>
-                </div>
-            </div>
-
-        </div>
 
         <!-- QUANTITATIVE LEGAL DISCLAIMER -->
         <div class="max-w-7xl mx-auto px-6 md:px-10 pb-8 text-center">
@@ -571,27 +524,43 @@
         const API_BASE = "https://sethistock-api.onrender.com/api"; 
 
         // ==========================================
-        // UI INTERACTION: MODAL TOGGLES
+        // UI TOGGLE: BINOMIAL STEPS INPUT
         // ==========================================
-        function toggleModal(modalID) {
-            const modal = document.getElementById(modalID);
-            if (modal.classList.contains('hidden')) {
-                modal.classList.remove('hidden');
+        function toggleBinomialSteps() {
+            const style = document.getElementById('op-style').value;
+            const stepsInput = document.getElementById('op-n');
+            const stepsContainer = document.getElementById('container-steps');
+            
+            if (style === 'american') {
+                stepsInput.disabled = false;
+                stepsInput.classList.replace('bg-gray-100', 'bg-gray-50');
+                stepsInput.classList.replace('text-gray-400', 'text-gray-900');
+                stepsInput.classList.add('focus:border-emerald-500');
+                stepsContainer.classList.remove('opacity-50');
             } else {
-                modal.classList.add('hidden');
+                stepsInput.disabled = true;
+                stepsInput.classList.replace('bg-gray-50', 'bg-gray-100');
+                stepsInput.classList.replace('text-gray-900', 'text-gray-400');
+                stepsInput.classList.remove('focus:border-emerald-500');
+                stepsContainer.classList.add('opacity-50');
             }
         }
 
-        document.getElementById('bs-form').addEventListener('submit', async (e) => {
+        // ==========================================
+        // UNIFIED OPTIONS PRICING ROUTER
+        // ==========================================
+        document.getElementById('op-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('bs-btn');
-            const errorMsg = document.getElementById('bs-error');
+            const btn = document.getElementById('op-btn');
+            const errorMsg = document.getElementById('op-error');
+            const style = document.getElementById('op-style').value;
             
             btn.innerHTML = 'Calculating...';
             btn.disabled = true;
             errorMsg.classList.add('hidden');
 
             try {
+                // Construct universal payload
                 const payload = {
                     option_type: document.getElementById('op-type').value,
                     S: parseFloat(document.getElementById('op-s').value),
@@ -600,8 +569,15 @@
                     sigma: parseFloat(document.getElementById('op-iv').value) / 100.0,
                     r: parseFloat(document.getElementById('op-r').value) / 100.0
                 };
+                
+                // Route backend endpoint based on style
+                let endpoint = `${API_BASE}/quant/black-scholes`;
+                if (style === 'american') {
+                    endpoint = `${API_BASE}/quant/binomial-american`;
+                    payload.N = parseInt(document.getElementById('op-n').value);
+                }
 
-                const res = await fetch(`${API_BASE}/quant/black-scholes`, {
+                const res = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -610,11 +586,31 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.detail || "Calculus engine failed.");
 
-                document.getElementById('out-price').innerText = `$${data.results.theoretical_price.toFixed(2)}`;
-                document.getElementById('out-delta').innerText = data.results.greeks.delta.toFixed(4);
-                document.getElementById('out-gamma').innerText = data.results.greeks.gamma.toFixed(4);
-                document.getElementById('out-theta').innerText = data.results.greeks.theta.toFixed(4);
-                document.getElementById('out-vega').innerText = data.results.greeks.vega.toFixed(4);
+                // Map UI Outputs based on selected model
+                if (style === 'american') {
+                    document.getElementById('out-price').innerText = `$${data.results.american_price.toFixed(2)}`;
+                    document.getElementById('out-model-note').innerText = `Computed via Binomial Lattice (${data.parameters.steps} steps).`;
+                    document.getElementById('price-glow').classList.replace('bg-blue-600', 'bg-emerald-600');
+                    btn.classList.replace('bg-blue-600', 'bg-emerald-600');
+                    btn.classList.replace('hover:bg-blue-700', 'hover:bg-emerald-700');
+                    
+                    // Greeks are N/A for American Binomial in this engine
+                    document.getElementById('out-delta').innerText = "N/A";
+                    document.getElementById('out-gamma').innerText = "N/A";
+                    document.getElementById('out-theta').innerText = "N/A";
+                    document.getElementById('out-vega').innerText = "N/A";
+                } else {
+                    document.getElementById('out-price').innerText = `$${data.results.theoretical_price.toFixed(2)}`;
+                    document.getElementById('out-model-note').innerText = `Computed via Black-Scholes Formula.`;
+                    document.getElementById('price-glow').classList.replace('bg-emerald-600', 'bg-blue-600');
+                    btn.classList.replace('bg-emerald-600', 'bg-blue-600');
+                    btn.classList.replace('hover:bg-emerald-700', 'hover:bg-blue-700');
+                    
+                    document.getElementById('out-delta').innerText = data.results.greeks.delta.toFixed(4);
+                    document.getElementById('out-gamma').innerText = data.results.greeks.gamma.toFixed(4);
+                    document.getElementById('out-theta').innerText = data.results.greeks.theta.toFixed(4);
+                    document.getElementById('out-vega').innerText = data.results.greeks.vega.toFixed(4);
+                }
 
             } catch (err) {
                 errorMsg.innerText = err.message;
@@ -749,51 +745,6 @@
                 chartDiv.innerHTML = `<div class="text-sm text-red-400 italic">Backtest execution failed.</div>`;
             } finally {
                 btn.innerHTML = 'Analyse Strategy'; // UK English
-                btn.disabled = false;
-            }
-        });
-
-        // ==========================================
-        // BINOMIAL AMERICAN OPTIONS ENGINE
-        // ==========================================
-        document.getElementById('bin-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('bin-btn');
-            const errorMsg = document.getElementById('bin-error');
-            
-            btn.innerHTML = 'Calculating...'; 
-            btn.disabled = true;
-            errorMsg.classList.add('hidden');
-
-            try {
-                const payload = {
-                    option_type: document.getElementById('bin-type').value,
-                    S: parseFloat(document.getElementById('bin-s').value),
-                    K: parseFloat(document.getElementById('bin-k').value),
-                    T: parseFloat(document.getElementById('bin-days').value) / 365.0, 
-                    sigma: parseFloat(document.getElementById('bin-iv').value) / 100.0,
-                    r: parseFloat(document.getElementById('bin-r').value) / 100.0,
-                    N: parseInt(document.getElementById('bin-n').value)
-                };
-
-                const res = await fetch(`${API_BASE}/quant/binomial-american`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.detail || "Lattice calculation failed.");
-
-                // Map data to the UI
-                document.getElementById('out-bin-price').innerText = `$${data.results.american_price.toFixed(2)}`;
-                document.getElementById('out-bin-steps').innerText = data.parameters.steps;
-
-            } catch (err) {
-                errorMsg.innerText = err.message;
-                errorMsg.classList.remove('hidden');
-            } finally {
-                btn.innerHTML = 'Calculate Lattice'; 
                 btn.disabled = false;
             }
         });

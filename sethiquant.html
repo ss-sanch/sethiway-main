@@ -255,8 +255,11 @@
                         <h3 class="text-lg font-bold text-gray-900">Historical Equity Curve (Base 100)</h3>
                         <span id="out-bh-ret" class="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">Buy & Hold: 0.00%</span>
                     </div>
-                    <div id="bt-chart" class="w-full flex-grow flex justify-center items-center min-h-[250px]">
-                        <span class="text-sm text-gray-400 italic">Awaiting backtest execution...</span>
+                    <!-- CRITICAL FIX: Removed flex classes, added strict 350px height -->
+                    <div id="bt-chart" style="height: 350px; width: 100%;" class="w-full relative">
+                        <div class="absolute inset-0 flex justify-center items-center text-sm text-gray-400 italic">
+                            Awaiting backtest execution...
+                        </div>
                     </div>
                 </div>
             </div>
@@ -513,8 +516,7 @@
             btn.innerHTML = 'Analysing...'; // UK English enforced
             btn.disabled = true;
             errorMsg.classList.add('hidden');
-            chartDiv.innerHTML = `<div class="animate-pulse h-full w-full bg-teal-50/50 rounded flex items-center justify-center text-teal-400 text-sm font-bold min-h-[250px]">Simulating 5 Years of Trading...</div>`;
-
+            chartDiv.innerHTML = `<div class="absolute inset-0 flex justify-center items-center bg-teal-50/50 rounded animate-pulse text-teal-500 text-sm font-bold">Simulating 5 Years of Trading...</div>`;
             try {
                 const payload = {
                     ticker: document.getElementById('bt-ticker').value,

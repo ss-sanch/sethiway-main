@@ -114,11 +114,32 @@
                     <h3 class="text-lg font-bold text-gray-900">Spot Price vs. Strike Profile</h3>
                     <span id="chart-ticker-badge" class="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full uppercase tracking-wider">Awaiting Ticker</span>
                 </div>
-                <!-- Rigid box for Plotly to prevent flexbox collision -->
-                <div id="op-chart" style="height: 380px; width: 100%;" class="w-full relative">
+                
+                <!-- Chart Box (Height slightly reduced to make room for stats) -->
+                <div id="op-chart" style="height: 300px; width: 100%;" class="w-full relative">
                     <div class="absolute inset-0 flex flex-col justify-center items-center text-sm text-gray-400 italic bg-gray-50/50 rounded-lg">
                         <svg class="w-8 h-8 mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
                         Enter a ticker to map technical price action...
+                    </div>
+                </div>
+
+                <!-- NEW: Asset Quick Stats -->
+                <div class="grid grid-cols-4 gap-4 mt-6 border-t border-gray-100 pt-5">
+                    <div class="flex flex-col text-center">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">52W High</span>
+                        <span id="op-stat-high" class="text-lg md:text-xl font-black text-gray-900 mt-1">--</span>
+                    </div>
+                    <div class="flex flex-col text-center border-l border-gray-100">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">52W Low</span>
+                        <span id="op-stat-low" class="text-lg md:text-xl font-black text-gray-900 mt-1">--</span>
+                    </div>
+                    <div class="flex flex-col text-center border-l border-gray-100">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">1Y Return</span>
+                        <span id="op-stat-ret" class="text-lg md:text-xl font-black text-gray-900 mt-1">--</span>
+                    </div>
+                    <div class="flex flex-col text-center border-l border-gray-100">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Hist. Volatility</span>
+                        <span id="op-stat-vol" class="text-lg md:text-xl font-black text-gray-900 mt-1">--</span>
                     </div>
                 </div>
             </div>
@@ -431,7 +452,7 @@
                 <p><strong class="text-emerald-600 font-black">American (Binomial Lattice):</strong> Options that can be exercised early at any point before expiration. The engine uses the Cox-Ross-Rubinstein (CRR) recursive tree, stepping backwards from maturity to calculate the absolute maximum value between holding the contract and exercising it early at every single node.</p>
                 
                 <ul class="list-disc pl-5 space-y-2 mt-4 text-xs text-gray-600 border-t border-gray-100 pt-4">
-                    <li><strong class="text-gray-900">Implied Volatility (IV):</strong> The market's forecast of price swings. Higher IV massively inflates premiums.</li>
+                    <li><strong class="text-gray-900">Implied Volatility (IV):</strong> The market's theoretical forecast of future price swings. Higher IV massively inflates option premiums. <em class="text-blue-600 font-medium">Note: When you enter a ticker, the engine automatically calculates and inputs the stock's Annualised Historical Volatility (based on the last 252 trading days) as a baseline. Historical volatility is backward-looking, whereas true IV is forward-looking and reverse-engineered from live order books. You can manually adjust this input to test different IV scenarios.</em></li>
                     <li><strong class="text-gray-900">Risk-Free Rate:</strong> The theoretical baseline return with zero risk, typically pegged to government treasury bonds.</li>
                     <li><strong class="text-gray-900">Lattice Steps:</strong> Only active for American options. Higher steps increase pricing accuracy but require exponentially more server calculus.</li>
                 </ul>
@@ -605,26 +626,28 @@
             const originalPrice = priceInput.value;
             const originalIv = ivInput.value;
             
-            // UX UPGRADE: Disable the calculate button while fetching instead of breaking input types
             btn.innerHTML = 'Fetching Market Data...';
             btn.disabled = true;
             
+            // Set chart loader
+            document.getElementById('chart-ticker-badge').innerText = ticker;
+            document.getElementById('op-chart').innerHTML = `<div class="absolute inset-0 flex justify-center items-center bg-gray-50/50 rounded animate-pulse text-blue-500 text-sm font-bold">Mapping Price Action...</div>`;
+            
             try {
-                // Fetch 1-Year data to get the latest price AND calculate Historical Volatility
+                // Fetch 1-Year data
                 const res = await fetch(`${API_BASE}/chart/${ticker}?period=1y&interval=1d`);
                 const data = await res.json();
                 
                 if (data.closes && data.closes.length > 1) {
                     const closes = data.closes;
                     const latestPrice = closes[closes.length - 1];
+                    const roundedStrike = Math.round(latestPrice);
                     
-                    // 1. Update Spot Price
+                    // 1. Update Inputs
                     priceInput.value = latestPrice.toFixed(2);
+                    strikeInput.value = roundedStrike.toFixed(2);
                     
-                    // 2. Update Strike Price (Round to nearest whole number)
-                    strikeInput.value = Math.round(latestPrice).toFixed(2);
-                    
-                    // 3. Calculate Historical Volatility (Standard Deviation of Daily Returns)
+                    // 2. Calculate Historical Volatility
                     let returns = [];
                     for (let i = 1; i < closes.length; i++) {
                         returns.push((closes[i] - closes[i - 1]) / closes[i - 1]);
@@ -633,20 +656,53 @@
                     const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
                     const variance = returns.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / returns.length;
                     const stdDev = Math.sqrt(variance);
-                    const annualisedHV = stdDev * Math.sqrt(252) * 100; // 252 trading days in a year
-                    
-                    // Inject Annualised Historical Volatility
+                    const annualisedHV = stdDev * Math.sqrt(252) * 100;
                     ivInput.value = annualisedHV.toFixed(1);
+                    
+                    // 3. Update Quick Stats Bar
+                    const high52 = Math.max(...closes);
+                    const low52 = Math.min(...closes);
+                    const ret1Y = ((latestPrice - closes[0]) / closes[0]) * 100;
+                    
+                    document.getElementById('op-stat-high').innerText = `$${high52.toFixed(2)}`;
+                    document.getElementById('op-stat-low').innerText = `$${low52.toFixed(2)}`;
+                    document.getElementById('op-stat-vol').innerText = `${annualisedHV.toFixed(1)}%`;
+                    
+                    const retEl = document.getElementById('op-stat-ret');
+                    retEl.innerText = `${ret1Y >= 0 ? '+' : ''}${ret1Y.toFixed(2)}%`;
+                    retEl.className = `text-lg md:text-xl font-black mt-1 ${ret1Y >= 0 ? 'text-emerald-600' : 'text-red-600'}`;
+                    
+                    // 4. Auto-Plot the Chart Instantly
+                    document.getElementById('op-chart').innerHTML = ''; // Clear loader
+                    
+                    const trace1 = {
+                        x: data.dates, y: closes,
+                        type: 'scatter', name: 'Spot Price',
+                        line: { color: '#3b82f6', width: 2 }
+                    };
+                    const strikeLine = {
+                        x: [data.dates[0], data.dates[data.dates.length - 1]],
+                        y: [roundedStrike, roundedStrike],
+                        type: 'scatter', mode: 'lines', name: `Strike (${roundedStrike})`,
+                        line: { color: '#ef4444', dash: 'dash', width: 2 }
+                    };
+
+                    Plotly.newPlot('op-chart', [trace1, strikeLine], {
+                        margin: { t: 10, r: 20, l: 40, b: 30 },
+                        paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+                        xaxis: { showgrid: false, zeroline: false },
+                        yaxis: { showgrid: true, gridcolor: '#f3f4f6', zeroline: false, tickprefix: '$' },
+                        showlegend: true, legend: { orientation: 'h', y: 1.1 }
+                    }, {displayModeBar: false, responsive: true});
                     
                 } else {
                     throw new Error("No data");
                 }
             } catch (err) {
-                // Fallbacks if API fails
                 priceInput.value = originalPrice;
                 ivInput.value = originalIv;
+                document.getElementById('op-chart').innerHTML = `<div class="absolute inset-0 flex justify-center items-center text-red-500 text-sm font-bold">Failed to load chart data.</div>`;
             } finally {
-                // Re-enable the calculate button so the user can submit!
                 btn.innerHTML = 'Calculate Pricing';
                 btn.disabled = false;
             }

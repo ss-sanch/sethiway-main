@@ -190,29 +190,29 @@
 
         </div>
 
-        <!-- MARKOWITZ PORTFOLIO OPTIMIZER -->
-        <div id="markowitz-optimizer" class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+        <!-- MARKOWITZ OPTIMISER (INSTITUTIONAL 4-COLUMN LAYOUT) -->
+        <div id="markowitz-engine" class="max-w-[1600px] w-full mx-auto grid grid-cols-1 xl:grid-cols-4 gap-6 mb-16 px-4">
             
-            <!-- INPUT PARAMETERS -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 lg:col-span-1 flex flex-col h-full">
+            <!-- COLUMN 1: INPUT PARAMETERS -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 xl:col-span-1 flex flex-col h-full">
                 <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
                     <h2 class="text-xl font-bold text-gray-900">Markowitz Optimiser</h2>
-                    <button type="button" onclick="toggleModal('modal-markowitz')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer" title="Learn about MPT">
+                    <button type="button" onclick="toggleModal('modal-markowitz')" class="text-gray-400 hover:text-indigo-600 transition cursor-pointer" title="Learn about MPT">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </button>
                 </div>
+                <p class="text-xs text-gray-500 mb-4">Enter 2 to 5 ticker symbols to find the mathematically optimal portfolio weighting.</p>
                 <form id="mkw-form" class="space-y-4 flex-grow">
-                    <p class="text-xs text-gray-500 mb-2 font-medium">Enter 2 to 5 ticker symbols to find the mathematically optimal portfolio weighting.</p>
                     <div class="grid grid-cols-5 gap-2">
-                        <input type="text" id="mkw-t1" required value="AAPL" class="col-span-1 text-center bg-gray-50 border border-gray-200 rounded-lg py-2 font-bold text-gray-900 uppercase focus:border-blue-500 outline-none transition">
-                        <input type="text" id="mkw-t2" required value="MSFT" class="col-span-1 text-center bg-gray-50 border border-gray-200 rounded-lg py-2 font-bold text-gray-900 uppercase focus:border-blue-500 outline-none transition">
-                        <input type="text" id="mkw-t3" value="GOOG" class="col-span-1 text-center bg-gray-50 border border-gray-200 rounded-lg py-2 font-bold text-gray-900 uppercase focus:border-blue-500 outline-none transition">
-                        <input type="text" id="mkw-t4" value="AMZN" class="col-span-1 text-center bg-gray-50 border border-gray-200 rounded-lg py-2 font-bold text-gray-900 uppercase focus:border-blue-500 outline-none transition">
-                        <input type="text" id="mkw-t5" value="META" class="col-span-1 text-center bg-gray-50 border border-gray-200 rounded-lg py-2 font-bold text-gray-900 uppercase focus:border-blue-500 outline-none transition">
+                        <input type="text" id="mkw-t1" required placeholder="T1" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-center font-bold text-gray-900 uppercase outline-none focus:border-indigo-500 transition">
+                        <input type="text" id="mkw-t2" required placeholder="T2" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-center font-bold text-gray-900 uppercase outline-none focus:border-indigo-500 transition">
+                        <input type="text" id="mkw-t3" placeholder="T3" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-center font-bold text-gray-900 uppercase outline-none focus:border-indigo-500 transition">
+                        <input type="text" id="mkw-t4" placeholder="T4" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-center font-bold text-gray-900 uppercase outline-none focus:border-indigo-500 transition">
+                        <input type="text" id="mkw-t5" placeholder="T5" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-center font-bold text-gray-900 uppercase outline-none focus:border-indigo-500 transition">
                     </div>
                     <div class="mt-4">
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Risk-Free Rate (%)</label>
-                        <input type="number" id="mkw-r" step="0.1" required value="5.0" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Risk-Free Rate (%)</label>
+                        <input type="number" id="mkw-r" step="0.1" required value="5.0" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 font-bold text-gray-900 outline-none focus:border-indigo-500 transition">
                     </div>
                     <button type="submit" id="mkw-btn" class="w-full mt-4 py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition shadow-md">
                         Run SLSQP Optimization
@@ -221,11 +221,10 @@
                 <p id="mkw-error" class="text-red-500 text-sm font-semibold mt-4 hidden text-center"></p>
             </div>
 
-            <!-- OUTPUT DASHBOARD -->
-            <div class="lg:col-span-2 flex flex-col gap-6">
-                
+            <!-- COLUMN 2 & 3: KPIS & OPTIMAL WEIGHTS -->
+            <div class="xl:col-span-2 flex flex-col gap-6">
                 <!-- KPI Banner -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6 flex flex-col justify-center relative overflow-hidden">
                         <div class="absolute top-0 right-0 -mt-6 -mr-6 w-20 h-20 bg-indigo-500 rounded-full opacity-20 blur-2xl"></div>
                         <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 z-10">Max Sharpe Ratio</h3>
@@ -241,37 +240,35 @@
                     </div>
                 </div>
 
-                <!-- SIDE-BY-SIDE MATRIX (Weights & AI) -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow">
-                    
-                    <!-- Optimal Asset Allocation Box -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col">
-                        <h3 class="text-sm font-bold text-gray-900 mb-4 border-b border-gray-100 pb-2">Optimal Asset Allocation</h3>
-                        <!-- Weights Grid -->
-                        <div id="mkw-weights-container" class="grid grid-cols-2 gap-3">
-                            <div class="text-sm text-gray-400 italic col-span-full text-center py-4">Awaiting optimization...</div>
-                        </div>
+                <!-- Optimal Asset Allocation Box -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex-grow flex flex-col">
+                    <h3 class="text-sm font-bold text-gray-900 mb-4 border-b border-gray-100 pb-2">Optimal Asset Allocation</h3>
+                    <!-- Weights Grid -->
+                    <div id="mkw-weights-container" class="grid grid-cols-2 md:grid-cols-4 gap-3 flex-grow content-start">
+                        <div class="text-sm text-gray-400 italic col-span-full text-center py-4">Awaiting optimisation run...</div>
                     </div>
+                </div>
+            </div>
 
-                    <!-- AI Synthesis Module -->
-                    <div class="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-6 flex flex-col relative overflow-hidden">
-                        <div class="flex justify-between items-center mb-4 border-b border-indigo-100/50 pb-2">
-                            <div class="flex items-center gap-2">
-                                <span class="relative flex h-2 w-2">
-                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-                                </span>
-                                <h3 class="text-[10px] font-bold text-indigo-900 uppercase tracking-widest">Quantitative AI Rationale</h3>
-                            </div>
-                            <button type="button" id="btn-markowitz-ai" class="text-[10px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded transition shadow-sm hidden">
-                                Generate Synthesis
-                            </button>
+            <!-- COLUMN 4: AI SYNTHESIS MODULE -->
+            <div class="xl:col-span-1 flex flex-col h-full">
+                <div class="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-6 flex flex-col h-full relative overflow-hidden shadow-sm">
+                    <div class="flex justify-between items-center mb-4 border-b border-indigo-100/50 pb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="relative flex h-2 w-2">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                            </span>
+                            <h3 class="text-[10px] font-bold text-indigo-900 uppercase tracking-widest">Quantitative AI Rationale</h3>
                         </div>
-                        <ul id="out-markowitz-ai" class="space-y-3 text-sm text-indigo-900/80 list-disc pl-4 italic">
-                            <li>Awaiting execution of the Efficient Frontier algorithm...</li>
-                        </ul>
+                        <button type="button" id="btn-markowitz-ai" class="text-[10px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded transition shadow-sm hidden">
+                            Generate Synthesis
+                        </button>
                     </div>
-
+                    <!-- Added min-h to ensure the box stretches nicely -->
+                    <ul id="out-markowitz-ai" class="space-y-3 text-sm text-indigo-900/80 list-disc pl-4 italic min-h-[250px]">
+                        <li>Awaiting execution of the Efficient Frontier algorithm...</li>
+                    </ul>
                 </div>
             </div>
 

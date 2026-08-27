@@ -267,24 +267,41 @@
                 <form id="bt-form" class="space-y-4 flex-grow">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Target Asset</label>
-                        <input type="text" id="bt-ticker" required value="SPY" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 uppercase outline-none focus:border-blue-500 transition">
+                        <input type="text" id="bt-ticker" required value="SPY" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 uppercase outline-none focus:border-teal-500 transition">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Trading Strategy</label>
-                        <select disabled class="w-full bg-gray-100 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-500 outline-none cursor-not-allowed">
-                            <option>SMA Crossover</option>
+                        <!-- UNLOCKED: Strategy Dropdown -->
+                        <select id="bt-strategy" onchange="toggleBacktestParams()" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-teal-500 transition">
+                            <option value="sma_crossover">SMA Crossover (Trend)</option>
+                            <option value="bollinger_bands">Bollinger Bands (Mean Reversion)</option>
                         </select>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
+                    
+                    <!-- DYNAMIC PARAMS: SMA Crossover -->
+                    <div id="param-sma" class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Fast SMA</label>
-                            <input type="number" id="bt-short" required value="50" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
+                            <input type="number" id="bt-short" value="50" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-teal-500 transition">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Slow SMA</label>
-                            <input type="number" id="bt-long" required value="200" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
+                            <input type="number" id="bt-long" value="200" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-teal-500 transition">
                         </div>
                     </div>
+
+                    <!-- DYNAMIC PARAMS: Bollinger Bands -->
+                    <div id="param-bb" class="grid grid-cols-2 gap-4 hidden">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">BB Window</label>
+                            <input type="number" id="bt-bb-window" value="20" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-teal-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Std Dev</label>
+                            <input type="number" id="bt-bb-std" value="2.0" step="0.1" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-teal-500 transition">
+                        </div>
+                    </div>
+
                     <button type="submit" id="bt-btn" class="w-full mt-4 py-3 bg-teal-600 text-white font-bold rounded-lg hover:bg-teal-700 transition shadow-md">
                         Analyse Strategy
                     </button>
@@ -602,6 +619,23 @@
         }
 
         // ==========================================
+        // UI TOGGLE: BACKTEST PARAMETERS
+        // ==========================================
+        function toggleBacktestParams() {
+            const strategy = document.getElementById('bt-strategy').value;
+            const paramSMA = document.getElementById('param-sma');
+            const paramBB = document.getElementById('param-bb');
+            
+            if (strategy === 'bollinger_bands') {
+                paramSMA.classList.add('hidden');
+                paramBB.classList.remove('hidden');
+            } else {
+                paramBB.classList.add('hidden');
+                paramSMA.classList.remove('hidden');
+            }
+        }
+
+        // ==========================================
         // DYNAMIC RISK-FREE RATE PEGGING
         // ==========================================
         window.addEventListener('DOMContentLoaded', async () => {
@@ -894,17 +928,27 @@
             const btn = document.getElementById('bt-btn');
             const errorMsg = document.getElementById('bt-error');
             const chartDiv = document.getElementById('bt-chart');
+            const strategy = document.getElementById('bt-strategy').value;
             
-            btn.innerHTML = 'Analysing...'; // UK English enforced
+            btn.innerHTML = 'Analysing...'; 
             btn.disabled = true;
             errorMsg.classList.add('hidden');
             chartDiv.innerHTML = `<div class="absolute inset-0 flex justify-center items-center bg-teal-50/50 rounded animate-pulse text-teal-500 text-sm font-bold">Simulating 5 Years of Trading...</div>`;
+
             try {
+                // Construct dynamic payload based on selected strategy
                 const payload = {
                     ticker: document.getElementById('bt-ticker').value,
-                    short_window: parseInt(document.getElementById('bt-short').value),
-                    long_window: parseInt(document.getElementById('bt-long').value)
+                    strategy: strategy
                 };
+                
+                if (strategy === 'sma_crossover') {
+                    payload.short_window = parseInt(document.getElementById('bt-short').value);
+                    payload.long_window = parseInt(document.getElementById('bt-long').value);
+                } else if (strategy === 'bollinger_bands') {
+                    payload.bb_window = parseInt(document.getElementById('bt-bb-window').value);
+                    payload.bb_std = parseFloat(document.getElementById('bt-bb-std').value);
+                }
 
                 const res = await fetch(`${API_BASE}/quant/backtest`, {
                     method: 'POST',
@@ -919,19 +963,20 @@
                 const kpis = data.results.kpis;
                 document.getElementById('out-bt-ret').innerText = `${kpis.total_return > 0 ? '+' : ''}${kpis.total_return}%`;
                 document.getElementById('out-bt-dd').innerText = `${kpis.max_drawdown}%`;
-                document.getElementById('out-bt-vol').innerText = `${kpis.annualised_volatility}%`; // UK English
+                document.getElementById('out-bt-vol').innerText = `${kpis.annualised_volatility}%`; 
                 document.getElementById('out-bh-ret').innerText = `Buy & Hold: ${kpis.buy_hold_return > 0 ? '+' : ''}${kpis.buy_hold_return}%`;
                 
                 // Color formatting
                 document.getElementById('out-bt-ret').className = kpis.total_return >= 0 ? "text-2xl md:text-3xl font-black text-emerald-400 z-10" : "text-2xl md:text-3xl font-black text-red-400 z-10";
 
                 // Render Plotly Chart
-                chartDiv.innerHTML = ''; // Clear loading state
+                chartDiv.innerHTML = ''; 
                 const chartData = data.results.chart;
+                const stratName = strategy === 'sma_crossover' ? 'SMA Strategy' : 'Bollinger Bands';
                 
                 Plotly.newPlot('bt-chart', [
                     { x: chartData.dates, y: chartData.buy_hold_equity, name: 'Buy & Hold', type: 'scatter', line: {color: '#9ca3af', width: 2, dash: 'dot'} },
-                    { x: chartData.dates, y: chartData.strategy_equity, name: 'SMA Strategy', type: 'scatter', line: {color: '#0d9488', width: 2} }
+                    { x: chartData.dates, y: chartData.strategy_equity, name: stratName, type: 'scatter', line: {color: '#0d9488', width: 2} }
                 ], {
                     margin: { t: 10, r: 20, l: 40, b: 30 },
                     paper_bgcolor: 'rgba(0,0,0,0)',
@@ -945,9 +990,9 @@
             } catch (err) {
                 errorMsg.innerText = err.message;
                 errorMsg.classList.remove('hidden');
-                chartDiv.innerHTML = `<div class="text-sm text-red-400 italic">Backtest execution failed.</div>`;
+                chartDiv.innerHTML = `<div class="absolute inset-0 flex justify-center items-center text-sm text-red-400 italic">Backtest execution failed.</div>`;
             } finally {
-                btn.innerHTML = 'Analyse Strategy'; // UK English
+                btn.innerHTML = 'Analyse Strategy'; 
                 btn.disabled = false;
             }
         });

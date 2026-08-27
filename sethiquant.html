@@ -251,7 +251,27 @@
                 </div>
             </div>
 
+            <!-- AI SYNTHESIS MODULE -->
+            <div class="mt-6 bg-indigo-50/50 border border-indigo-100 rounded-xl p-5 relative overflow-hidden">
+                <div class="flex justify-between items-center mb-3 border-b border-indigo-100/50 pb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                        </span>
+                        <h3 class="text-xs font-bold text-indigo-900 uppercase tracking-widest">Quantitative AI Rationale</h3>
+                    </div>
+                    <button type="button" id="btn-markowitz-ai" class="text-[10px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded transition shadow-sm hidden">
+                        Generate Synthesis
+                    </button>
+                </div>
+                <ul id="out-markowitz-ai" class="space-y-3 text-sm text-indigo-900/80 list-disc pl-4 italic">
+                    <li>Awaiting execution of the Efficient Frontier algorithm...</li>
+                </ul>
+            </div>
+
         </div>
+
 
         <!-- ALGORITHMIC BACKTESTING ENGINE -->
         <div id="algorithmic-backtester" class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
@@ -588,6 +608,11 @@
 
     <!-- LOGIC & API SCRIPT -->
     <script>
+
+        let currentAllocation = {};
+        let currentRet = 0.0;
+        let currentVol = 0.0;
+
         // ==========================================
         // UI INTERACTION: BULLETPROOF MODAL TOGGLES
         // ==========================================
@@ -906,6 +931,13 @@
                 });
 
                 const data = await res.json();
+                // 1. Intercept backend results and save to global state
+                currentAllocation = data.results.optimal_weights; 
+                currentRet = data.results.expected_annual_return;
+                currentVol = data.results.expected_annual_volatility;
+
+                // 2. Un-hide the AI Consultant button now that data exists
+                document.getElementById('btn-markowitz-ai').classList.remove('hidden');
                 if (!res.ok) throw new Error(data.detail || "Optimization failed.");
 
                 // Map KPIs
@@ -931,6 +963,49 @@
                 weightsContainer.innerHTML = `<div class="text-sm text-red-400 italic col-span-full">Optimization failed. Check tickers.</div>`;
             } finally {
                 btn.innerHTML = 'Run SLSQP Optimization';
+                btn.disabled = false;
+            }
+        });
+
+        // ==========================================
+        // AI STRATEGY CONSULTANT (ON-DEMAND)
+        // ==========================================
+        document.getElementById('btn-markowitz-ai').addEventListener('click', async () => {
+            const btn = document.getElementById('btn-markowitz-ai');
+            const outputList = document.getElementById('out-markowitz-ai');
+            
+            // Bind these to your actual Markowitz output variables
+            const payload = {
+                allocation: currentAllocation, 
+                expected_return: currentRet,
+                volatility: currentVol
+            };
+            
+            btn.innerText = 'Synthesising...';
+            btn.disabled = true;
+            outputList.innerHTML = `<li class="animate-pulse text-indigo-500 font-semibold">Piping covariance matrix to AI...</li>`;
+            
+            try {
+                const res = await fetch(`${API_BASE}/quant/markowitz-ai`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await res.json();
+                outputList.innerHTML = '';
+                
+                data.bullets.forEach(bullet => {
+                    const li = document.createElement('li');
+                    li.className = 'not-italic font-medium';
+                    li.innerText = bullet;
+                    outputList.appendChild(li);
+                });
+                
+            } catch (err) {
+                outputList.innerHTML = `<li class="text-red-500">Synthesis failed to generate.</li>`;
+            } finally {
+                btn.innerText = 'Generate Synthesis';
                 btn.disabled = false;
             }
         });

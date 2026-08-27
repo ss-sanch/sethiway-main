@@ -600,12 +600,14 @@
             const priceInput = document.getElementById('op-s');
             const strikeInput = document.getElementById('op-k');
             const ivInput = document.getElementById('op-iv');
+            const btn = document.getElementById('op-btn');
             
             const originalPrice = priceInput.value;
+            const originalIv = ivInput.value;
             
-            // Temporary loading states
-            priceInput.type = 'text'; priceInput.value = 'Fetching...'; 
-            ivInput.type = 'text'; ivInput.value = 'Calc...';
+            // UX UPGRADE: Disable the calculate button while fetching instead of breaking input types
+            btn.innerHTML = 'Fetching Market Data...';
+            btn.disabled = true;
             
             try {
                 // Fetch 1-Year data to get the latest price AND calculate Historical Volatility
@@ -617,10 +619,9 @@
                     const latestPrice = closes[closes.length - 1];
                     
                     // 1. Update Spot Price
-                    priceInput.type = 'number';
                     priceInput.value = latestPrice.toFixed(2);
                     
-                    // 2. Update Strike Price (Round to nearest whole number for a clean ATM strike)
+                    // 2. Update Strike Price (Round to nearest whole number)
                     strikeInput.value = Math.round(latestPrice).toFixed(2);
                     
                     // 3. Calculate Historical Volatility (Standard Deviation of Daily Returns)
@@ -635,7 +636,6 @@
                     const annualisedHV = stdDev * Math.sqrt(252) * 100; // 252 trading days in a year
                     
                     // Inject Annualised Historical Volatility
-                    ivInput.type = 'number';
                     ivInput.value = annualisedHV.toFixed(1);
                     
                 } else {
@@ -643,8 +643,12 @@
                 }
             } catch (err) {
                 // Fallbacks if API fails
-                priceInput.type = 'number'; priceInput.value = originalPrice;
-                ivInput.type = 'number'; ivInput.value = '20.0';
+                priceInput.value = originalPrice;
+                ivInput.value = originalIv;
+            } finally {
+                // Re-enable the calculate button so the user can submit!
+                btn.innerHTML = 'Calculate Pricing';
+                btn.disabled = false;
             }
         });
 
@@ -659,15 +663,6 @@
             const ticker = document.getElementById('op-ticker').value.trim().toUpperCase();
             const strikePrice = parseFloat(document.getElementById('op-k').value);
             const spotPrice = parseFloat(document.getElementById('op-s').value);
-            
-            // NEW: Prevent submission if the app is still fetching data (Fixes [object Object] error)
-            if (isNaN(spotPrice)) {
-                errorMsg.innerText = "Please wait for market data to finish loading.";
-                errorMsg.classList.remove('hidden');
-                btn.innerHTML = 'Calculate Pricing';
-                btn.disabled = false;
-                return;
-            }
 
             btn.innerHTML = 'Calculating & Graphing...';
             btn.disabled = true;

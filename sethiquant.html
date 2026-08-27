@@ -904,7 +904,7 @@
         });
 
         // ==========================================
-        // MARKOWITZ OPTIMIZER ENGINE
+        // MARKOWITZ ENGINE & ADVANCED TELEMETRY
         // ==========================================
         document.getElementById('mkw-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -912,13 +912,13 @@
             const errorMsg = document.getElementById('mkw-error');
             const weightsContainer = document.getElementById('mkw-weights-container');
             
-            btn.innerHTML = 'Optimizing...';
+            btn.innerHTML = 'Optimising...';
             btn.disabled = true;
             errorMsg.classList.add('hidden');
             weightsContainer.innerHTML = `<div class="animate-pulse h-8 bg-indigo-50 rounded w-full col-span-full flex items-center justify-center text-indigo-400 text-sm font-bold">Running SLSQP Algorithm...</div>`;
 
             try {
-                // Collect and clean inputs
+                // 1. Collect and filter inputs
                 const rawTickers = [
                     document.getElementById('mkw-t1').value,
                     document.getElementById('mkw-t2').value,
@@ -926,9 +926,15 @@
                     document.getElementById('mkw-t4').value,
                     document.getElementById('mkw-t5').value
                 ];
-                const tickers = rawTickers.filter(t => t.trim() !== "");
+                const tickers = rawTickers.map(t => t.trim().toUpperCase()).filter(t => t !== "");
+                
+                if (tickers.length < 2) {
+                    throw new Error("Please enter at least 2 tickers for portfolio optimisation.");
+                }
+
                 const riskFree = parseFloat(document.getElementById('mkw-r').value) / 100.0;
 
+                // 2. Fetch Markowitz SLSQP optimization from backend
                 const res = await fetch(`${API_BASE}/quant/markowitz`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -936,21 +942,22 @@
                 });
 
                 const data = await res.json();
-                // 1. Intercept backend results and save to global state
+                if (!res.ok) throw new Error(data.detail || "Optimisation failed.");
+
+                // 3. Save to global state for AI Consultant
                 currentAllocation = data.results.optimal_weights; 
                 currentRet = data.results.expected_annual_return;
                 currentVol = data.results.expected_annual_volatility;
 
-                // 2. Un-hide the AI Consultant button now that data exists
+                // 4. Reveal AI Consultant button
                 document.getElementById('btn-markowitz-ai').classList.remove('hidden');
-                if (!res.ok) throw new Error(data.detail || "Optimization failed.");
 
-                // Map KPIs
+                // 5. Map KPIs to UI
                 document.getElementById('out-sharpe').innerText = data.results.max_sharpe_ratio.toFixed(2);
                 document.getElementById('out-ret').innerText = `${data.results.expected_annual_return.toFixed(2)}%`;
                 document.getElementById('out-vol').innerText = `${data.results.expected_annual_volatility.toFixed(2)}%`;
 
-                // Render the Optimal Weights dynamic grid
+                // 6. Render the Optimal Weights dynamic grid
                 let weightsHTML = '';
                 for (const [ticker, weight] of Object.entries(data.results.optimal_weights)) {
                     weightsHTML += `
@@ -962,10 +969,29 @@
                 }
                 weightsContainer.innerHTML = weightsHTML;
 
+                // 7. Silent Telemetry Beacon (Logs full quant metrics to Supabase)
+                try {
+                    if (typeof supabase !== 'undefined') {
+                        await supabase.from('markowitz_telemetry').insert([
+                            { 
+                                searched_assets: tickers.join(", "),
+                                risk_free_rate: parseFloat((riskFree * 100).toFixed(2)),
+                                max_sharpe_ratio: parseFloat(data.results.max_sharpe_ratio.toFixed(2)),
+                                expected_return: parseFloat(data.results.expected_annual_return.toFixed(2)),
+                                volatility: parseFloat(data.results.expected_annual_volatility.toFixed(2)),
+                                optimal_weights: data.results.optimal_weights,
+                                timestamp: new Date().toISOString()
+                            }
+                        ]);
+                    }
+                } catch (telemetryErr) {
+                    console.log("Telemetry skipped:", telemetryErr);
+                }
+
             } catch (err) {
                 errorMsg.innerText = err.message;
                 errorMsg.classList.remove('hidden');
-                weightsContainer.innerHTML = `<div class="text-sm text-red-400 italic col-span-full">Optimization failed. Check tickers.</div>`;
+                weightsContainer.innerHTML = `<div class="text-sm text-red-400 italic col-span-full text-center py-4">Optimisation failed. Check tickers.</div>`;
             } finally {
                 btn.innerHTML = 'Run SLSQP Optimization';
                 btn.disabled = false;

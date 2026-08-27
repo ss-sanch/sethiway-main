@@ -591,6 +591,39 @@
         });
 
         // ==========================================
+        // DYNAMIC SPOT PRICE MATCHER
+        // ==========================================
+        document.getElementById('op-ticker').addEventListener('change', async (e) => {
+            const ticker = e.target.value.trim().toUpperCase();
+            if (!ticker) return;
+            
+            const priceInput = document.getElementById('op-s');
+            const originalValue = priceInput.value;
+            
+            // Temporary loading state
+            priceInput.type = 'text';
+            priceInput.value = 'Fetching...'; 
+            
+            try {
+                // Ping the backend chart endpoint for the latest closing price
+                const res = await fetch(`${API_BASE}/chart/${ticker}?period=5d&interval=1d`);
+                const data = await res.json();
+                
+                if (data.closes && data.closes.length > 0) {
+                    const latestPrice = data.closes[data.closes.length - 1];
+                    priceInput.type = 'number';
+                    priceInput.value = latestPrice.toFixed(2);
+                } else {
+                    throw new Error("No data");
+                }
+            } catch (err) {
+                // Fallback to original if API fails or ticker is invalid
+                priceInput.type = 'number';
+                priceInput.value = originalValue;
+            }
+        });
+
+        // ==========================================
         // UNIFIED OPTIONS PRICING & VISUALISATION ROUTER
         // ==========================================
         document.getElementById('op-form').addEventListener('submit', async (e) => {

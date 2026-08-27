@@ -6,6 +6,7 @@
     <title>SethiQuant | Quantitative Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         html { scroll-behavior: smooth; }
     </style>
@@ -613,6 +614,11 @@
     <!-- LOGIC & API SCRIPT -->
     <script>
 
+        const SUPABASE_URL = 'https://gqqftksplktxfrilltsx.supabase.co/rest/v1/'; // your project URL
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdxcWZ0a3NwbGt0eGZyaWxsdHN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwODYxNzMsImV4cCI6MjEwMjY2MjE3M30.epJsKCdBGrfzuWQ8a55TgyCA2T5-FjDYm-l0_338djs'; 
+
+        const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
         let currentAllocation = {};
         let currentRet = 0.0;
         let currentVol = 0.0;
@@ -970,23 +976,27 @@
                 weightsContainer.innerHTML = weightsHTML;
 
                 // 7. Silent Telemetry Beacon (Logs full quant metrics to Supabase)
-                if (typeof supabase !== 'undefined') {
-                    const { error } = await supabase.from('markowitz_telemetry').insert([
-                        { 
-                            searched_assets: tickers.join(", "),
-                            risk_free_rate: parseFloat((riskFree * 100).toFixed(2)),
-                            max_sharpe_ratio: parseFloat(data.results.max_sharpe_ratio.toFixed(2)),
-                            expected_return: parseFloat(data.results.expected_annual_return.toFixed(2)),
-                            volatility: parseFloat(data.results.expected_annual_volatility.toFixed(2)),
-                            optimal_weights: data.results.optimal_weights
-                        }
-                    ]);
+                if (supabase) {
+                    const { data: insertData, error: insertError } = await supabase
+                        .from('markowitz_telemetry')
+                        .insert([
+                            { 
+                                searched_assets: tickers.join(", "),
+                                risk_free_rate: parseFloat((riskFree * 100).toFixed(2)),
+                                max_sharpe_ratio: parseFloat(data.results.max_sharpe_ratio.toFixed(2)),
+                                expected_return: parseFloat(data.results.expected_annual_return.toFixed(2)),
+                                volatility: parseFloat(data.results.expected_annual_volatility.toFixed(2)),
+                                optimal_weights: data.results.optimal_weights
+                            }
+                        ]);
                     
-                    if (error) {
-                        console.error("Supabase Insertion Blocked:", error.message, error.hint);
+                    if (insertError) {
+                        console.error("Supabase Insertion Blocked:", insertError.message, insertError.details);
                     } else {
-                        console.log("Markowitz telemetry logged successfully.");
+                        console.log("Markowitz telemetry logged successfully to Supabase!");
                     }
+                } else {
+                    console.warn("Supabase client not initialized. Check CDN and API keys.");
                 }
 
             } catch (err) {

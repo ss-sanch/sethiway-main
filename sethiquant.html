@@ -521,14 +521,29 @@
 
     <!-- MODAL: ALGORITHMIC BACKTESTING -->
     <div id="modal-backtest" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300 p-4">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full relative">
+        <!-- Widened to max-w-2xl to comfortably fit the side-by-side grid -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full relative">
             <button onclick="toggleModal('modal-backtest')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
             <h3 class="text-xl font-black text-gray-900 mb-4 border-b pb-2">Algorithmic Backtesting</h3>
-            <p class="text-sm text-gray-600 mb-4">This module tests a rules-based trading strategy against 5 years of historical market data. All signals are shifted by 1 day to strictly eliminate <strong class="text-gray-900">look-ahead bias</strong> (you cannot buy at the closing price of the signal day).</p>
-            <ul class="space-y-4 text-sm text-gray-600">
-                <li><strong class="text-teal-600">SMA Crossover:</strong> A trend-following strategy. The algorithm generates a "Buy" signal when the Fast Moving Average crosses above the Slow Moving Average (Golden Cross), and sells into cash when it crosses below (Death Cross).</li>
+            <p class="text-sm text-gray-600 mb-6">This module tests rules-based trading strategies against 5 years of historical market data. All signals are shifted by 1 day to strictly eliminate <strong class="text-gray-900">look-ahead bias</strong> (you cannot execute a trade at the closing price of the signal day).</p>
+            
+            <h4 class="font-bold text-gray-900 uppercase tracking-widest text-[10px] mb-3">Trading Strategies</h4>
+            <!-- NEW: Side-by-Side Strategy Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="bg-teal-50 border border-teal-100 p-4 rounded-xl">
+                    <strong class="text-teal-700 block mb-1 text-sm">SMA Crossover (Trend)</strong>
+                    <p class="text-xs text-gray-700 leading-relaxed">A momentum strategy. The algorithm generates a "Buy" signal when the Fast SMA crosses above the Slow SMA (Golden Cross), and sells into cash when it crosses below (Death Cross).</p>
+                </div>
+                <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl">
+                    <strong class="text-indigo-700 block mb-1 text-sm">Bollinger Bands (Mean Reversion)</strong>
+                    <p class="text-xs text-gray-700 leading-relaxed">A volatility-based strategy. Calculates a 20-day SMA with bands at 2 standard deviations. The algorithm buys when the asset drops below the lower band (statistically oversold) and sells when it touches the upper band (overbought).</p>
+                </div>
+            </div>
+
+            <h4 class="font-bold text-gray-900 uppercase tracking-widest text-[10px] mb-3">Risk Metrics</h4>
+            <ul class="space-y-3 text-sm text-gray-600">
                 <li><strong class="text-gray-900">Max Drawdown:</strong> The largest peak-to-trough drop in the strategy's portfolio value. A critical measure of downside risk.</li>
                 <li><strong class="text-gray-900">Annualised Volatility:</strong> The standard deviation of the strategy's daily returns, scaled to a 252-day trading year to measure the dispersion of returns.</li>
             </ul>

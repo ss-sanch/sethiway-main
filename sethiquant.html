@@ -970,22 +970,23 @@
                 weightsContainer.innerHTML = weightsHTML;
 
                 // 7. Silent Telemetry Beacon (Logs full quant metrics to Supabase)
-                try {
-                    if (typeof supabase !== 'undefined') {
-                        await supabase.from('markowitz_telemetry').insert([
-                            { 
-                                searched_assets: tickers.join(", "),
-                                risk_free_rate: parseFloat((riskFree * 100).toFixed(2)),
-                                max_sharpe_ratio: parseFloat(data.results.max_sharpe_ratio.toFixed(2)),
-                                expected_return: parseFloat(data.results.expected_annual_return.toFixed(2)),
-                                volatility: parseFloat(data.results.expected_annual_volatility.toFixed(2)),
-                                optimal_weights: data.results.optimal_weights,
-                                timestamp: new Date().toISOString()
-                            }
-                        ]);
+                if (typeof supabase !== 'undefined') {
+                    const { error } = await supabase.from('markowitz_telemetry').insert([
+                        { 
+                            searched_assets: tickers.join(", "),
+                            risk_free_rate: parseFloat((riskFree * 100).toFixed(2)),
+                            max_sharpe_ratio: parseFloat(data.results.max_sharpe_ratio.toFixed(2)),
+                            expected_return: parseFloat(data.results.expected_annual_return.toFixed(2)),
+                            volatility: parseFloat(data.results.expected_annual_volatility.toFixed(2)),
+                            optimal_weights: data.results.optimal_weights
+                        }
+                    ]);
+                    
+                    if (error) {
+                        console.error("Supabase Insertion Blocked:", error.message, error.hint);
+                    } else {
+                        console.log("Markowitz telemetry logged successfully.");
                     }
-                } catch (telemetryErr) {
-                    console.log("Telemetry skipped:", telemetryErr);
                 }
 
             } catch (err) {

@@ -617,7 +617,9 @@
         const SUPABASE_URL = 'https://gqqftksplktxfrilltsx.supabase.co/rest/v1/'; // your project URL
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdxcWZ0a3NwbGt0eGZyaWxsdHN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwODYxNzMsImV4cCI6MjEwMjY2MjE3M30.epJsKCdBGrfzuWQ8a55TgyCA2T5-FjDYm-l0_338djs'; 
 
-        const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        const supabaseClient = (typeof window.supabase !== 'undefined' && window.supabase.createClient)
+        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        : null;
 
         let currentAllocation = {};
         let currentRet = 0.0;
@@ -976,8 +978,8 @@
                 weightsContainer.innerHTML = weightsHTML;
 
                 // 7. Silent Telemetry Beacon (Logs full quant metrics to Supabase)
-                if (supabase) {
-                    const { data: insertData, error: insertError } = await supabase
+                if (supabaseClient) {
+                    const { error: insertError } = await supabaseClient
                         .from('markowitz_telemetry')
                         .insert([
                             { 
@@ -991,12 +993,10 @@
                         ]);
                     
                     if (insertError) {
-                        console.error("Supabase Insertion Blocked:", insertError.message, insertError.details);
+                        console.error("Supabase Insertion Blocked:", insertError.message);
                     } else {
                         console.log("Markowitz telemetry logged successfully to Supabase!");
                     }
-                } else {
-                    console.warn("Supabase client not initialized. Check CDN and API keys.");
                 }
 
             } catch (err) {

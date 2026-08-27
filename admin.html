@@ -93,6 +93,38 @@
                 </table>
             </div>
         </div>
+
+        <!-- QUANTITATIVE OPTIMISATIONS TELEMETRY -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mt-10">
+            <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                <div>
+                    <h3 class="text-xl font-black text-gray-900">Markowitz Optimiser Runs</h3>
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mt-1">Live Quantitative Telemetry</p>
+                </div>
+                <span class="text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full uppercase tracking-wider">
+                    SethiQuant Engine
+                </span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-gray-100">
+                            <th class="py-3 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Timestamp</th>
+                            <th class="py-3 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Tested Assets</th>
+                            <th class="py-3 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Sharpe Ratio</th>
+                            <th class="py-3 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Exp. Return / Vol</th>
+                            <th class="py-3 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Calculated Optimal Weights</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mkw-telemetry-body" class="divide-y divide-gray-100 text-sm">
+                        <tr>
+                            <td colspan="5" class="text-center py-6 text-gray-400 italic">Awaiting telemetry sync...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
     <!-- THE JAVASCRIPT ENGINE -->
@@ -197,6 +229,41 @@
                     <td class="p-4">${tickerCell}</td>
                 </tr>`;
             }).join('');
+
+            // Render Markowitz Quantitative Runs
+            const mkwBody = document.getElementById('mkw-telemetry-body');
+            if (mkwBody && data.markowitz_logs) {
+                if (data.markowitz_logs.length === 0) {
+                    mkwBody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-gray-400 italic">No Markowitz optimizations recorded yet.</td></tr>`;
+                } else {
+                    mkwBody.innerHTML = data.markowitz_logs.map(log => {
+                        const date = new Date(log.timestamp).toLocaleString();
+                        
+                        // Format weights JSON into clean inline chips
+                        let weightsHtml = '';
+                        if (log.optimal_weights && typeof log.optimal_weights === 'object') {
+                            weightsHtml = Object.entries(log.optimal_weights)
+                                .map(([t, w]) => `<span class="inline-block bg-gray-100 text-gray-800 text-xs font-bold px-2 py-0.5 rounded mr-1 mb-1">${t}: ${Number(w).toFixed(1)}%</span>`)
+                                .join('');
+                        } else {
+                            weightsHtml = '<span class="text-gray-400 italic">--</span>';
+                        }
+
+                        return `
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="py-3 px-4 font-mono text-xs text-gray-500">${date}</td>
+                                <td class="py-3 px-4 font-bold text-gray-900">${log.searched_assets}</td>
+                                <td class="py-3 px-4 font-black text-indigo-600">${log.max_sharpe_ratio ?? '--'}</td>
+                                <td class="py-3 px-4 font-semibold text-gray-700">
+                                    <span class="text-emerald-600">+${log.expected_return ?? 0}%</span> / 
+                                    <span class="text-red-500">${log.volatility ?? 0}%</span>
+                                </td>
+                                <td class="py-3 px-4">${weightsHtml}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            }
         }
     </script>
 </body>

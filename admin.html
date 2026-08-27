@@ -74,58 +74,71 @@
             </div>
         </div>
 
-        <!-- Raw Data Table -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 overflow-hidden">
-            <h3 class="text-lg font-bold mb-4 border-b border-gray-50 pb-2">Recent Live Activity (Last 25 Events)</h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-gray-50 border-y border-gray-100">
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Timestamp (UTC)</th>
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Platform</th>
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Action</th>
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Ticker</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table-logs">
-                        <!-- Populated by JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <!-- SIDE-BY-SIDE TELEMETRY TABLES -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mt-10">
 
-        <!-- QUANTITATIVE OPTIMISATIONS TELEMETRY -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mt-10">
-            <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
-                <div>
-                    <h3 class="text-xl font-black text-gray-900">Markowitz Optimiser Runs</h3>
-                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mt-1">Live Quantitative Telemetry</p>
+            <!-- TABLE 1: RECENT LIVE ACTIVITY -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col">
+                <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+                    <div>
+                        <h3 class="text-lg font-black text-gray-900">Recent Live Activity</h3>
+                        <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mt-0.5">Last 25 Events</p>
+                    </div>
+                    <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                        Live Traffic
+                    </span>
                 </div>
-                <span class="text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1 rounded-full uppercase tracking-wider">
-                    SethiQuant Engine
-                </span>
+                <div class="overflow-x-auto flex-grow max-h-[420px] overflow-y-auto">
+                    <table class="w-full text-left border-collapse min-w-[450px]">
+                        <thead class="sticky top-0 bg-white">
+                            <tr class="border-b border-gray-100">
+                                <th class="py-2.5 px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Time</th>
+                                <th class="py-2.5 px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Project</th>
+                                <th class="py-2.5 px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Action</th>
+                                <th class="py-2.5 px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Ticker</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-logs-body" class="divide-y divide-gray-100 text-xs">
+                            <tr>
+                                <td colspan="4" class="text-center py-6 text-gray-400 italic">Awaiting telemetry sync...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="border-b border-gray-100">
-                            <th class="py-3 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Timestamp</th>
-                            <th class="py-3 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Tested Assets</th>
-                            <th class="py-3 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Sharpe Ratio</th>
-                            <th class="py-3 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Exp. Return / Vol</th>
-                            <th class="py-3 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Calculated Optimal Weights</th>
-                        </tr>
-                    </thead>
-                    <tbody id="mkw-telemetry-body" class="divide-y divide-gray-100 text-sm">
-                        <tr>
-                            <td colspan="5" class="text-center py-6 text-gray-400 italic">Awaiting telemetry sync...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
 
-    </div>
+            <!-- TABLE 2: MARKOWITZ OPTIMISER RUNS -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col">
+                <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
+                    <div>
+                        <h3 class="text-lg font-black text-gray-900">Markowitz Optimiser Runs</h3>
+                        <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mt-0.5">Live Quantitative Telemetry</p>
+                    </div>
+                    <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                        SethiQuant Engine
+                    </span>
+                </div>
+                <div class="overflow-x-auto flex-grow max-h-[420px] overflow-y-auto">
+                    <table class="w-full text-left border-collapse min-w-[520px]">
+                        <thead class="sticky top-0 bg-white">
+                            <tr class="border-b border-gray-100">
+                                <th class="py-2.5 px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Time</th>
+                                <th class="py-2.5 px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Assets</th>
+                                <th class="py-2.5 px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Sharpe</th>
+                                <th class="py-2.5 px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Exp. Ret / Vol</th>
+                                <th class="py-2.5 px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Weights</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mkw-telemetry-body" class="divide-y divide-gray-100 text-xs">
+                            <tr>
+                                <td colspan="5" class="text-center py-6 text-gray-400 italic">Awaiting telemetry sync...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
 
     <!-- THE JAVASCRIPT ENGINE -->
     <script>
@@ -217,33 +230,39 @@
                 marker: { colors: ['#111827', '#3b82f6', '#10b981', '#f59e0b'] }
             }], { ...layoutBase, margin: { t: 20, b: 20, l: 20, r: 20 } }, {displayModeBar: false});
             
-            // Table
-            document.getElementById('table-logs').innerHTML = data.recent_logs.map(log => {
-                const dateStr = new Date(log.created_at).toLocaleString('en-GB', { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit', second:'2-digit' });
-                const tickerCell = log.ticker ? `<span class="bg-blue-50 text-blue-700 font-bold px-3 py-1 rounded-full text-xs">${log.ticker}</span>` : `<span class="text-gray-400">-</span>`;
-                return `
-                <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                    <td class="p-4 text-sm text-gray-500 font-mono">${dateStr}</td>
-                    <td class="p-4 text-sm font-bold text-gray-800">${log.project}</td>
-                    <td class="p-4 text-sm text-gray-600">${log.action}</td>
-                    <td class="p-4">${tickerCell}</td>
-                </tr>`;
-            }).join('');
+            // 1. Render Traffic Activity Logs (Compact)
+            const logsBody = document.getElementById('recent-logs-body');
+            if (logsBody && data.recent_logs) {
+                logsBody.innerHTML = data.recent_logs.map(log => {
+                    const timeStr = new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    return `
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="py-2.5 px-3 font-mono text-[11px] text-gray-500">${timeStr}</td>
+                            <td class="py-2.5 px-3 font-bold text-gray-900">${log.project}</td>
+                            <td class="py-2.5 px-3">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${log.action === 'search' ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-700'}">
+                                    ${log.action}
+                                </span>
+                            </td>
+                            <td class="py-2.5 px-3 font-black text-indigo-600">${log.ticker || '--'}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
 
-            // Render Markowitz Quantitative Runs
+            // 2. Render Markowitz Quantitative Runs (Compact)
             const mkwBody = document.getElementById('mkw-telemetry-body');
             if (mkwBody && data.markowitz_logs) {
                 if (data.markowitz_logs.length === 0) {
                     mkwBody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-gray-400 italic">No Markowitz optimizations recorded yet.</td></tr>`;
                 } else {
                     mkwBody.innerHTML = data.markowitz_logs.map(log => {
-                        const date = new Date(log.timestamp).toLocaleString();
+                        const timeStr = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                         
-                        // Format weights JSON into clean inline chips
                         let weightsHtml = '';
                         if (log.optimal_weights && typeof log.optimal_weights === 'object') {
                             weightsHtml = Object.entries(log.optimal_weights)
-                                .map(([t, w]) => `<span class="inline-block bg-gray-100 text-gray-800 text-xs font-bold px-2 py-0.5 rounded mr-1 mb-1">${t}: ${Number(w).toFixed(1)}%</span>`)
+                                .map(([t, w]) => `<span class="inline-block bg-gray-100 text-gray-800 text-[10px] font-bold px-1.5 py-0.5 rounded mr-1 mb-1">${t}: ${Number(w).toFixed(0)}%</span>`)
                                 .join('');
                         } else {
                             weightsHtml = '<span class="text-gray-400 italic">--</span>';
@@ -251,14 +270,14 @@
 
                         return `
                             <tr class="hover:bg-gray-50 transition">
-                                <td class="py-3 px-4 font-mono text-xs text-gray-500">${date}</td>
-                                <td class="py-3 px-4 font-bold text-gray-900">${log.searched_assets}</td>
-                                <td class="py-3 px-4 font-black text-indigo-600">${log.max_sharpe_ratio ?? '--'}</td>
-                                <td class="py-3 px-4 font-semibold text-gray-700">
+                                <td class="py-2.5 px-3 font-mono text-[11px] text-gray-500">${timeStr}</td>
+                                <td class="py-2.5 px-3 font-bold text-gray-900">${log.searched_assets}</td>
+                                <td class="py-2.5 px-3 font-black text-indigo-600">${log.max_sharpe_ratio ?? '--'}</td>
+                                <td class="py-2.5 px-3 font-semibold text-gray-700 whitespace-nowrap">
                                     <span class="text-emerald-600">+${log.expected_return ?? 0}%</span> / 
                                     <span class="text-red-500">${log.volatility ?? 0}%</span>
                                 </td>
-                                <td class="py-3 px-4">${weightsHtml}</td>
+                                <td class="py-2.5 px-3">${weightsHtml}</td>
                             </tr>
                         `;
                     }).join('');

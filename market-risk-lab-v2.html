@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SethiQuant | Market Risk Lab V2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen">
+    <nav class="bg-white border-b border-gray-200 px-6 md:px-10 h-16 flex items-center justify-between sticky top-0 z-50">
+        <a href="index.html" class="font-black tracking-tight text-xl">SETHI<span class="text-blue-600">WAY</span></a>
+        <div class="flex gap-5 text-sm font-semibold text-gray-500">
+            <a href="sethiquant.html" class="hover:text-blue-600">SethiQuant</a>
+            <a href="index.html" class="hover:text-blue-600">Back to Hub</a>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 md:px-8 py-10">
+        <header class="mb-8">
+            <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+                <div>
+                    <p class="text-xs font-black uppercase tracking-[0.2em] text-blue-600 mb-2">SethiQuant V2 Prototype</p>
+                    <h1 class="text-4xl md:text-5xl font-black tracking-tight">Market Risk Lab</h1>
+                    <p class="text-gray-600 mt-3 max-w-3xl">Compare portfolio risk across Historical VaR and correlated Monte Carlo VaR, then inspect the tail distribution rather than relying on one headline number.</p>
+                </div>
+                <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-800 max-w-md">
+                    Feature-branch prototype. It requires the V2 backend router to be mounted before the API call will work.
+                </div>
+            </div>
+        </header>
+
+        <section class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+            <div class="xl:col-span-1 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                <h2 class="text-xl font-black mb-5">Portfolio</h2>
+                <form id="risk-form" class="space-y-5">
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Portfolio Value (£)</label>
+                        <input id="portfolio-value" type="number" value="100000" min="1" class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-bold">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Confidence</label>
+                            <select id="confidence" class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-bold">
+                                <option value="0.95">95%</option>
+                                <option value="0.99" selected>99%</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Horizon</label>
+                            <select id="horizon" class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-bold">
+                                <option value="1">1 day</option>
+                                <option value="10" selected>10 days</option>
+                                <option value="30">30 days</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Lookback</label>
+                        <select id="lookback" class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-bold">
+                            <option value="1y">1 year</option>
+                            <option value="2y" selected>2 years</option>
+                            <option value="5y">5 years</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-500">Positions</label>
+                            <span class="text-[10px] text-gray-400">Weights must total 100%</span>
+                        </div>
+                        <div id="positions" class="space-y-2"></div>
+                    </div>
+
+                    <button type="submit" id="run-btn" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-lg shadow-sm transition">Run Risk Analysis</button>
+                    <p id="risk-error" class="hidden text-sm text-red-600 font-semibold"></p>
+                </form>
+            </div>
+
+            <div class="xl:col-span-3 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-gray-900 text-white rounded-2xl p-5 shadow-lg">
+                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">MC 99% VaR</p>
+                        <h3 id="mc-var" class="text-3xl font-black mt-2">£0</h3>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+                        <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">MC Expected Shortfall</p>
+                        <h3 id="mc-es" class="text-3xl font-black text-red-600 mt-2">£0</h3>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+                        <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Historical VaR</p>
+                        <h3 id="hist-var" class="text-3xl font-black mt-2">£0</h3>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+                        <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Historical ES</p>
+                        <h3 id="hist-es" class="text-3xl font-black mt-2">£0</h3>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                        <div class="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+                            <div>
+                                <h3 class="font-black text-lg">Model Comparison</h3>
+                                <p class="text-xs text-gray-500">Same portfolio, different risk assumptions.</p>
+                            </div>
+                            <span id="model-gap" class="text-xs font-bold bg-gray-100 rounded-full px-3 py-1 text-gray-600">Awaiting analysis</span>
+                        </div>
+                        <div id="model-chart" style="height:340px"></div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                        <div class="border-b border-gray-100 pb-3 mb-4">
+                            <h3 class="font-black text-lg">Monte Carlo P&amp;L Distribution</h3>
+                            <p class="text-xs text-gray-500">Losses beyond the VaR threshold form the Expected Shortfall tail.</p>
+                        </div>
+                        <div id="pnl-chart" style="height:340px"></div>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+                        <div>
+                            <h3 class="font-black text-lg">Correlation Matrix</h3>
+                            <p class="text-xs text-gray-500">The dependence structure used by the correlated Monte Carlo engine.</p>
+                        </div>
+                        <span id="obs-badge" class="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">-- observations</span>
+                    </div>
+                    <div id="corr-chart" style="height:380px"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mt-8 bg-blue-50/60 border border-blue-100 rounded-2xl p-6">
+            <h3 class="font-black text-blue-900 mb-2">How to read this lab</h3>
+            <p class="text-sm text-gray-700 leading-relaxed">VaR is a loss threshold at a stated confidence level; it is not a guaranteed maximum loss. Expected Shortfall estimates the average loss within the tail beyond that threshold. Historical VaR replays realised market behaviour, while Monte Carlo VaR simulates correlated returns from estimated means and covariance.</p>
+        </section>
+    </main>
+
+<script>
+    const API_BASE = "https://sethistock-api.onrender.com/api";
+    const defaultPositions = [
+        ["AAPL", 30], ["NVDA", 25], ["JPM", 25], ["GLD", 20]
+    ];
+
+    function renderPositions() {
+        const host = document.getElementById('positions');
+        host.innerHTML = defaultPositions.map((p, i) => `
+            <div class="grid grid-cols-5 gap-2">
+                <input id="ticker-${i}" value="${p[0]}" class="col-span-3 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 uppercase font-bold" aria-label="Ticker ${i + 1}">
+                <div class="col-span-2 relative">
+                    <input id="weight-${i}" type="number" value="${p[1]}" min="0.1" max="100" step="0.1" class="w-full border border-gray-200 rounded-lg px-3 py-2 pr-7 bg-gray-50 font-bold" aria-label="Weight ${i + 1}">
+                    <span class="absolute right-3 top-2.5 text-xs text-gray-400 font-bold">%</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function money(v) {
+        return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(v || 0);
+    }
+
+    document.getElementById('risk-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const error = document.getElementById('risk-error');
+        const btn = document.getElementById('run-btn');
+        error.classList.add('hidden');
+
+        const positions = defaultPositions.map((_, i) => ({
+            ticker: document.getElementById(`ticker-${i}`).value.trim().toUpperCase(),
+            weight: parseFloat(document.getElementById(`weight-${i}`).value) / 100
+        })).filter(p => p.ticker && p.weight > 0);
+
+        const totalWeight = positions.reduce((sum, p) => sum + p.weight, 0);
+        if (Math.abs(totalWeight - 1) > 0.005) {
+            error.innerText = `Weights currently total ${(totalWeight * 100).toFixed(1)}%. They must total 100%.`;
+            error.classList.remove('hidden');
+            return;
+        }
+
+        const payload = {
+            positions,
+            portfolio_value: parseFloat(document.getElementById('portfolio-value').value),
+            confidence: parseFloat(document.getElementById('confidence').value),
+            horizon_days: parseInt(document.getElementById('horizon').value),
+            lookback: document.getElementById('lookback').value,
+            simulations: 10000,
+            seed: 42
+        };
+
+        btn.disabled = true;
+        btn.innerText = 'Calculating portfolio risk...';
+
+        try {
+            const res = await fetch(`${API_BASE}/quant/risk/portfolio`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Risk engine failed.');
+            renderResults(data);
+        } catch (err) {
+            error.innerText = err.message.includes('404') ? 'V2 backend route is not mounted on the live API yet.' : err.message;
+            error.classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'Run Risk Analysis';
+        }
+    });
+
+    function renderResults(data) {
+        const h = data.models.historical;
+        const m = data.models.monte_carlo;
+        document.getElementById('mc-var').innerText = money(m.var_loss);
+        document.getElementById('mc-es').innerText = money(m.expected_shortfall_loss);
+        document.getElementById('hist-var').innerText = money(h.var_loss);
+        document.getElementById('hist-es').innerText = money(h.expected_shortfall_loss);
+        document.getElementById('obs-badge').innerText = `${data.diagnostics.historical_observations} historical scenarios`;
+
+        const gapPct = h.var_loss ? ((m.var_loss - h.var_loss) / h.var_loss) * 100 : 0;
+        document.getElementById('model-gap').innerText = `MC vs hVaR: ${gapPct >= 0 ? '+' : ''}${gapPct.toFixed(1)}%`;
+
+        Plotly.newPlot('model-chart', [{ x: ['Historical VaR', 'Monte Carlo VaR', 'Historical ES', 'Monte Carlo ES'], y: [h.var_loss, m.var_loss, h.expected_shortfall_loss, m.expected_shortfall_loss], type: 'bar' }], {
+            margin: { t: 10, r: 10, l: 55, b: 55 },
+            yaxis: { title: 'Loss (£)', gridcolor: '#f3f4f6' },
+            xaxis: { tickangle: -15 },
+            paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', showlegend: false
+        }, { displayModeBar: false, responsive: true });
+
+        const pnl = data.distribution.monte_carlo_pnl_sample;
+        Plotly.newPlot('pnl-chart', [{ x: pnl, type: 'histogram', nbinsx: 45 }], {
+            margin: { t: 10, r: 10, l: 55, b: 45 },
+            xaxis: { title: 'Simulated P&L (£)', gridcolor: '#f3f4f6' },
+            yaxis: { title: 'Frequency', gridcolor: '#f3f4f6' },
+            shapes: [{ type: 'line', x0: -m.var_loss, x1: -m.var_loss, y0: 0, y1: 1, yref: 'paper', line: { dash: 'dash', width: 2 } }],
+            annotations: [{ x: -m.var_loss, y: 1, yref: 'paper', text: 'VaR threshold', showarrow: false, yanchor: 'bottom' }],
+            paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)'
+        }, { displayModeBar: false, responsive: true });
+
+        const matrix = data.diagnostics.correlation_matrix;
+        const tickers = Object.keys(matrix);
+        const z = tickers.map(r => tickers.map(c => matrix[r][c]));
+        Plotly.newPlot('corr-chart', [{ z, x: tickers, y: tickers, type: 'heatmap', zmin: -1, zmax: 1 }], {
+            margin: { t: 10, r: 20, l: 55, b: 45 },
+            paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)'
+        }, { displayModeBar: false, responsive: true });
+    }
+
+    renderPositions();
+</script>
+</body>
+</html>

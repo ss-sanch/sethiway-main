@@ -66,12 +66,15 @@
         <!-- UNIFIED OPTIONS PRICING ENGINE (INSTITUTIONAL LAYOUT) -->
         <section id="section-options" class="scroll-mt-24 mb-16">
             <div class="border-b border-gray-200 pb-4 mb-6">
-                <div class="flex items-center gap-2">
-                    <span class="text-lg">📈</span>
-                    <h2 class="text-2xl font-black text-gray-900">Unified Options Valuation & Greeks</h2>
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-8 border-b border-gray-100 pb-8">
+                    <h2 class="text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tight shrink-0 lg:w-1/3">Options Valuation</h2>
+                    <div class="bg-blue-50/40 border border-blue-100 rounded-2xl p-6 shadow-sm flex-1">
+                        <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-2">Pricing & Risk Sensitivities</h4>
+                        <p class="text-sm text-gray-700 font-medium leading-relaxed">
+                            This tool helps you calculate the fair price of an options contract. It uses famous mathematical models (like Black-Scholes) to figure out what an option should cost today, and shows exactly how sensitive that price is to things like time passing, stock price changes, and market volatility.
+                        </p>
+                    </div>
                 </div>
-                <p class="text-sm text-gray-600 mt-2 w-full leading-relaxed">
-                    An institutional derivative pricing suite integrating analytical and discrete numerical engines. This module calculates fair market premiums for European contracts via the continuous <strong>Black-Scholes-Merton (BSM)</strong> formula and American contracts via multi-step <strong>Cox-Ross-Rubinstein (CRR)</strong> binomial lattices to account for early exercise optionality. It computes primary and secondary risk sensitivities: <strong>Delta (Δ)</strong> for underlying price exposure, <strong>Gamma (Γ)</strong> for directional acceleration, <strong>Theta (Θ)</strong> for daily time decay, <strong>Vega (ν)</strong> for implied volatility sensitivity, and <strong>Rho (ρ)</strong> for risk-free interest rate shifts.                </p>
             </div>
             <div id="options-engine" class="max-w-[1600px] w-full mx-auto grid grid-cols-1 xl:grid-cols-4 gap-6 mb-16 px-4">
                 
@@ -228,12 +231,15 @@
         <!-- MARKOWITZ OPTIMISER (INSTITUTIONAL 4-COLUMN LAYOUT) -->
         <section id="section-portfolio" class="scroll-mt-24 mb-16">
             <div class="border-b border-gray-200 pb-4 mb-6">
-                <div class="flex items-center gap-2">
-                    <span class="text-lg">💼</span>
-                    <h2 class="text-2xl font-black text-gray-900">Markowitz Efficient Frontier & Asset Allocation</h2>
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-8 border-b border-gray-100 pb-8">
+                    <h2 class="text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tight shrink-0 lg:w-1/3">Portfolio Optimiser</h2>
+                    <div class="bg-blue-50/40 border border-blue-100 rounded-2xl p-6 shadow-sm flex-1">
+                        <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-2">Balancing Risk and Reward</h4>
+                        <p class="text-sm text-gray-700 font-medium leading-relaxed">
+                            This section takes a list of stocks and figures out the smartest way to mix them. By looking at how the stocks move together over time, the algorithm calculates the exact percentage of your money you should put into each one to get the highest expected return for the lowest possible risk.
+                        </p>
+                    </div>
                 </div>
-                <p class="text-sm text-gray-600 mt-2 w-full leading-relaxed">
-                    A Modern Portfolio Theory (MPT) engine that determines optimal asset allocation using <strong>Sequential Least Squares Quadratic Programming (SLSQP)</strong>. By analysing historical daily returns and multi-asset variance-covariance matrices, the solver constructs the Markowitz Efficient Frontier to identify the <strong>Tangency Portfolio</strong>—the exact weighting that maximises the Sharpe Ratio for a given risk-free benchmark. Once computed, an integrated AI synthesis pipeline breaks down the diversification benefits, correlation dynamics, and asset catalysts.                </p>
             </div>
             <div id="markowitz-engine" class="max-w-[1600px] w-full mx-auto grid grid-cols-1 xl:grid-cols-4 gap-6 mb-16 px-4">
                 
@@ -325,12 +331,15 @@
         <!-- ALGORITHMIC BACKTESTING ENGINE -->
         <section id="section-backtest" class="scroll-mt-24 mb-16">
             <div class="border-b border-gray-200 pb-4 mb-6">
-                <div class="flex items-center gap-2">
-                    <span class="text-lg">⚡</span>
-                    <h2 class="text-2xl font-black text-gray-900">Algorithmic Strategy Backtesting</h2>
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-8 border-b border-gray-100 pb-8">
+                    <h2 class="text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tight shrink-0 lg:w-1/3">Strategy Backtest</h2>
+                    <div class="bg-blue-50/40 border border-blue-100 rounded-2xl p-6 shadow-sm flex-1">
+                        <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-2">Historical Performance Testing</h4>
+                        <p class="text-sm text-gray-700 font-medium leading-relaxed">
+                            Before risking real money, you need to know if a trading idea actually works. This tool lets you test out different trading strategies on years of historical market data. It calculates exactly how much money you would have made (or lost) and compares it to simply buying and holding the stock normally.
+                        </p>
+                    </div>
                 </div>
-                <p class="text-sm text-gray-600 mt-2 w-full leading-relaxed">
-                    A high-performance vectorised quantitative backtesting sandbox designed to test rule-based trading signals against historical market data before deploying capital. Users can model technical crossovers (such as Fast/Slow <strong>SMA/EMA</strong> trend following) and statistical mean-reversion channels (such as <strong>Bollinger Bands</strong>). The engine plots cumulative equity curves against a passive buy-and-hold benchmark while tracking performance metrics including <strong>Cumulative Alpha</strong>, <strong>Annualised Volatility</strong>, <strong>Sortino Ratio</strong> (downside penalisation), and <strong>Maximum Drawdown (MDD)</strong> peak-to-trough drawdowns.                </p>
             </div>
             <div id="algorithmic-backtester" class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
                 
@@ -427,12 +436,15 @@
         <!-- MONTE CARLO VaR ENGINE -->
          <section id="section-var" class="scroll-mt-24 mb-16">
             <div class="border-b border-gray-200 pb-4 mb-6">
-                <div class="flex items-center gap-2">
-                    <span class="text-lg">🎲</span>
-                    <h2 class="text-2xl font-black text-gray-900">Value at Risk (VaR) & Monte Carlo Simulation</h2>
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-8 border-b border-gray-100 pb-8">
+                    <h2 class="text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tight shrink-0 lg:w-1/3">Monte Carlo VaR</h2>
+                    <div class="bg-blue-50/40 border border-blue-100 rounded-2xl p-6 shadow-sm flex-1">
+                        <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-2">Simulating Future Risk</h4>
+                        <p class="text-sm text-gray-700 font-medium leading-relaxed">
+                            No one can predict the future, but we can simulate thousands of possible futures. This tool runs thousands of randomized scenarios to see how bad things could get for a portfolio during market crashes. It gives you a realistic estimate of the maximum amount of money you might lose on a terrible day.
+                        </p>
+                    </div>
                 </div>
-                <p class="text-sm text-gray-600 mt-2 w-full leading-relaxed">
-                    A stochastic risk management workbench combining parametric statistical methods with large-scale <strong>Geometric Brownian Motion (GBM)</strong> path simulations. The algorithm projects thousands of potential future asset price trajectories across variable time horizons and volatility regimes to map out tail-risk distributions. It calculates the <strong>Value at Risk (VaR)</strong> at 95% and 99% confidence intervals to establish maximum probable losses, alongside <strong>Conditional Value at Risk (CVaR / Expected Shortfall)</strong> to estimate the average magnitude of severe tail losses during market stress events.                </p>
             </div>
             <div id="monte-carlo-var" class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
                 

@@ -71,8 +71,7 @@
                     <h2 class="text-2xl font-black text-gray-900">Unified Options Valuation & Greeks</h2>
                 </div>
                 <p class="text-sm text-gray-600 mt-2 w-full leading-relaxed">
-                    Analytical Black-Scholes-Merton and discrete Cox-Ross-Rubinstein binomial lattice engines. Solves theoretical European/American premium pricing alongside first and second-order Greek sensitivities ($\Delta, \Gamma, \Theta, \mathcal{V}, \rho$).
-                </p>
+                    An institutional derivative pricing suite integrating analytical and discrete numerical engines. This module calculates fair market premiums for European contracts via the continuous <strong>Black-Scholes-Merton (BSM)</strong> formula and American contracts via multi-step <strong>Cox-Ross-Rubinstein (CRR)</strong> binomial lattices to account for early exercise optionality. It computes primary and secondary risk sensitivities: <strong>Delta (Δ)</strong> for underlying price exposure, <strong>Gamma (Γ)</strong> for directional acceleration, <strong>Theta (Θ)</strong> for daily time decay, <strong>Vega (ν)</strong> for implied volatility sensitivity, and <strong>Rho (ρ)</strong> for risk-free interest rate shifts.                </p>
             </div>
             <div id="options-engine" class="max-w-[1600px] w-full mx-auto grid grid-cols-1 xl:grid-cols-4 gap-6 mb-16 px-4">
                 
@@ -234,8 +233,7 @@
                     <h2 class="text-2xl font-black text-gray-900">Markowitz Efficient Frontier & Asset Allocation</h2>
                 </div>
                 <p class="text-sm text-gray-600 mt-2 w-full leading-relaxed">
-                    Sequential Least Squares Quadratic Programming (SLSQP) applied across historical variance-covariance matrices. Identifies the maximum Sharpe Ratio Tangency Portfolio and provides automated LLM allocation rationale.
-                </p>
+                    A Modern Portfolio Theory (MPT) engine that determines optimal asset allocation using <strong>Sequential Least Squares Quadratic Programming (SLSQP)</strong>. By analysing historical daily returns and multi-asset variance-covariance matrices, the solver constructs the Markowitz Efficient Frontier to identify the <strong>Tangency Portfolio</strong>—the exact weighting that maximises the Sharpe Ratio for a given risk-free benchmark. Once computed, an integrated AI synthesis pipeline breaks down the diversification benefits, correlation dynamics, and asset catalysts.                </p>
             </div>
             <div id="markowitz-engine" class="max-w-[1600px] w-full mx-auto grid grid-cols-1 xl:grid-cols-4 gap-6 mb-16 px-4">
                 
@@ -332,8 +330,7 @@
                     <h2 class="text-2xl font-black text-gray-900">Algorithmic Strategy Backtesting</h2>
                 </div>
                 <p class="text-sm text-gray-600 mt-2 w-full leading-relaxed">
-                    Vectorised backtesting engine modeling moving average crossovers (SMA/EMA) and mean-reversion signals. Measures historical cumulative alpha, annualized volatility, Sortino ratio, and maximum drawdown profiles against buy-and-hold benchmarks.
-                </p>
+                    A high-performance vectorised quantitative backtesting sandbox designed to test rule-based trading signals against historical market data before deploying capital. Users can model technical crossovers (such as Fast/Slow <strong>SMA/EMA</strong> trend following) and statistical mean-reversion channels (such as <strong>Bollinger Bands</strong>). The engine plots cumulative equity curves against a passive buy-and-hold benchmark while tracking performance metrics including <strong>Cumulative Alpha</strong>, <strong>Annualised Volatility</strong>, <strong>Sortino Ratio</strong> (downside penalisation), and <strong>Maximum Drawdown (MDD)</strong> peak-to-trough drawdowns.                </p>
             </div>
             <div id="algorithmic-backtester" class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
                 
@@ -435,8 +432,7 @@
                     <h2 class="text-2xl font-black text-gray-900">Value at Risk (VaR) & Monte Carlo Simulation</h2>
                 </div>
                 <p class="text-sm text-gray-600 mt-2 w-full leading-relaxed">
-                    Multi-path Geometric Brownian Motion (GBM) stochastic simulations combined with parametric and historical Value-at-Risk modeling. Calculates 95% and 99% confidence interval tail-risk loss limits and Conditional VaR (Expected Shortfall).
-                </p>
+                    A stochastic risk management workbench combining parametric statistical methods with large-scale <strong>Geometric Brownian Motion (GBM)</strong> path simulations. The algorithm projects thousands of potential future asset price trajectories across variable time horizons and volatility regimes to map out tail-risk distributions. It calculates the <strong>Value at Risk (VaR)</strong> at 95% and 99% confidence intervals to establish maximum probable losses, alongside <strong>Conditional Value at Risk (CVaR / Expected Shortfall)</strong> to estimate the average magnitude of severe tail losses during market stress events.                </p>
             </div>
             <div id="monte-carlo-var" class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
                 

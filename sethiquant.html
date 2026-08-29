@@ -9,6 +9,13 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         html { scroll-behavior: smooth; }
+
+        /* Market Risk Lab desktop-density pass */
+        #market-risk-lab input, #market-risk-lab select { min-height: 38px; }
+        #market-risk-lab #positions input { padding-top: 0.45rem; padding-bottom: 0.45rem; }
+        @media (min-width: 1536px) {
+            #market-risk-lab { width: min(1800px, calc(100vw - 3rem)); }
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
@@ -228,7 +235,7 @@
 
         <!-- MARKOWITZ OPTIMISER (INSTITUTIONAL 4-COLUMN LAYOUT) -->
         <section id="section-portfolio" class="scroll-mt-24 mb-16">
-            <div class="max-w-7xl mx-auto pt-10 border-t border-gray-200 mb-6 flex flex-col lg:flex-row lg:items-center gap-6">
+            <div class="max-w-[1800px] mx-auto pt-8 border-t border-gray-200 mb-4 flex flex-col lg:flex-row lg:items-center gap-4">
                 <h2 class="text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tight shrink-0">Portfolio Optimiser</h2>
                 <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-5 shadow-sm flex-1">
                     <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-1">Balancing Risk and Reward</h4>
@@ -431,19 +438,19 @@
          <section id="section-var" class="scroll-mt-24 mb-16">
             <div class="max-w-7xl mx-auto pt-10 border-t border-gray-200 mb-6 flex flex-col lg:flex-row lg:items-center gap-6">
                 <h2 class="text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tight shrink-0">Market Risk Lab</h2>
-                <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-5 shadow-sm flex-1">
+                <div class="bg-blue-50/40 border border-blue-100 rounded-xl px-5 py-3.5 shadow-sm flex-1">
                     <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-1">Portfolio VaR & Expected Shortfall</h4>
                     <p class="text-sm text-gray-700 font-medium leading-relaxed">
                         This engine simulates thousands of correlated market scenarios to project extreme portfolio losses. It calculates Value at Risk (VaR) to establish a baseline loss threshold, alongside Expected Shortfall (CVaR) to estimate the magnitude of severe tail-risk events.                    </p>
                 </div>
             </div>
             <!-- MARKET RISK LAB V2 -->
-            <div id="market-risk-lab" class="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-4 gap-6 mb-16">
+            <div id="market-risk-lab" class="max-w-[1800px] mx-auto grid grid-cols-1 xl:grid-cols-[300px_minmax(0,1fr)] gap-4 mb-10 items-start">
                 
                 <!-- INPUT PARAMETERS -->
-                <div class="xl:col-span-1 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col h-full">
-                    <h2 class="text-xl font-black text-gray-900 mb-5 border-b border-gray-100 pb-4">Portfolio Parameters</h2>
-                    <form id="risk-form" class="space-y-5 flex-grow">
+                <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col xl:sticky xl:top-20">
+                    <h2 class="text-lg font-black text-gray-900 mb-3 border-b border-gray-100 pb-3">Portfolio Parameters</h2>
+                    <form id="risk-form" class="space-y-3 flex-grow">
                         <div>
                             <label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Portfolio Value (£)</label>
                             <input id="portfolio-value" type="number" value="100000" min="1" class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-bold outline-none focus:border-blue-500">
@@ -487,17 +494,17 @@
                             <div id="positions" class="space-y-2"></div>
                         </div>
                         <!-- RESTORED RUN BUTTON -->
-                        <button type="submit" id="run-btn" class="w-full py-3 mt-6 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-lg shadow-sm transition">Run Risk Analysis</button>
+                        <button type="submit" id="run-btn" class="w-full py-2.5 mt-3 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-lg shadow-sm transition">Run Risk Analysis</button>
                         <p id="risk-error" class="hidden text-sm text-red-600 font-semibold text-center mt-2"></p>
                     </form>
                 </div>
 
                 <!-- OUTPUT DASHBOARD -->
-                <div class="xl:col-span-3 space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="space-y-4 min-w-0">
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
                         
                         <!-- MC VaR Box -->
-                        <div class="bg-gray-900 text-white rounded-2xl p-5 shadow-lg relative overflow-hidden">
+                        <div class="bg-gray-900 text-white rounded-xl p-4 shadow-lg relative overflow-hidden min-h-[96px]">
                             <div class="absolute top-0 right-0 -mt-6 -mr-6 w-20 h-20 bg-blue-500 rounded-full opacity-20 blur-2xl"></div>
                             <div class="flex justify-between items-start z-10 relative">
                                 <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">MC 99% VaR</p>
@@ -509,7 +516,7 @@
                         </div>
                         
                         <!-- MC ES Box -->
-                        <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-h-[96px]">
                             <div class="flex justify-between items-start">
                                 <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">MC Expected Shortfall</p>
                                 <button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-red-500 transition cursor-pointer" title="Learn about Expected Shortfall">
@@ -542,8 +549,8 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4">
+                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0">
                             <div class="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
                                 <div>
                                     <h3 class="font-black text-lg text-gray-900">Model Comparison</h3>
@@ -551,14 +558,14 @@
                                 </div>
                                 <span id="model-gap" class="text-xs font-bold bg-gray-100 rounded-full px-3 py-1 text-gray-600">--</span>
                             </div>
-                            <div id="model-chart" style="height:340px"></div>
+                            <div id="model-chart" style="height:255px"></div>
                         </div>
                         <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                             <div class="border-b border-gray-100 pb-3 mb-4">
                                 <h3 class="font-black text-lg text-gray-900">MC P&amp;L Distribution</h3>
                                 <p class="text-xs text-gray-500">Losses beyond the VaR threshold form the tail.</p>
                             </div>
-                            <div id="pnl-chart" style="height:340px"></div>
+                            <div id="pnl-chart" style="height:255px"></div>
                         </div>
                     </div>
 
@@ -570,7 +577,7 @@
                             </div>
                             <span id="obs-badge" class="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">--</span>
                         </div>
-                        <div id="corr-chart" style="height:380px"></div>
+                        <div id="corr-chart" style="height:255px"></div>
                     </div>
                 </div>
             </div>

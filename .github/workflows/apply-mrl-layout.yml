@@ -1,0 +1,124 @@
+name: Apply MRL layout redesign
+
+on:
+  push:
+    branches:
+      - feature/sethiquant-mrl-layout-v1
+    paths:
+      - .github/workflows/apply-mrl-layout.yml
+
+permissions:
+  contents: write
+
+jobs:
+  redesign:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/sethiquant-mrl-layout-v1
+
+      - name: Apply Market Risk Lab layout redesign
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('sethiquant.html')
+          html = path.read_text(encoding='utf-8')
+
+          replacements = {
+              '''<div class="max-w-7xl mx-auto pt-10 border-t border-gray-200 mb-6 flex flex-col lg:flex-row lg:items-center gap-6">''':
+              '''<div class="max-w-[1800px] mx-auto pt-8 border-t border-gray-200 mb-4 flex flex-col lg:flex-row lg:items-center gap-4">''',
+
+              '''<div class="bg-blue-50/40 border border-blue-100 rounded-xl p-5 shadow-sm flex-1">\n                    <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-1">Portfolio VaR & Expected Shortfall</h4>''':
+              '''<div class="bg-blue-50/40 border border-blue-100 rounded-xl px-5 py-3.5 shadow-sm flex-1">\n                    <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-1">Portfolio VaR & Expected Shortfall</h4>''',
+
+              '''<div id="market-risk-lab" class="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-4 gap-6 mb-16">''':
+              '''<div id="market-risk-lab" class="max-w-[1800px] mx-auto grid grid-cols-1 xl:grid-cols-[300px_minmax(0,1fr)] gap-4 mb-10 items-start">''',
+
+              '''<div class="xl:col-span-1 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col h-full">\n                    <h2 class="text-xl font-black text-gray-900 mb-5 border-b border-gray-100 pb-4">Portfolio Parameters</h2>\n                    <form id="risk-form" class="space-y-5 flex-grow">''':
+              '''<div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col xl:sticky xl:top-20">\n                    <h2 class="text-lg font-black text-gray-900 mb-3 border-b border-gray-100 pb-3">Portfolio Parameters</h2>\n                    <form id="risk-form" class="space-y-3 flex-grow">''',
+
+              '''<button type="submit" id="run-btn" class="w-full py-3 mt-6 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-lg shadow-sm transition">Run Risk Analysis</button>''':
+              '''<button type="submit" id="run-btn" class="w-full py-2.5 mt-3 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-lg shadow-sm transition">Run Risk Analysis</button>''',
+
+              '''<div class="xl:col-span-3 space-y-6">''':
+              '''<div class="space-y-4 min-w-0">''',
+
+              '''<div class="grid grid-cols-1 md:grid-cols-4 gap-4">''':
+              '''<div class="grid grid-cols-2 lg:grid-cols-4 gap-3">''',
+
+              '''<div class="bg-gray-900 text-white rounded-2xl p-5 shadow-lg relative overflow-hidden">''':
+              '''<div class="bg-gray-900 text-white rounded-xl p-4 shadow-lg relative overflow-hidden min-h-[96px]">''',
+
+              '''<div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">''':
+              '''<div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-h-[96px]">''',
+
+              '''<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">''':
+              '''<div class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4">''',
+
+              '''<div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">''':
+              '''<div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0">''',
+
+              '''<div id="model-chart" style="height:340px"></div>''':
+              '''<div id="model-chart" style="height:255px"></div>''',
+
+              '''<div id="pnl-chart" style="height:340px"></div>''':
+              '''<div id="pnl-chart" style="height:255px"></div>''',
+
+              '''<div id="corr-chart" style="height:380px"></div>''':
+              '''<div id="corr-chart" style="height:255px"></div>''',
+          }
+
+          for old, new in replacements.items():
+              if old not in html:
+                  print(f'WARNING: pattern not found: {old[:90]!r}')
+              else:
+                  html = html.replace(old, new, 1)
+
+          # Move correlation card into the same responsive analytics grid as the two upper charts.
+          corr_block = '''                    </div>\n\n                    <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0">\n                        <div class="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">\n                            <div>\n                                <h3 class="font-black text-lg text-gray-900">Asset Correlation Matrix</h3>\n                                <p class="text-xs text-gray-500">Dependence structure for the Monte Carlo engine.</p>\n                            </div>\n                            <span id="obs-badge" class="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">--</span>\n                        </div>\n                        <div id="corr-chart" style="height:255px"></div>\n                    </div>'''
+
+          corr_inside = '''                    <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0 lg:col-span-2 2xl:col-span-1">\n                        <div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-2">\n                            <div>\n                                <h3 class="font-black text-lg text-gray-900">Asset Correlation Matrix</h3>\n                                <p class="text-xs text-gray-500">Dependence structure for the Monte Carlo engine.</p>\n                            </div>\n                            <span id="obs-badge" class="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">--</span>\n                        </div>\n                        <div id="corr-chart" style="height:255px"></div>\n                    </div>\n                    </div>'''
+
+          if corr_block in html:
+              html = html.replace(corr_block, corr_inside, 1)
+          else:
+              print('WARNING: correlation relocation block not found')
+
+          # Tighten repeated chart headers only inside MRL via scoped CSS.
+          scoped_css = '''\n        /* Market Risk Lab desktop-density pass */\n        #market-risk-lab input, #market-risk-lab select { min-height: 38px; }\n        #market-risk-lab #positions input { padding-top: 0.45rem; padding-bottom: 0.45rem; }\n        @media (min-width: 1536px) {\n            #market-risk-lab { width: min(1800px, calc(100vw - 3rem)); }\n        }\n'''
+          html = html.replace('        html { scroll-behavior: smooth; }\n', '        html { scroll-behavior: smooth; }\n' + scoped_css, 1)
+
+          path.write_text(html, encoding='utf-8')
+
+      - name: Validate HTML structure markers
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          html = Path('sethiquant.html').read_text()
+          required = [
+              'max-w-[1800px]',
+              'xl:grid-cols-[300px_minmax(0,1fr)]',
+              '2xl:grid-cols-3',
+              'id="model-chart" style="height:255px"',
+              'id="pnl-chart" style="height:255px"',
+              'id="corr-chart" style="height:255px"',
+          ]
+          missing = [x for x in required if x not in html]
+          if missing:
+              raise SystemExit(f'Missing expected layout markers: {missing}')
+          print('MRL layout markers validated.')
+          PY
+
+      - name: Commit redesign
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sethiquant.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Redesign Market Risk Lab desktop layout [skip ci]"
+          git push origin HEAD:feature/sethiquant-mrl-layout-v1

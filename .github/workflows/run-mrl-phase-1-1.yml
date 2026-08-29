@@ -1,0 +1,24 @@
+name: Run MRL Phase 1.1 polish
+on:
+  push:
+    branches:
+      - feature/sethiquant-mrl-layout-v1
+    paths:
+      - scripts/apply_mrl_phase_1_1.py
+permissions:
+  contents: write
+jobs:
+  polish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/sethiquant-mrl-layout-v1
+      - run: python scripts/apply_mrl_phase_1_1.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sethiquant.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Polish Market Risk Lab wide-screen chart sizing [skip ci]"
+          git push origin HEAD:feature/sethiquant-mrl-layout-v1

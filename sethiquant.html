@@ -438,78 +438,107 @@
                     </p>
                 </div>
             </div>
-            <div id="monte-carlo-var" class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+            <!-- MARKET RISK LAB V2 -->
+            <div id="market-risk-lab" class="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-4 gap-6 mb-16">
                 
                 <!-- INPUT PARAMETERS -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 lg:col-span-1 flex flex-col h-full">
-                    <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
-                        <h2 class="text-xl font-bold text-gray-900">Monte Carlo VaR</h2>
-                        <button type="button" onclick="toggleModal('modal-var')" class="text-gray-400 hover:text-indigo-600 transition cursor-pointer" title="Learn about VaR">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        </button>
-                    </div>
-                    <form id="var-form" class="space-y-4 flex-grow">
+                <div class="xl:col-span-1 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col h-full">
+                    <h2 class="text-xl font-black text-gray-900 mb-5 border-b border-gray-100 pb-4">Portfolio Parameters</h2>
+                    <form id="risk-form" class="space-y-5 flex-grow">
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Target Asset</label>
-                            <input type="text" id="var-ticker" required value="JPM" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 uppercase outline-none focus:border-indigo-500 transition">
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Portfolio Value (£)</label>
+                            <input id="portfolio-value" type="number" value="100000" min="1" class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-bold outline-none focus:border-blue-500">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Confidence</label>
+                                <select id="confidence" class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-bold outline-none focus:border-blue-500">
+                                    <option value="0.95">95%</option>
+                                    <option value="0.99" selected>99%</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Horizon</label>
+                                <select id="horizon" class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-bold outline-none focus:border-blue-500">
+                                    <option value="1">1 day</option>
+                                    <option value="10" selected>10 days</option>
+                                    <option value="30">30 days</option>
+                                </select>
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Simulation Algorithm</label>
-                            <select disabled class="w-full bg-gray-100 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-500 outline-none cursor-not-allowed">
-                                <option>Geometric Brownian Motion</option>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Lookback</label>
+                            <select id="lookback" class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-bold outline-none focus:border-blue-500">
+                                <option value="1y">1 year</option>
+                                <option value="2y" selected>2 years</option>
+                                <option value="5y">5 years</option>
                             </select>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Days Forward</label>
-                                <input type="number" id="var-days" required value="30" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-indigo-500 transition">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-gray-500">Positions</label>
+                                <span class="text-[10px] text-gray-400">Must total 100%</span>
                             </div>
-                            <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Paths</label>
-                                <input type="number" id="var-sims" required value="10000" disabled class="w-full bg-gray-100 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-500 outline-none cursor-not-allowed">
-                            </div>
+                            <div id="positions" class="space-y-2"></div>
                         </div>
-                        <button type="submit" id="var-btn" class="w-full mt-4 py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition shadow-md">
-                            Run 10,000 Simulations
-                        </button>
+                        <button type="submit" id="run-btn" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-lg shadow-sm transition">Run Risk Analysis</button>
+                        <p id="risk-error" class="hidden text-sm text-red-600 font-semibold text-center"></p>
                     </form>
-                    <p id="var-error" class="text-red-500 text-sm font-semibold mt-4 hidden text-center"></p>
                 </div>
 
                 <!-- OUTPUT DASHBOARD -->
-                <div class="lg:col-span-2 flex flex-col gap-6">
-                    <!-- KPI Banner -->
-                    <div class="grid grid-cols-3 gap-4 md:gap-6">
-                        <div class="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-4 md:p-6 flex flex-col justify-center relative overflow-hidden">
-                            <div class="absolute top-0 right-0 -mt-6 -mr-6 w-20 h-20 bg-indigo-500 rounded-full opacity-20 blur-2xl"></div>
-                            <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 z-10">99% CVaR (Expected Shortfall)</h3>
-                            <h1 id="out-var-cvar" class="text-2xl md:text-3xl font-black text-red-500 z-10">0.00%</h1>
+                <div class="xl:col-span-3 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="bg-gray-900 text-white rounded-2xl p-5 shadow-lg relative overflow-hidden">
+                            <div class="absolute top-0 right-0 -mt-6 -mr-6 w-20 h-20 bg-blue-500 rounded-full opacity-20 blur-2xl"></div>
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest z-10">MC 99% VaR</p>
+                            <h3 id="mc-var" class="text-3xl font-black mt-2 z-10">£0</h3>
                         </div>
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 md:p-6 flex flex-col justify-center">
-                            <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">99% Value at Risk</h3>
-                            <h1 id="out-var-99" class="text-2xl md:text-3xl font-black text-gray-900">0.00%</h1>
+                        <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+                            <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">MC Expected Shortfall</p>
+                            <h3 id="mc-es" class="text-3xl font-black text-red-600 mt-2">£0</h3>
                         </div>
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 md:p-6 flex flex-col justify-center">
-                            <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">95% Value at Risk</h3>
-                            <h1 id="out-var-95" class="text-2xl md:text-3xl font-black text-gray-900">0.00%</h1>
+                        <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+                            <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Historical VaR</p>
+                            <h3 id="hist-var" class="text-3xl font-black mt-2">£0</h3>
+                        </div>
+                        <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+                            <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Historical ES</p>
+                            <h3 id="hist-es" class="text-3xl font-black mt-2">£0</h3>
                         </div>
                     </div>
 
-                    <!-- Monte Carlo Plotly Chart -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex-grow flex flex-col">
-                        <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
-                            <h3 class="text-lg font-bold text-gray-900">GBM Price Paths (50 Sampled)</h3>
-                            <span id="out-var-price" class="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">Current Price: $0.00</span>
-                        </div>
-                        <!-- Rigid container to prevent flex-box rendering bugs -->
-                        <div id="var-chart" style="height: 350px; width: 100%;" class="w-full relative">
-                            <div class="absolute inset-0 flex justify-center items-center text-sm text-gray-400 italic">
-                                Awaiting Monte Carlo execution...
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                            <div class="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+                                <div>
+                                    <h3 class="font-black text-lg text-gray-900">Model Comparison</h3>
+                                    <p class="text-xs text-gray-500">Same portfolio, different risk assumptions.</p>
+                                </div>
+                                <span id="model-gap" class="text-xs font-bold bg-gray-100 rounded-full px-3 py-1 text-gray-600">--</span>
                             </div>
+                            <div id="model-chart" style="height:340px"></div>
                         </div>
+                        <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                            <div class="border-b border-gray-100 pb-3 mb-4">
+                                <h3 class="font-black text-lg text-gray-900">MC P&amp;L Distribution</h3>
+                                <p class="text-xs text-gray-500">Losses beyond the VaR threshold form the tail.</p>
+                            </div>
+                            <div id="pnl-chart" style="height:340px"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                        <div class="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+                            <div>
+                                <h3 class="font-black text-lg text-gray-900">Asset Correlation Matrix</h3>
+                                <p class="text-xs text-gray-500">Dependence structure for the Monte Carlo engine.</p>
+                            </div>
+                            <span id="obs-badge" class="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">--</span>
+                        </div>
+                        <div id="corr-chart" style="height:380px"></div>
                     </div>
                 </div>
-
             </div>
         </section>
 
@@ -1198,78 +1227,94 @@
         });
 
         // ==========================================
-        // MONTE CARLO VaR ENGINE
+        // MARKET RISK LAB V2 ENGINE
         // ==========================================
-        document.getElementById('var-form').addEventListener('submit', async (e) => {
+        const defaultPositions = [ ["AAPL", 30], ["NVDA", 25], ["JPM", 25], ["GLD", 20] ];
+
+        function renderPositions() {
+            document.getElementById('positions').innerHTML = defaultPositions.map((p, i) => `
+                <div class="grid grid-cols-5 gap-2">
+                    <input id="ticker-${i}" value="${p[0]}" class="col-span-3 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 uppercase font-bold" aria-label="Ticker ${i + 1}">
+                    <div class="col-span-2 relative">
+                        <input id="weight-${i}" type="number" value="${p[1]}" min="0.1" max="100" step="0.1" class="w-full border border-gray-200 rounded-lg px-3 py-2 pr-7 bg-gray-50 font-bold" aria-label="Weight ${i + 1}">
+                        <span class="absolute right-3 top-2.5 text-xs text-gray-400 font-bold">%</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        renderPositions();
+
+        function formatMoney(v) {
+            return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(v || 0);
+        }
+
+        document.getElementById('risk-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('var-btn');
-            const errorMsg = document.getElementById('var-error');
-            const chartDiv = document.getElementById('var-chart');
-            
-            btn.innerHTML = 'Simulating...'; 
+            const btn = document.getElementById('run-btn');
+            const error = document.getElementById('risk-error');
+            error.classList.add('hidden');
+
+            const positions = defaultPositions.map((_, i) => ({
+                ticker: document.getElementById(`ticker-${i}`).value.trim().toUpperCase(),
+                weight: parseFloat(document.getElementById(`weight-${i}`).value) / 100
+            })).filter(p => p.ticker && p.weight > 0);
+
+            const totalWeight = positions.reduce((sum, p) => sum + p.weight, 0);
+            if (Math.abs(totalWeight - 1) > 0.005) {
+                error.innerText = `Weights total ${(totalWeight * 100).toFixed(1)}%. Must total 100%.`;
+                error.classList.remove('hidden');
+                return;
+            }
+
+            const payload = {
+                positions,
+                portfolio_value: parseFloat(document.getElementById('portfolio-value').value),
+                confidence: parseFloat(document.getElementById('confidence').value),
+                horizon_days: parseInt(document.getElementById('horizon').value),
+                lookback: document.getElementById('lookback').value,
+                simulations: 10000,
+                seed: 42
+            };
+
             btn.disabled = true;
-            errorMsg.classList.add('hidden');
-            chartDiv.innerHTML = `<div class="absolute inset-0 flex justify-center items-center bg-indigo-50/50 rounded animate-pulse text-indigo-500 text-sm font-bold">Simulating 10,000 Paths...</div>`;
+            btn.innerText = 'Calculating portfolio risk...';
 
             try {
-                const payload = {
-                    ticker: document.getElementById('var-ticker').value,
-                    days_forward: parseInt(document.getElementById('var-days').value),
-                    simulations: 10000
-                };
-
-                const res = await fetch(`${API_BASE}/quant/monte-carlo-var`, {
+                const res = await fetch(`${API_BASE}/quant/risk/portfolio`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-
                 const data = await res.json();
-                if (!res.ok) throw new Error(data.detail || "Simulation failed.");
-
-                // Map KPIs
-                const kpis = data.results.kpis;
-                document.getElementById('out-var-cvar').innerText = `${kpis.cvar_99}%`;
-                document.getElementById('out-var-99').innerText = `${kpis.var_99}%`;
-                document.getElementById('out-var-95').innerText = `${kpis.var_95}%`;
-                document.getElementById('out-var-price').innerText = `Current Price: $${data.results.current_price.toFixed(2)}`;
+                if (!res.ok) throw new Error(data.detail || 'Risk engine failed.');
                 
-                // Process the 2D Array for Plotly
-                // The backend sends rows (days) of columns (paths). We need to extract each path individually.
-                const chartData = data.results.chart;
-                const traces = [];
-                const numPaths = chartData.paths[0].length; 
+                // Render UI
+                const h = data.models.historical;
+                const m = data.models.monte_carlo;
+                document.getElementById('mc-var').innerText = formatMoney(m.var_loss);
+                document.getElementById('mc-es').innerText = formatMoney(m.expected_shortfall_loss);
+                document.getElementById('hist-var').innerText = formatMoney(h.var_loss);
+                document.getElementById('hist-es').innerText = formatMoney(h.expected_shortfall_loss);
+                document.getElementById('obs-badge').innerText = `${data.diagnostics.historical_observations} observations`;
 
-                for (let i = 0; i < numPaths; i++) {
-                    const singlePath = chartData.paths.map(row => row[i]);
-                    traces.push({
-                        x: chartData.days,
-                        y: singlePath,
-                        type: 'scatter',
-                        mode: 'lines',
-                        line: { color: 'rgba(99, 102, 241, 0.15)', width: 1 }, // Faded indigo for the "Spaghetti" effect
-                        showlegend: false,
-                        hoverinfo: 'none'
-                    });
-                }
+                const gapPct = h.var_loss ? ((m.var_loss - h.var_loss) / h.var_loss) * 100 : 0;
+                document.getElementById('model-gap').innerText = `MC vs hVaR: ${gapPct >= 0 ? '+' : ''}${gapPct.toFixed(1)}%`;
 
-                // Render Plotly Chart
-                chartDiv.innerHTML = ''; 
-                Plotly.newPlot('var-chart', traces, {
-                    margin: { t: 10, r: 20, l: 40, b: 30 },
-                    paper_bgcolor: 'rgba(0,0,0,0)',
-                    plot_bgcolor: 'rgba(0,0,0,0)',
-                    xaxis: { showgrid: false, zeroline: false, title: 'Days Forward', titlefont: { size: 10, color: '#9ca3af' } },
-                    yaxis: { showgrid: true, gridcolor: '#f3f4f6', zeroline: false, tickprefix: '$' }
-                }, {displayModeBar: false, responsive: true});
+                Plotly.newPlot('model-chart', [{ x: ['Hist VaR', 'MC VaR', 'Hist ES', 'MC ES'], y: [h.var_loss, m.var_loss, h.expected_shortfall_loss, m.expected_shortfall_loss], type: 'bar', marker: {color: ['#9ca3af', '#3b82f6', '#9ca3af', '#ef4444']} }], { margin: { t: 10, r: 10, l: 45, b: 25 }, yaxis: { gridcolor: '#f3f4f6' }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', showlegend: false }, { displayModeBar: false, responsive: true });
+
+                Plotly.newPlot('pnl-chart', [{ x: data.distribution.monte_carlo_pnl_sample, type: 'histogram', marker: {color: '#6366f1'}, nbinsx: 45 }], { margin: { t: 10, r: 10, l: 45, b: 35 }, yaxis: { gridcolor: '#f3f4f6' }, shapes: [{ type: 'line', x0: -m.var_loss, x1: -m.var_loss, y0: 0, y1: 1, yref: 'paper', line: { dash: 'dash', width: 2, color: '#ef4444' } }], paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { displayModeBar: false, responsive: true });
+
+                const matrix = data.diagnostics.correlation_matrix;
+                const tickers = Object.keys(matrix);
+                const z = tickers.map(r => tickers.map(c => matrix[r][c]));
+                Plotly.newPlot('corr-chart', [{ z, x: tickers, y: tickers, type: 'heatmap', colorscale: 'RdBu', zmin: -1, zmax: 1 }], { margin: { t: 10, r: 20, l: 55, b: 45 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { displayModeBar: false, responsive: true });
 
             } catch (err) {
-                errorMsg.innerText = err.message;
-                errorMsg.classList.remove('hidden');
-                chartDiv.innerHTML = `<div class="text-sm text-red-400 italic absolute inset-0 flex justify-center items-center">Simulation execution failed.</div>`;
+                error.innerText = err.message;
+                error.classList.remove('hidden');
             } finally {
-                btn.innerHTML = 'Run 10,000 Simulations'; 
                 btn.disabled = false;
+                btn.innerText = 'Run Risk Analysis';
             }
         });
 

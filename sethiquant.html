@@ -430,12 +430,11 @@
         <!-- MONTE CARLO VaR ENGINE -->
          <section id="section-var" class="scroll-mt-24 mb-16">
             <div class="max-w-7xl mx-auto pt-10 border-t border-gray-200 mb-6 flex flex-col lg:flex-row lg:items-center gap-6">
-                <h2 class="text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tight shrink-0">Monte Carlo VaR</h2>
+                <h2 class="text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tight shrink-0">Market Risk Lab</h2>
                 <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-5 shadow-sm flex-1">
-                    <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-1">Simulating Future Risk</h4>
+                    <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-1">Portfolio VaR & Expected Shortfall</h4>
                     <p class="text-sm text-gray-700 font-medium leading-relaxed">
-                        No one can predict the future, but we can simulate thousands of possible futures. This tool runs thousands of randomized scenarios to see how bad things could get for a portfolio during market crashes. It gives you a realistic estimate of the maximum amount of money you might lose on a terrible day.
-                    </p>
+                        This engine simulates thousands of correlated market scenarios to project extreme portfolio losses. It calculates Value at Risk (VaR) to establish a baseline loss threshold, alongside Expected Shortfall (CVaR) to estimate the magnitude of severe tail-risk events.                    </p>
                 </div>
             </div>
             <!-- MARKET RISK LAB V2 -->
@@ -475,35 +474,67 @@
                             </select>
                         </div>
                         <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-gray-500">Positions</label>
-                                <span class="text-[10px] text-gray-400">Must total 100%</span>
+                            <div class="flex items-end justify-between mb-2 border-b border-gray-100 pb-2">
+                                <div>
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-gray-500">Positions</label>
+                                    <span class="text-[10px] text-gray-400 block mt-0.5">Must total 100%</span>
+                                </div>
+                                <button type="button" onclick="importMarkowitzWeights()" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded transition shadow-sm border border-indigo-100 flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                    Import Optimal
+                                </button>
                             </div>
                             <div id="positions" class="space-y-2"></div>
                         </div>
-                        <button type="submit" id="run-btn" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-lg shadow-sm transition">Run Risk Analysis</button>
-                        <p id="risk-error" class="hidden text-sm text-red-600 font-semibold text-center"></p>
                     </form>
                 </div>
 
                 <!-- OUTPUT DASHBOARD -->
                 <div class="xl:col-span-3 space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        
+                        <!-- MC VaR Box -->
                         <div class="bg-gray-900 text-white rounded-2xl p-5 shadow-lg relative overflow-hidden">
                             <div class="absolute top-0 right-0 -mt-6 -mr-6 w-20 h-20 bg-blue-500 rounded-full opacity-20 blur-2xl"></div>
-                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest z-10">MC 99% VaR</p>
-                            <h3 id="mc-var" class="text-3xl font-black mt-2 z-10">£0</h3>
+                            <div class="flex justify-between items-start z-10 relative">
+                                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">MC 99% VaR</p>
+                                <button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-white transition cursor-pointer" title="Learn about VaR">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </button>
+                            </div>
+                            <h3 id="mc-var" class="text-3xl font-black mt-2 z-10 relative">£0</h3>
                         </div>
+                        
+                        <!-- MC ES Box -->
                         <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
-                            <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">MC Expected Shortfall</p>
+                            <div class="flex justify-between items-start">
+                                <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">MC Expected Shortfall</p>
+                                <button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-red-500 transition cursor-pointer" title="Learn about Expected Shortfall">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </button>
+                            </div>
                             <h3 id="mc-es" class="text-3xl font-black text-red-600 mt-2">£0</h3>
                         </div>
+
+                        <!-- Historical VaR Box -->
                         <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
-                            <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Historical VaR</p>
+                            <div class="flex justify-between items-start">
+                                <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Historical VaR</p>
+                                <button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer" title="Learn about Historical VaR">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </button>
+                            </div>
                             <h3 id="hist-var" class="text-3xl font-black mt-2">£0</h3>
                         </div>
+
+                        <!-- Historical ES Box -->
                         <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
-                            <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Historical ES</p>
+                            <div class="flex justify-between items-start">
+                                <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Historical ES</p>
+                                <button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer" title="Learn about Historical ES">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </button>
+                            </div>
                             <h3 id="hist-es" class="text-3xl font-black mt-2">£0</h3>
                         </div>
                     </div>
@@ -668,6 +699,21 @@
             <ul class="space-y-3 text-sm text-gray-600">
                 <li><strong class="text-gray-900">Max Drawdown:</strong> The largest peak-to-trough drop in the strategy's portfolio value. A critical measure of downside risk.</li>
                 <li><strong class="text-gray-900">Annualised Volatility:</strong> The standard deviation of the strategy's daily returns, scaled to a 252-day trading year to measure the dispersion of returns.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- MODAL: RISK METRICS -->
+    <div id="modal-risk-metrics" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full relative">
+            <button onclick="toggleModal('modal-risk-metrics')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-4 border-b pb-2">Portfolio Risk Metrics</h3>
+            <ul class="space-y-4 text-sm text-gray-600">
+                <li><strong class="text-blue-600">Value at Risk (VaR):</strong> A threshold estimating your maximum expected loss. A 99% VaR of £8,000 means we are 99% confident the portfolio will <em>not</em> lose more than £8,000 in the given timeframe.</li>
+                <li><strong class="text-red-600">Expected Shortfall (ES):</strong> What happens if that threshold is broken? ES averages all the worst-case scenario losses that exceed the VaR limit, giving you a realistic picture of extreme tail risk.</li>
+                <li><strong class="text-gray-900">Historical vs Monte Carlo:</strong> Historical VaR replays past market crashes exactly as they happened. Monte Carlo VaR analyzes how your assets correlate, then simulates thousands of entirely new, randomized futures.</li>
             </ul>
         </div>
     </div>
@@ -1229,10 +1275,10 @@
         // ==========================================
         // MARKET RISK LAB V2 ENGINE
         // ==========================================
-        const defaultPositions = [ ["AAPL", 30], ["NVDA", 25], ["JPM", 25], ["GLD", 20] ];
+        let activePositions = [ ["AAPL", 30], ["NVDA", 25], ["JPM", 25], ["GLD", 20] ];
 
-        function renderPositions() {
-            document.getElementById('positions').innerHTML = defaultPositions.map((p, i) => `
+        function renderPositions(posArray) {
+            document.getElementById('positions').innerHTML = posArray.map((p, i) => `
                 <div class="grid grid-cols-5 gap-2">
                     <input id="ticker-${i}" value="${p[0]}" class="col-span-3 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 uppercase font-bold" aria-label="Ticker ${i + 1}">
                     <div class="col-span-2 relative">
@@ -1242,7 +1288,19 @@
                 </div>
             `).join('');
         }
-        renderPositions();
+
+        function importMarkowitzWeights() {
+            if (typeof currentAllocation === 'undefined' || !currentAllocation || Object.keys(currentAllocation).length === 0) {
+                alert("Please run the Markowitz Optimiser first to generate optimal weights.");
+                return;
+            }
+            // Overwrite positions with Markowitz JSON keys and values
+            activePositions = Object.entries(currentAllocation).map(([ticker, weight]) => [ticker, weight]);
+            renderPositions(activePositions);
+        }
+
+        // Initial render on page load
+        renderPositions(activePositions);
 
         function formatMoney(v) {
             return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(v || 0);
@@ -1254,7 +1312,9 @@
             const error = document.getElementById('risk-error');
             error.classList.add('hidden');
 
-            const positions = defaultPositions.map((_, i) => ({
+            // Dynamically read whatever inputs are currently inside the positions div
+            const currentInputs = Array.from(document.getElementById('positions').children);
+            const positions = currentInputs.map((_, i) => ({
                 ticker: document.getElementById(`ticker-${i}`).value.trim().toUpperCase(),
                 weight: parseFloat(document.getElementById(`weight-${i}`).value) / 100
             })).filter(p => p.ticker && p.weight > 0);

@@ -26,3 +26,4 @@ for marker in ['#model-chart', '#pnl-chart', '#corr-chart', 'height: 380px !impo
         raise SystemExit(f'Missing expected marker: {marker}')
 
 print('Phase 1.1 MRL desktop chart-height polish applied.')
+# Trigger one-off polish runner.

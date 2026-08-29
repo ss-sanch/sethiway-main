@@ -1,0 +1,27 @@
+name: Run MRL layout migration
+
+on:
+  push:
+    branches:
+      - feature/sethiquant-mrl-layout-v1
+    paths:
+      - .github/workflows/run-mrl-layout.yml
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/sethiquant-mrl-layout-v1
+      - run: python scripts/apply_mrl_layout.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sethiquant.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Finalize Market Risk Lab desktop redesign [skip ci]"
+          git push origin HEAD:feature/sethiquant-mrl-layout-v1

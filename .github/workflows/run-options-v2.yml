@@ -3,8 +3,6 @@ on:
   push:
     branches:
       - feature/options-valuation-v2
-    paths:
-      - scripts/apply_options_v2.py
 permissions:
   contents: write
 jobs:

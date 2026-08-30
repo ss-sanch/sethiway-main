@@ -66,3 +66,4 @@ if missing:
     raise SystemExit(f'Missing Phase 2A markers: {missing}')
 
 print('Phase 2A risk-attribution frontend applied.')
+# trigger

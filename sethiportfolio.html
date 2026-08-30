@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SethiPortfolio | Investment Vault</title>
+    <title>SethiPortfolio | Investment Journal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
 
@@ -20,16 +21,124 @@
 
     <div class="flex-grow">
         <!-- PORTFOLIO HEADER -->
-        <header class="pt-16 pb-12 flex flex-col justify-center items-center text-center px-6 border-b border-gray-200 bg-white">
+        <header class="pt-14 pb-10 flex flex-col justify-center items-center text-center px-6 border-b border-gray-200 bg-white">
             <h1 class="text-5xl font-black tracking-tight mb-4 text-gray-900">SETHI<span class="text-yellow-600">PORTFOLIO</span></h1>
-            <p class="text-lg text-gray-500 max-w-2xl font-light">
-                A transparent, live-tracked investment vault detailing long-term value positions, strategy reasoning, and live PnL comparisons against the S&P 500 benchmark.
+            <p class="text-lg text-gray-500 max-w-3xl font-light">
+                A transparent investment journal tracking portfolio decisions, performance and the reasoning behind every allocation.
             </p>
         </header>
 
-        <!-- MAIN CONTENT AREA (Ready for future widgets) -->
-        <main class="max-w-7xl mx-auto px-6 py-16">
-            <!-- Portfolio trackers and thesis blogs will go here -->
+        <main class="max-w-[1500px] mx-auto px-5 md:px-8 py-10 space-y-8">
+            <!-- PORTFOLIO IDENTITY -->
+            <section class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 md:p-7">
+                <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-5">
+                    <div class="max-w-3xl">
+                        <div class="flex flex-wrap items-center gap-3 mb-2">
+                            <select class="bg-gray-900 text-white text-sm font-black rounded-lg px-4 py-2 outline-none">
+                                <option>Fundamental Portfolio</option>
+                            </select>
+                            <span class="text-[10px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">Public Portfolio</span>
+                            <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 bg-gray-50 border border-gray-200 rounded-full px-3 py-1">Illustrative V1 Data</span>
+                        </div>
+                        <h2 class="text-3xl font-black tracking-tight text-gray-900">Fundamental Portfolio</h2>
+                        <p class="text-sm md:text-base text-gray-500 mt-2 leading-relaxed">
+                            A bottom-up equity portfolio focused on durable business quality, valuation discipline, cash-flow resilience and long-term capital allocation. Every material portfolio change will be linked to a dated investment note.
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-2 gap-3 xl:w-[440px]">
+                        <div class="rounded-xl bg-gray-900 text-white p-4"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Portfolio Value</p><p class="text-2xl font-black mt-1">£100,000</p></div>
+                        <div class="rounded-xl bg-emerald-50 border border-emerald-100 p-4"><p class="text-[10px] uppercase tracking-widest font-black text-emerald-700">Total Return</p><p class="text-2xl font-black mt-1 text-emerald-700">+12.8%</p></div>
+                        <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Vs S&amp;P 500</p><p class="text-2xl font-black mt-1 text-gray-900">+3.6pp</p></div>
+                        <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Since</p><p class="text-2xl font-black mt-1 text-gray-900">Jun 2026</p></div>
+                    </div>
+                </div>
+                <p class="text-[10px] text-gray-400 mt-5 border-t border-gray-100 pt-4">V1 uses illustrative data to validate the public dashboard layout. It does not represent the live SethiPortfolio holdings or track record.</p>
+            </section>
+
+            <!-- PERFORMANCE HERO -->
+            <section class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 md:p-7">
+                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-blue-600 mb-1">Performance</p>
+                        <h3 class="text-2xl font-black text-gray-900">Portfolio vs Benchmarks</h3>
+                        <p class="text-sm text-gray-500 mt-1">Rebased to 100 at the start of the selected period for a like-for-like comparison.</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="flex rounded-lg bg-gray-100 p-1 text-xs font-black">
+                            <button onclick="setRange('1M', this)" class="range-btn px-3 py-1.5 rounded-md text-gray-500">1M</button>
+                            <button onclick="setRange('3M', this)" class="range-btn px-3 py-1.5 rounded-md text-gray-500">3M</button>
+                            <button onclick="setRange('YTD', this)" class="range-btn px-3 py-1.5 rounded-md text-gray-500">YTD</button>
+                            <button onclick="setRange('1Y', this)" class="range-btn px-3 py-1.5 rounded-md text-gray-500">1Y</button>
+                            <button onclick="setRange('SI', this)" class="range-btn px-3 py-1.5 rounded-md bg-white text-blue-700 shadow-sm">Since Inception</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <button class="benchmark-toggle px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-black" data-series="portfolio">● Sethi Portfolio</button>
+                    <button class="benchmark-toggle px-3 py-1.5 rounded-full bg-gray-50 text-gray-700 border border-gray-200 text-xs font-black" data-series="sp500">● S&amp;P 500</button>
+                    <button class="benchmark-toggle px-3 py-1.5 rounded-full bg-gray-50 text-gray-700 border border-gray-200 text-xs font-black" data-series="nasdaq">● Nasdaq-100</button>
+                    <button class="benchmark-toggle px-3 py-1.5 rounded-full bg-gray-50 text-gray-700 border border-gray-200 text-xs font-black" data-series="vwrl">● VWRL</button>
+                </div>
+                <div id="performance-chart" style="height:420px"></div>
+            </section>
+
+            <!-- COMPOSITION + HOLDINGS -->
+            <section class="grid grid-cols-1 xl:grid-cols-[420px_minmax(0,1fr)] gap-5">
+                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 md:p-6">
+                    <div class="mb-2"><p class="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">Composition</p><h3 class="text-xl font-black">Where is the capital allocated?</h3></div>
+                    <div id="weights-chart" style="height:315px"></div>
+                    <div class="grid grid-cols-2 gap-3 mt-1">
+                        <div class="rounded-xl bg-gray-50 border border-gray-100 p-3"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Largest Position</p><p class="font-black mt-1">Company A · 24%</p></div>
+                        <div class="rounded-xl bg-gray-50 border border-gray-100 p-3"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Holdings</p><p class="font-black mt-1">6 positions</p></div>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="p-5 md:p-6 border-b border-gray-100 flex items-center justify-between gap-4">
+                        <div><p class="text-[10px] font-black uppercase tracking-widest text-blue-600 mb-1">Holdings</p><h3 class="text-xl font-black">Position Detail</h3></div>
+                        <span class="text-xs text-gray-400">Illustrative holdings</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 text-gray-400 uppercase tracking-wider text-[10px]">
+                                <tr><th class="text-left px-5 py-3">Holding</th><th class="text-right px-4 py-3">Weight</th><th class="text-right px-4 py-3">Entry</th><th class="text-right px-4 py-3">Current</th><th class="text-right px-4 py-3">Return</th><th class="text-right px-5 py-3">Contribution</th></tr>
+                            </thead>
+                            <tbody id="holdings-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PORTFOLIO ANALYTICS -->
+            <section class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 md:p-6">
+                <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-4">
+                    <div><p class="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-1">Analytics</p><h3 class="text-xl font-black">Performance in context</h3><p class="text-sm text-gray-500 mt-1">A restrained set of metrics — deeper optimisation and risk analytics belong in SethiQuant.</p></div>
+                    <button class="text-xs font-black text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-4 py-2 opacity-60 cursor-not-allowed" title="Planned integration">Analyse in SethiQuant · Coming later</button>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div class="rounded-xl bg-gray-900 text-white p-4"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Total Return</p><p class="text-2xl font-black mt-1">+12.8%</p></div>
+                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Annualised</p><p class="text-2xl font-black mt-1">+18.4%</p></div>
+                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Volatility</p><p class="text-2xl font-black mt-1">14.2%</p></div>
+                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Max Drawdown</p><p class="text-2xl font-black mt-1 text-red-600">-7.6%</p></div>
+                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4 col-span-2 md:col-span-1"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Sharpe</p><p class="text-2xl font-black mt-1">1.18</p></div>
+                </div>
+            </section>
+
+            <!-- JOURNAL + CHANGE LOG -->
+            <section class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.5fr)_minmax(340px,0.8fr)] gap-5">
+                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 md:p-6">
+                    <div class="flex items-start justify-between gap-4 mb-5">
+                        <div><p class="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">Investment Journal</p><h3 class="text-2xl font-black">The reasoning behind the portfolio</h3><p class="text-sm text-gray-500 mt-1">Dated notes create a permanent record of how the investment case evolved.</p></div>
+                        <span class="text-[10px] uppercase tracking-wider font-black text-gray-400 bg-gray-50 border border-gray-100 rounded-full px-3 py-1">3 demo notes</span>
+                    </div>
+                    <div class="space-y-3" id="journal-list"></div>
+                </div>
+
+                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="p-5 md:p-6 border-b border-gray-100"><p class="text-[10px] font-black uppercase tracking-widest text-blue-600 mb-1">Audit Trail</p><h3 class="text-xl font-black">Portfolio Changes</h3><p class="text-sm text-gray-500 mt-1">Every material allocation change links back to its contemporaneous rationale.</p></div>
+                    <div class="divide-y divide-gray-100" id="change-log"></div>
+                </div>
+            </section>
         </main>
 
         <!-- GOT AN IDEA SECTION -->
@@ -37,15 +146,12 @@
             <div class="bg-white rounded-2xl p-10 text-center border border-gray-200 shadow-sm">
                 <h2 class="text-2xl font-bold text-gray-800 mb-2">Spotted a bug or have a feature idea?</h2>
                 <p class="text-gray-500 text-sm mb-8">SethiPortfolio is continuously evolving. Let me know what portfolio metric or tracking feature we should build next.</p>
-                
                 <form action="https://api.web3forms.com/submit" method="POST" class="max-w-xl mx-auto space-y-4">
                     <input type="hidden" name="access_key" value="YOUR_ACCESS_KEY_HERE">
                     <input type="email" name="email" required placeholder="Your Email Address" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                    <textarea name="message" required placeholder="Your idea, feedback, or quantitative model to build..." rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
+                    <textarea name="message" required placeholder="Your idea, feedback, or portfolio feature to build..." rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
                     <input type="checkbox" name="botcheck" class="hidden" style="display: none;">
-                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition duration-200">
-                        Send Feedback
-                    </button>
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition duration-200">Send Feedback</button>
                 </form>
             </div>
         </section>
@@ -54,20 +160,101 @@
     <!-- SETHIWAY UNIFIED FOOTER -->
     <footer class="bg-gray-900 text-white pt-12 pb-8 px-6 md:px-10 w-full mt-auto">
         <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center">
-            <div class="mb-6 md:mb-0 flex items-center">
-                <img src="logo.png" alt="Sethiway Logo" class="h-8 w-auto opacity-90 hover:opacity-100 transition">
-            </div>
-            <div class="flex space-x-6 text-sm font-bold text-gray-400 uppercase tracking-widest">
-                <a href="https://linkedin.com/in/sanchit-sethi17" target="_blank" class="hover:text-white transition">LinkedIn</a>
-            </div>
+            <div class="mb-6 md:mb-0 flex items-center"><img src="logo.png" alt="Sethiway Logo" class="h-8 w-auto opacity-90 hover:opacity-100 transition"></div>
+            <div class="flex space-x-6 text-sm font-bold text-gray-400 uppercase tracking-widest"><a href="https://linkedin.com/in/sanchit-sethi17" target="_blank" class="hover:text-white transition">LinkedIn</a></div>
         </div>
         <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center mt-8 pt-8 border-t border-gray-800 text-xs text-gray-500 font-semibold">
             <p>&copy; 2026 Sethiway. All rights reserved. <span class="mx-2">|</span> Made in the UK.</p>
-            <div class="flex space-x-4 mt-4 md:mt-0">
-                <a href="privacy.html" class="hover:text-gray-300 transition">Privacy Policy</a>
-                <a href="terms.html" class="hover:text-gray-300 transition">Terms of Service</a>
-            </div>
+            <div class="flex space-x-4 mt-4 md:mt-0"><a href="privacy.html" class="hover:text-gray-300 transition">Privacy Policy</a><a href="terms.html" class="hover:text-gray-300 transition">Terms of Service</a></div>
         </div>
     </footer>
+
+<script>
+    const portfolioData = {
+        dates: ['2026-06-01','2026-06-08','2026-06-15','2026-06-22','2026-07-01','2026-07-08','2026-07-15','2026-07-22','2026-08-01','2026-08-08','2026-08-15','2026-08-22','2026-08-30'],
+        portfolio: [100,101.2,99.8,103.1,104.5,105.9,108.4,107.6,110.1,111.7,109.9,112.2,112.8],
+        sp500: [100,100.8,100.1,101.9,103.0,104.2,105.5,105.1,106.3,107.4,106.8,108.2,109.2],
+        nasdaq: [100,101.4,100.3,103.2,104.8,106.0,107.8,106.9,108.4,109.6,108.7,110.0,110.9],
+        vwrl: [100,100.5,99.7,101.4,102.1,103.0,104.1,103.7,104.8,105.5,105.0,106.3,106.8]
+    };
+    const activeSeries = {portfolio:true, sp500:true, nasdaq:true, vwrl:true};
+    const seriesMeta = {
+        portfolio:{name:'Sethi Fundamental', dash:'solid', width:3},
+        sp500:{name:'S&P 500', dash:'dot', width:2},
+        nasdaq:{name:'Nasdaq-100', dash:'dash', width:2},
+        vwrl:{name:'VWRL', dash:'dashdot', width:2}
+    };
+
+    function renderPerformance() {
+        const traces = Object.keys(activeSeries).filter(k => activeSeries[k]).map(k => ({
+            x: portfolioData.dates, y: portfolioData[k], name: seriesMeta[k].name, type:'scatter', mode:'lines',
+            line:{width:seriesMeta[k].width, dash:seriesMeta[k].dash}, hovertemplate:'%{x}<br>%{y:.1f}<extra>'+seriesMeta[k].name+'</extra>'
+        }));
+        Plotly.react('performance-chart', traces, {
+            margin:{t:15,r:25,l:50,b:45}, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)',
+            legend:{orientation:'h',y:1.08,x:0}, xaxis:{showgrid:false}, yaxis:{title:'Rebased value',gridcolor:'#f3f4f6'},
+            hovermode:'x unified'
+        }, {displayModeBar:false,responsive:true});
+    }
+
+    document.querySelectorAll('.benchmark-toggle').forEach(btn => btn.addEventListener('click', () => {
+        const k = btn.dataset.series;
+        if (k === 'portfolio') return;
+        activeSeries[k] = !activeSeries[k];
+        btn.classList.toggle('opacity-40', !activeSeries[k]);
+        renderPerformance();
+    }));
+
+    function setRange(range, btn) {
+        document.querySelectorAll('.range-btn').forEach(b => b.className='range-btn px-3 py-1.5 rounded-md text-gray-500');
+        btn.className='range-btn px-3 py-1.5 rounded-md bg-white text-blue-700 shadow-sm';
+        // V1 wireframe keeps the same short illustrative dataset. Real range filtering arrives with live portfolio history.
+    }
+
+    const holdings = [
+        {name:'Company A',ticker:'AAA',weight:24,entry:82,current:96,ret:17.1,contrib:4.1,sector:'Industrials'},
+        {name:'Company B',ticker:'BBB',weight:20,entry:114,current:123,ret:7.9,contrib:1.6,sector:'Technology'},
+        {name:'Company C',ticker:'CCC',weight:18,entry:54,current:59,ret:9.3,contrib:1.7,sector:'Consumer'},
+        {name:'Company D',ticker:'DDD',weight:15,entry:71,current:67,ret:-5.6,contrib:-0.8,sector:'Healthcare'},
+        {name:'Company E',ticker:'EEE',weight:13,entry:38,current:43,ret:13.2,contrib:1.7,sector:'Financials'},
+        {name:'Cash',ticker:'CASH',weight:10,entry:1,current:1,ret:0,contrib:0,sector:'Cash'}
+    ];
+
+    Plotly.newPlot('weights-chart', [{labels:holdings.map(h=>h.ticker),values:holdings.map(h=>h.weight),type:'pie',hole:.62,textinfo:'label+percent',hovertemplate:'%{label}: %{value}%<extra></extra>'}], {
+        margin:{t:10,r:10,l:10,b:10},paper_bgcolor:'rgba(0,0,0,0)',showlegend:false
+    }, {displayModeBar:false,responsive:true});
+
+    document.getElementById('holdings-table').innerHTML = holdings.map(h => `
+        <tr class="border-t border-gray-100 hover:bg-gray-50/60 transition">
+            <td class="px-5 py-4"><div class="font-black text-gray-900">${h.name}</div><div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">${h.ticker}</div></td>
+            <td class="px-4 py-4 text-right font-black">${h.weight}%</td>
+            <td class="px-4 py-4 text-right text-gray-500">£${h.entry.toFixed(2)}</td>
+            <td class="px-4 py-4 text-right text-gray-500">£${h.current.toFixed(2)}</td>
+            <td class="px-4 py-4 text-right font-black ${h.ret>=0?'text-emerald-600':'text-red-600'}">${h.ret>=0?'+':''}${h.ret.toFixed(1)}%</td>
+            <td class="px-5 py-4 text-right font-black ${h.contrib>=0?'text-emerald-600':'text-red-600'}">${h.contrib>=0?'+':''}${h.contrib.toFixed(1)}pp</td>
+        </tr>`).join('');
+
+    const journal = [
+        {date:'30 Aug 2026',type:'Portfolio Review',title:'Why the portfolio remains concentrated',preview:'A review of position sizing, valuation dispersion and why conviction should not be confused with ignoring downside risk.'},
+        {date:'12 Aug 2026',type:'Increased',title:'Increased Company B from 15% to 20%',preview:'The valuation moved below my base-case range while the operating thesis remained intact, improving the expected return asymmetry.'},
+        {date:'21 Jul 2026',type:'Initial Thesis',title:'Initiated Company E at 13%',preview:'The position was initiated after reviewing earnings durability, capital returns and the gap between market expectations and my base case.'}
+    ];
+    document.getElementById('journal-list').innerHTML = journal.map((j,i)=>`
+        <article class="rounded-xl border border-gray-200 p-4 md:p-5 hover:border-amber-300 transition">
+            <div class="flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-wider"><span class="text-gray-400">${j.date}</span><span class="text-amber-700 bg-amber-50 border border-amber-100 rounded-full px-2 py-0.5">${j.type}</span></div>
+            <h4 class="text-lg font-black mt-2">${j.title}</h4><p class="text-sm text-gray-500 mt-1 leading-relaxed">${j.preview}</p>
+            <button class="mt-3 text-xs font-black text-blue-700 hover:text-blue-900">Read analysis →</button>
+        </article>`).join('');
+
+    const changes = [
+        {date:'12 Aug',ticker:'BBB',action:'Increase',from:'15%',to:'20%',note:'Linked to journal note'},
+        {date:'21 Jul',ticker:'EEE',action:'Initiate',from:'0%',to:'13%',note:'Linked to initial thesis'},
+        {date:'05 Jul',ticker:'DDD',action:'Reduce',from:'20%',to:'15%',note:'Valuation / risk rebalance'}
+    ];
+    document.getElementById('change-log').innerHTML = changes.map(c=>`
+        <div class="p-5 hover:bg-gray-50/60 transition"><div class="flex items-center justify-between gap-3"><div><div class="flex items-center gap-2"><span class="font-black">${c.ticker}</span><span class="text-[10px] uppercase tracking-wider font-black text-blue-700 bg-blue-50 rounded-full px-2 py-0.5">${c.action}</span></div><p class="text-xs text-gray-500 mt-1">${c.from} → ${c.to}</p></div><span class="text-xs font-bold text-gray-400">${c.date}</span></div><button class="text-[11px] font-black text-blue-700 mt-3">Why? → ${c.note}</button></div>`).join('');
+
+    renderPerformance();
+</script>
 </body>
 </html>

@@ -1,0 +1,24 @@
+name: Run MRL VaR validation frontend migration
+on:
+  push:
+    branches:
+      - feature/mrl-var-validation
+    paths:
+      - scripts/apply_mrl_var_validation.py
+permissions:
+  contents: write
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/mrl-var-validation
+      - run: python scripts/apply_mrl_var_validation.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sethiquant.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Add VaR model validation interface [skip ci]"
+          git push origin HEAD:feature/mrl-var-validation

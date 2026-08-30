@@ -9,3 +9,4 @@ if old not in s:
 s = s.replace(old, new, 1)
 p.write_text(s, encoding='utf-8')
 print('MRL wide-desktop chart height updated from 417px to 438px.')
+# trigger final alignment workflow

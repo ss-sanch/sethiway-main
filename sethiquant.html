@@ -17,7 +17,8 @@
             #market-risk-lab { width: min(1800px, calc(100vw - 3rem)); }
             #market-risk-lab #model-chart,
             #market-risk-lab #pnl-chart,
-            #market-risk-lab #corr-chart { height: 393px !important; }
+            #market-risk-lab #corr-chart,
+            #market-risk-lab #risk-contribution-chart { height: 393px !important; }
         }
     </style>
 </head>
@@ -477,7 +478,20 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4">
                         <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0"><div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-2"><div><h3 class="font-black text-lg text-gray-900">Model Comparison</h3><p class="text-xs text-gray-500">Same portfolio, different risk assumptions.</p></div><span id="model-gap" class="text-xs font-bold bg-gray-100 rounded-full px-3 py-1 text-gray-600">--</span></div><div id="model-chart" style="height:255px"></div></div>
                         <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0"><div class="border-b border-gray-100 pb-2 mb-2"><h3 class="font-black text-lg text-gray-900">MC P&amp;L Distribution</h3><p class="text-xs text-gray-500">Losses beyond the VaR threshold form the tail.</p></div><div id="pnl-chart" style="height:255px"></div></div>
-                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0 lg:col-span-2 2xl:col-span-1"><div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-2"><div><h3 class="font-black text-lg text-gray-900">Asset Correlation Matrix</h3><p class="text-xs text-gray-500">Dependence structure for the Monte Carlo engine.</p></div><span id="obs-badge" class="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">--</span></div><div id="corr-chart" style="height:255px"></div></div>
+                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0 lg:col-span-2 2xl:col-span-1">
+                            <div class="flex items-center justify-between gap-3 border-b border-gray-100 pb-2 mb-2">
+                                <div class="min-w-0">
+                                    <h3 id="risk-detail-title" class="font-black text-lg text-gray-900">Risk Contribution</h3>
+                                    <p id="risk-detail-subtitle" class="text-xs text-gray-500 truncate">Run an analysis to decompose portfolio VaR.</p>
+                                </div>
+                                <div class="flex shrink-0 rounded-lg bg-gray-100 p-1 text-[10px] font-black uppercase tracking-wide">
+                                    <button id="risk-tab-attribution" type="button" onclick="showRiskDetail('attribution')" class="px-2.5 py-1.5 rounded-md bg-white text-blue-700 shadow-sm">Contribution</button>
+                                    <button id="risk-tab-correlation" type="button" onclick="showRiskDetail('correlation')" class="px-2.5 py-1.5 rounded-md text-gray-500">Correlation</button>
+                                </div>
+                            </div>
+                            <div id="risk-attribution-view"><div id="risk-contribution-chart" style="height:255px"></div></div>
+                            <div id="correlation-view" class="hidden"><div id="corr-chart" style="height:255px"></div></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1184,6 +1198,60 @@
         // ==========================================
         // MARKET RISK LAB V2 ENGINE
         // ==========================================
+        let latestRiskData = null;
+
+        function renderCorrelationDetail(data) {
+            if (!data || !data.diagnostics || !data.diagnostics.correlation_matrix) return;
+            const matrix = data.diagnostics.correlation_matrix;
+            const tickers = Object.keys(matrix);
+            const z = tickers.map(r => tickers.map(c => matrix[r][c]));
+            Plotly.newPlot('corr-chart', [{
+                z, x: tickers, y: tickers, type: 'heatmap', colorscale: 'RdBu', zmin: -1, zmax: 1,
+                hovertemplate: '%{y} / %{x}: %{z:.3f}<extra></extra>'
+            }], {
+                margin: { t: 10, r: 20, l: 55, b: 45 },
+                paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)'
+            }, { displayModeBar: false, responsive: true });
+        }
+
+        function showRiskDetail(view) {
+            const attributionView = document.getElementById('risk-attribution-view');
+            const correlationView = document.getElementById('correlation-view');
+            const attributionTab = document.getElementById('risk-tab-attribution');
+            const correlationTab = document.getElementById('risk-tab-correlation');
+            const title = document.getElementById('risk-detail-title');
+            const subtitle = document.getElementById('risk-detail-subtitle');
+
+            const activeClasses = ['bg-white', 'text-blue-700', 'shadow-sm'];
+            const inactiveClasses = ['text-gray-500'];
+
+            if (view === 'correlation') {
+                attributionView.classList.add('hidden');
+                correlationView.classList.remove('hidden');
+                activeClasses.forEach(c => correlationTab.classList.add(c));
+                inactiveClasses.forEach(c => correlationTab.classList.remove(c));
+                activeClasses.forEach(c => attributionTab.classList.remove(c));
+                inactiveClasses.forEach(c => attributionTab.classList.add(c));
+                title.innerText = 'Asset Correlation Matrix';
+                const obs = latestRiskData?.diagnostics?.historical_observations;
+                subtitle.innerText = obs ? `${obs} observations · dependence structure for the Monte Carlo engine.` : 'Dependence structure for the Monte Carlo engine.';
+                renderCorrelationDetail(latestRiskData);
+            } else {
+                correlationView.classList.add('hidden');
+                attributionView.classList.remove('hidden');
+                activeClasses.forEach(c => attributionTab.classList.add(c));
+                inactiveClasses.forEach(c => attributionTab.classList.remove(c));
+                activeClasses.forEach(c => correlationTab.classList.remove(c));
+                inactiveClasses.forEach(c => correlationTab.classList.add(c));
+                title.innerText = 'Risk Contribution';
+                const a = latestRiskData?.attribution;
+                subtitle.innerText = a
+                    ? `Parametric VaR ${formatMoney(a.portfolio_var)} · diversification ${a.diversification_pct.toFixed(1)}%`
+                    : 'Run an analysis to decompose portfolio VaR.';
+                if (document.getElementById('risk-contribution-chart').data) Plotly.Plots.resize('risk-contribution-chart');
+            }
+        }
+
         let activePositions = [ ["AAPL", 30], ["NVDA", 25], ["JPM", 25], ["GLD", 20] ];
 
         function renderPositions(posArray) {
@@ -1264,7 +1332,6 @@
                 document.getElementById('mc-es').innerText = formatMoney(m.expected_shortfall_loss);
                 document.getElementById('hist-var').innerText = formatMoney(h.var_loss);
                 document.getElementById('hist-es').innerText = formatMoney(h.expected_shortfall_loss);
-                document.getElementById('obs-badge').innerText = `${data.diagnostics.historical_observations} observations`;
 
                 const gapPct = h.var_loss ? ((m.var_loss - h.var_loss) / h.var_loss) * 100 : 0;
                 document.getElementById('model-gap').innerText = `MC vs hVaR: ${gapPct >= 0 ? '+' : ''}${gapPct.toFixed(1)}%`;
@@ -1273,10 +1340,34 @@
 
                 Plotly.newPlot('pnl-chart', [{ x: data.distribution.monte_carlo_pnl_sample, type: 'histogram', marker: {color: '#6366f1'}, nbinsx: 45 }], { margin: { t: 10, r: 10, l: 45, b: 35 }, yaxis: { gridcolor: '#f3f4f6' }, shapes: [{ type: 'line', x0: -m.var_loss, x1: -m.var_loss, y0: 0, y1: 1, yref: 'paper', line: { dash: 'dash', width: 2, color: '#ef4444' } }], paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { displayModeBar: false, responsive: true });
 
-                const matrix = data.diagnostics.correlation_matrix;
-                const tickers = Object.keys(matrix);
-                const z = tickers.map(r => tickers.map(c => matrix[r][c]));
-                Plotly.newPlot('corr-chart', [{ z, x: tickers, y: tickers, type: 'heatmap', colorscale: 'RdBu', zmin: -1, zmax: 1 }], { margin: { t: 10, r: 20, l: 55, b: 45 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { displayModeBar: false, responsive: true });
+                latestRiskData = data;
+                const attribution = data.attribution;
+                if (!attribution || !Array.isArray(attribution.components)) {
+                    throw new Error('Risk attribution data was not returned by the engine.');
+                }
+
+                const components = attribution.components;
+                const contributionColors = components.map(c => c.component_var < 0 ? '#10b981' : '#2563eb');
+                Plotly.newPlot('risk-contribution-chart', [{
+                    x: components.map(c => c.component_var),
+                    y: components.map(c => c.ticker),
+                    type: 'bar',
+                    orientation: 'h',
+                    marker: { color: contributionColors },
+                    text: components.map(c => `${c.contribution_pct.toFixed(1)}%`),
+                    textposition: 'auto',
+                    customdata: components.map(c => [c.standalone_var, c.marginal_var_per_1000, c.weight_pct]),
+                    hovertemplate: '<b>%{y}</b><br>Component VaR: £%{x:,.0f}<br>Contribution: %{text}<br>Standalone VaR: £%{customdata[0]:,.0f}<br>Marginal VaR / £1k: £%{customdata[1]:,.2f}<br>Portfolio weight: %{customdata[2]:.1f}%<extra></extra>'
+                }], {
+                    margin: { t: 10, r: 20, l: 55, b: 45 },
+                    xaxis: { title: 'Component VaR (£)', gridcolor: '#f3f4f6', zeroline: true, zerolinecolor: '#d1d5db' },
+                    yaxis: { autorange: 'reversed' },
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    showlegend: false
+                }, { displayModeBar: false, responsive: true });
+
+                showRiskDetail('attribution');
 
             } catch (err) {
                 error.innerText = err.message;

@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# Purpose-built pre-run teaser cards for Options and Backtest diagnostics.
 p = Path('sethiquant.html')
 s = p.read_text(encoding='utf-8')
 

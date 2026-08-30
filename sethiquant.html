@@ -529,6 +529,38 @@
                     <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><h4 class="font-black text-sm text-gray-900 mb-1">4. Stress Testing</h4><p class="text-xs text-gray-600 leading-relaxed">Stress tests ask “what if markets move sharply?” They are scenario analyses, not forecasts. Compare the equity, options and total P&amp;L to see where protection or extra downside comes from.</p></div>
                 </div>
             </div>
+
+            <div id="var-validation-panel" class="max-w-[1800px] mx-auto mt-4 bg-white border border-gray-200 rounded-2xl shadow-sm p-5 md:p-6">
+                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3 mb-5">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <p class="text-[10px] font-black uppercase tracking-widest text-emerald-600">Model Validation</p>
+                            <button type="button" onclick="toggleModal('modal-var-validation')" class="text-gray-400 hover:text-emerald-600 transition" title="How VaR backtesting works">ⓘ</button>
+                        </div>
+                        <h3 class="text-xl font-black text-gray-900 mt-1">Does the VaR model behave as expected?</h3>
+                        <p id="validation-meta" class="text-sm text-gray-500 mt-1 max-w-4xl">Run the Market Risk Lab to compare rolling one-day VaR forecasts with realised portfolio P&amp;L.</p>
+                    </div>
+                    <span class="shrink-0 rounded-full bg-emerald-50 border border-emerald-100 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-700">Equity book · 1-day validation</span>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-[260px_260px_minmax(0,1fr)] gap-4 items-stretch">
+                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                        <div class="flex items-center justify-between gap-2 mb-3"><h4 class="font-black text-sm text-gray-900">Historical VaR</h4><span id="validation-hist-status" class="rounded-full bg-gray-200 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-gray-500">Awaiting</span></div>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Breaches</p>
+                        <p id="validation-hist-breaches" class="text-2xl font-black text-gray-900 mt-1">--</p>
+                        <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-gray-200 text-xs"><div><span class="text-gray-400 block">Expected</span><strong id="validation-hist-expected" class="text-gray-700">--</strong></div><div><span class="text-gray-400 block">Kupiec p</span><strong id="validation-hist-p" class="text-gray-700">--</strong></div></div>
+                    </div>
+                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                        <div class="flex items-center justify-between gap-2 mb-3"><h4 class="font-black text-sm text-gray-900">Parametric VaR</h4><span id="validation-param-status" class="rounded-full bg-gray-200 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-gray-500">Awaiting</span></div>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Breaches</p>
+                        <p id="validation-param-breaches" class="text-2xl font-black text-gray-900 mt-1">--</p>
+                        <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-gray-200 text-xs"><div><span class="text-gray-400 block">Expected</span><strong id="validation-param-expected" class="text-gray-700">--</strong></div><div><span class="text-gray-400 block">Kupiec p</span><strong id="validation-param-p" class="text-gray-700">--</strong></div></div>
+                    </div>
+                    <div class="rounded-xl border border-gray-200 p-3 min-w-0">
+                        <div id="var-validation-chart" style="height:300px"><div class="h-full flex items-center justify-center text-sm text-gray-400 italic text-center px-8">Run an analysis to plot realised P&amp;L against rolling VaR thresholds.</div></div>
+                    </div>
+                </div>
+                <p class="text-[11px] text-gray-400 mt-3 leading-relaxed"><strong class="text-gray-500">Why one day?</strong> Validation uses non-overlapping next-day outcomes even when the headline dashboard is set to a longer horizon. This makes breach counting easier to interpret statistically. Options are excluded because this version does not reconstruct historical implied-volatility surfaces or contract state.</p>
+            </div>
         </section>
 
         <!-- QUANTITATIVE LEGAL DISCLAIMER -->
@@ -717,6 +749,23 @@
                 <div class="border-l-4 border-violet-500 pl-4"><h4 class="font-black text-gray-900 mb-1">Step 3 — If options are present, inspect the Greeks</h4><p><strong>Delta</strong> captures first-order exposure to the underlying price. <strong>Gamma</strong> captures curvature, meaning Delta itself changes as the underlying moves. <strong>Vega</strong> measures sensitivity to a one volatility-point change. The chart expresses each sensitivity as an approximate £ P&amp;L impact.</p><p class="mt-2 text-xs text-gray-500"><strong>Takeaway:</strong> options can hedge directional risk while adding convexity or volatility exposure, so their risk cannot be understood from Delta alone.</p></div>
                 <div class="border-l-4 border-amber-500 pl-4"><h4 class="font-black text-gray-900 mb-1">Step 4 — Use stress tests for large moves</h4><p>Stress testing deliberately asks what happens outside normal model conditions. Equity positions are marked directly to the scenario shock, while European options are <strong>fully repriced with Black–Scholes</strong> at the stressed spot and volatility rather than extrapolating local Greeks across a large move.</p><p class="mt-2 text-xs text-gray-500"><strong>Takeaway:</strong> the worst scenario is not a forecast. It is a vulnerability check: where would the portfolio lose money, and do the options cushion or amplify that loss?</p></div>
                 <div class="border-l-4 border-slate-400 pl-4"><h4 class="font-black text-gray-900 mb-1">Step 5 — Check correlation</h4><p>The correlation matrix shows how the assets have historically moved together. High positive correlation reduces diversification; low or negative correlation can offset risk. Correlations are estimates and can change sharply during stressed markets.</p><p class="mt-2 text-xs text-gray-500"><strong>Takeaway:</strong> diversification is a property of relationships between positions, not simply the number of positions held.</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: VAR MODEL VALIDATION -->
+    <div id="modal-var-validation" class="hidden fixed inset-0 z-[235] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-2xl w-full relative max-h-[90vh] overflow-y-auto">
+            <button type="button" onclick="toggleModal('modal-var-validation')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-xl font-bold">×</button>
+            <p class="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-1">Model Validation Guide</p>
+            <h3 class="text-2xl font-black text-gray-900">Backtesting Value at Risk</h3>
+            <p class="text-sm text-gray-500 mt-2 leading-relaxed">A risk model should not only produce a VaR number; its forecasts should also be checked against what actually happened afterwards. This section performs a rolling out-of-sample test on the equity portfolio.</p>
+            <div class="space-y-4 mt-6 text-sm text-gray-600 leading-relaxed">
+                <div class="border-l-4 border-blue-500 pl-4"><h4 class="font-black text-gray-900">1. Forecast tomorrow's VaR</h4><p>For each test date, the engine looks only at returns available before that date. Historical VaR uses the empirical tail of that rolling window; Parametric VaR uses the rolling mean and volatility under a normal-distribution assumption.</p></div>
+                <div class="border-l-4 border-red-500 pl-4"><h4 class="font-black text-gray-900">2. Count breaches</h4><p>A <strong>breach</strong> occurs when the next realised portfolio loss is larger than the VaR forecast. At 99% confidence, roughly 1% of observations would be expected to breach if the model is calibrated well.</p></div>
+                <div class="border-l-4 border-emerald-500 pl-4"><h4 class="font-black text-gray-900">3. Compare observed with expected</h4><p>The scorecards show the number of observed breaches beside the statistically expected count. Too many breaches can indicate understated risk; far too few can indicate an excessively conservative model.</p></div>
+                <div class="border-l-4 border-indigo-500 pl-4"><h4 class="font-black text-gray-900">4. Read the Kupiec test</h4><p>The Kupiec proportion-of-failures test asks whether the observed breach frequency is consistent with the model's stated confidence level. A <strong>p-value of 0.05 or above</strong> is labelled Pass; below 0.05 is labelled Review. Passing does not prove the model is correct—it only means the exception frequency is not statistically inconsistent with the target rate.</p></div>
+                <div class="border-l-4 border-slate-400 pl-4"><h4 class="font-black text-gray-900">5. Understand the limitation</h4><p>This is an equity-book validation. Reconstructing option VaR historically would require historical implied volatility, changing Greeks, time-to-expiry and contract state. The lab therefore keeps that limitation explicit rather than pretending today's option inputs existed throughout the past.</p></div>
             </div>
         </div>
     </div>
@@ -1415,6 +1464,57 @@
             }, { displayModeBar: false, responsive: true });
         }
 
+        function updateValidationStatus(id, result) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const passed = result?.kupiec?.status === 'pass';
+            el.innerText = passed ? 'Pass' : 'Review';
+            el.className = passed
+                ? 'rounded-full bg-emerald-100 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-emerald-700'
+                : 'rounded-full bg-amber-100 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-amber-700';
+        }
+
+        function renderVarValidation(validation, optionsActive) {
+            const chart = document.getElementById('var-validation-chart');
+            if (!validation?.available) {
+                document.getElementById('validation-meta').innerText = validation?.reason || 'Validation data is unavailable for this sample.';
+                chart.innerHTML = `<div class="h-full flex items-center justify-center text-sm text-gray-400 italic text-center px-8">${validation?.reason || 'Validation unavailable.'}</div>`;
+                return;
+            }
+
+            const h = validation.historical;
+            const p = validation.parametric;
+            const obs = validation.observations;
+            document.getElementById('validation-meta').innerText = `${obs} out-of-sample days · ${validation.estimation_window}-day rolling estimation window · ${(validation.confidence * 100).toFixed(0)}% confidence${optionsActive ? ' · options excluded' : ''}.`;
+
+            document.getElementById('validation-hist-breaches').innerText = `${h.breaches} / ${obs}`;
+            document.getElementById('validation-hist-expected').innerText = `${h.expected_breaches.toFixed(1)} (${h.expected_breach_rate_pct.toFixed(1)}%)`;
+            document.getElementById('validation-hist-p').innerText = h.kupiec.p_value.toFixed(3);
+            updateValidationStatus('validation-hist-status', h);
+
+            document.getElementById('validation-param-breaches').innerText = `${p.breaches} / ${obs}`;
+            document.getElementById('validation-param-expected').innerText = `${p.expected_breaches.toFixed(1)} (${p.expected_breach_rate_pct.toFixed(1)}%)`;
+            document.getElementById('validation-param-p').innerText = p.kupiec.p_value.toFixed(3);
+            updateValidationStatus('validation-param-status', p);
+
+            const series = validation.series;
+            const histBreachesX = []; const histBreachesY = [];
+            series.dates.forEach((d, i) => { if (series.historical_breach[i]) { histBreachesX.push(d); histBreachesY.push(series.realised_pnl[i]); } });
+
+            Plotly.newPlot('var-validation-chart', [
+                { x: series.dates, y: series.realised_pnl, name: 'Realised P&L', type: 'scatter', mode: 'lines', line: { color: '#9ca3af', width: 1.5 }, hovertemplate: '%{x}<br>Realised P&L: £%{y:,.0f}<extra></extra>' },
+                { x: series.dates, y: series.historical_var.map(v => -v), name: 'Historical VaR threshold', type: 'scatter', mode: 'lines', line: { color: '#2563eb', width: 2 }, hovertemplate: '%{x}<br>Hist threshold: -£%{customdata:,.0f}<extra></extra>', customdata: series.historical_var },
+                { x: series.dates, y: series.parametric_var.map(v => -v), name: 'Parametric VaR threshold', type: 'scatter', mode: 'lines', line: { color: '#7c3aed', width: 2, dash: 'dash' }, hovertemplate: '%{x}<br>Param threshold: -£%{customdata:,.0f}<extra></extra>', customdata: series.parametric_var },
+                { x: histBreachesX, y: histBreachesY, name: 'Historical VaR breach', type: 'scatter', mode: 'markers', marker: { color: '#ef4444', size: 7 }, hovertemplate: '%{x}<br>Breach P&L: £%{y:,.0f}<extra></extra>' }
+            ], {
+                margin: { t: 10, r: 15, l: 55, b: 45 },
+                yaxis: { title: 'Daily P&L (£)', gridcolor: '#f3f4f6', zeroline: true, zerolinecolor: '#d1d5db' },
+                xaxis: { showgrid: false },
+                legend: { orientation: 'h', y: 1.14, font: { size: 9 } },
+                paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)'
+            }, { displayModeBar: false, responsive: true });
+        }
+
         function showRiskDetail(view) {
             const views = { attribution: document.getElementById('risk-attribution-view'), greeks: document.getElementById('derivatives-view'), stress: document.getElementById('stress-view'), correlation: document.getElementById('correlation-view') };
             const tabs = { attribution: document.getElementById('risk-tab-attribution'), greeks: document.getElementById('risk-tab-greeks'), stress: document.getElementById('risk-tab-stress'), correlation: document.getElementById('risk-tab-correlation') };
@@ -1540,6 +1640,7 @@
                 Plotly.newPlot('pnl-chart', [{ x: data.distribution.monte_carlo_pnl_sample, type: 'histogram', marker: {color: '#6366f1'}, nbinsx: 45 }], { margin: { t: 10, r: 10, l: 45, b: 35 }, yaxis: { gridcolor: '#f3f4f6' }, shapes: [{ type: 'line', x0: -m.var_loss, x1: -m.var_loss, y0: 0, y1: 1, yref: 'paper', line: { dash: 'dash', width: 2, color: '#ef4444' } }], paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { displayModeBar: false, responsive: true });
 
                 latestRiskData = data;
+                renderVarValidation(data.validation, !!data.derivatives?.active);
                 const attribution = data.attribution;
                 if (!attribution || !Array.isArray(attribution.components)) {
                     throw new Error('Risk attribution data was not returned by the engine.');

@@ -5,6 +5,7 @@ on:
       - feature/mrl-derivatives-risk
     paths:
       - scripts/apply_mrl_derivatives_risk.py
+      - .github/workflows/run-mrl-derivatives.yml
 permissions:
   contents: write
 jobs:

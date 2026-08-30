@@ -3,6 +3,7 @@ from pathlib import Path
 p = Path('sethiquant.html')
 s = p.read_text(encoding='utf-8')
 
+# Phase 3.1: educational UX and interpretation layer.
 # 1. Add info buttons to Model Comparison and MC P&L Distribution.
 s = s.replace(
 '''<div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0"><div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-2"><div><h3 class="font-black text-lg text-gray-900">Model Comparison</h3><p class="text-xs text-gray-500">Same portfolio, different risk assumptions.</p></div><span id="model-gap" class="text-xs font-bold bg-gray-100 rounded-full px-3 py-1 text-gray-600">--</span></div><div id="model-chart" style="height:255px"></div></div>''',

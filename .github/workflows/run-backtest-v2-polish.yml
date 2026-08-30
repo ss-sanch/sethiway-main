@@ -5,6 +5,7 @@ on:
       - feature/backtest-v2-polish
     paths:
       - scripts/apply_backtest_v2_polish.py
+      - .github/workflows/run-backtest-v2-polish.yml
 permissions:
   contents: write
 jobs:

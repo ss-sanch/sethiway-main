@@ -5,6 +5,7 @@ on:
       - feature/backtest-v2-polish
     paths:
       - scripts/fix_preview_wrapper_structure.py
+      - .github/workflows/fix-preview-wrapper-structure.yml
 permissions:
   contents: write
 jobs:

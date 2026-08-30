@@ -254,7 +254,6 @@
                     </div>
 
                     <div id="options-insights-detail" class="hidden">
-                    <div id="backtest-insights-detail" class="hidden">
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                         <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Break-even at expiry</p><p id="op-break-even" class="text-xl font-black text-gray-900 mt-1">--</p><p class="text-[10px] text-gray-400 mt-1">Underlying price needed to recover premium.</p></div>
                         <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Intrinsic value</p><p id="op-intrinsic" class="text-xl font-black text-gray-900 mt-1">--</p><p class="text-[10px] text-gray-400 mt-1">Value from exercising immediately.</p></div>
@@ -509,6 +508,7 @@
                     <div><p class="text-[10px] font-black uppercase tracking-widest text-teal-600 mb-1">Backtest Diagnostics</p><h3 class="text-xl font-black text-gray-900">Was the return actually worth the risk?</h3><p id="bt-insight-summary" class="text-sm text-gray-500 mt-1 max-w-3xl">Run a strategy to reveal drawdowns, trade quality, market exposure and risk-adjusted performance.</p></div>
                     <button type="button" onclick="toggleModal('modal-backtest')" class="shrink-0 px-4 py-2 rounded-lg border border-teal-200 bg-teal-50 text-teal-700 text-xs font-black hover:bg-teal-100 transition">How to interpret this</button>
                 </div>
+                <div id="backtest-insights-detail" class="hidden">
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                     <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Completed Trades</p><p id="out-bt-trades" class="text-xl font-black text-gray-900 mt-1">--</p></div>
                     <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Trade Win Rate</p><p id="out-bt-win" class="text-xl font-black text-gray-900 mt-1">--</p></div>

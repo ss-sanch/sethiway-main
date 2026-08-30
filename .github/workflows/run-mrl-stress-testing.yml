@@ -5,6 +5,7 @@ on:
       - feature/mrl-stress-testing
     paths:
       - scripts/apply_mrl_stress_testing.py
+      - .github/workflows/run-mrl-stress-testing.yml
 permissions:
   contents: write
 jobs:

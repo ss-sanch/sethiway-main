@@ -238,8 +238,12 @@
 
             </div>
 
-            <div id="options-insights" class="max-w-[1600px] w-full mx-auto px-4 -mt-10 mb-16 max-h-[92px] overflow-hidden opacity-75 transition-all duration-300">
+            <div id="options-insights" class="max-w-[1600px] w-full mx-auto px-4 -mt-10 mb-16">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6">
+                    <div id="options-preview-cue" class="flex items-center justify-between gap-4 rounded-xl border border-blue-100 bg-blue-50/40 px-4 py-3 mb-4">
+                        <div class="min-w-0"><p class="text-[10px] font-black uppercase tracking-widest text-blue-600">Next step</p><p class="text-sm font-bold text-gray-800 mt-0.5">Calculate an option to unlock payoff, break-even and risk interpretation.</p></div>
+                        <span class="shrink-0 text-[10px] font-black uppercase tracking-wider text-blue-700 bg-white border border-blue-200 rounded-full px-3 py-1.5">Run to unlock</span>
+                    </div>
                     <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3 mb-5">
                         <div>
                             <p class="text-[10px] font-black uppercase tracking-widest text-blue-600 mb-1">Position Interpretation</p>
@@ -249,7 +253,9 @@
                         <button type="button" onclick="toggleModal('modal-options-payoff')" class="shrink-0 px-4 py-2 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 text-xs font-black hover:bg-blue-100 transition">How to read this</button>
                     </div>
 
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                    <div id="options-insights-detail" class="hidden">
+                    <div id="backtest-insights-detail" class="hidden">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                         <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Break-even at expiry</p><p id="op-break-even" class="text-xl font-black text-gray-900 mt-1">--</p><p class="text-[10px] text-gray-400 mt-1">Underlying price needed to recover premium.</p></div>
                         <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Intrinsic value</p><p id="op-intrinsic" class="text-xl font-black text-gray-900 mt-1">--</p><p class="text-[10px] text-gray-400 mt-1">Value from exercising immediately.</p></div>
                         <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Time value</p><p id="op-time-value" class="text-xl font-black text-gray-900 mt-1">--</p><p class="text-[10px] text-gray-400 mt-1">Premium paid for remaining uncertainty.</p></div>
@@ -275,6 +281,7 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -493,7 +500,11 @@
 
             </div>
 
-            <div id="backtest-insights" class="max-w-6xl mx-auto -mt-10 mb-16 bg-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6 max-h-[92px] overflow-hidden opacity-75 transition-all duration-300">
+            <div id="backtest-insights" class="max-w-6xl mx-auto -mt-10 mb-16 bg-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6">
+                <div id="backtest-preview-cue" class="flex items-center justify-between gap-4 rounded-xl border border-teal-100 bg-teal-50/40 px-4 py-3 mb-4">
+                    <div class="min-w-0"><p class="text-[10px] font-black uppercase tracking-widest text-teal-600">Next step</p><p class="text-sm font-bold text-gray-800 mt-0.5">Analyse a strategy to unlock drawdowns, trade quality and risk-adjusted diagnostics.</p></div>
+                    <span class="shrink-0 text-[10px] font-black uppercase tracking-wider text-teal-700 bg-white border border-teal-200 rounded-full px-3 py-1.5">Run to unlock</span>
+                </div>
                 <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-5">
                     <div><p class="text-[10px] font-black uppercase tracking-widest text-teal-600 mb-1">Backtest Diagnostics</p><h3 class="text-xl font-black text-gray-900">Was the return actually worth the risk?</h3><p id="bt-insight-summary" class="text-sm text-gray-500 mt-1 max-w-3xl">Run a strategy to reveal drawdowns, trade quality, market exposure and risk-adjusted performance.</p></div>
                     <button type="button" onclick="toggleModal('modal-backtest')" class="shrink-0 px-4 py-2 rounded-lg border border-teal-200 bg-teal-50 text-teal-700 text-xs font-black hover:bg-teal-100 transition">How to interpret this</button>
@@ -512,6 +523,7 @@
                     </div>
                 </div>
                 <div id="bt-learning-points" class="mt-4 rounded-xl bg-teal-50/50 border border-teal-100 p-4 text-sm text-gray-700 leading-relaxed">A strong backtest should be judged on more than total return: compare risk-adjusted ratios, drawdowns, benchmark performance and how often the strategy was actually invested.</div>
+                </div>
             </div>
         </section>
 
@@ -1061,8 +1073,8 @@
         // ==========================================
         function renderOptionInsights({ optionType, style, spot, strike, premium, greeks }) {
             const insights = document.getElementById('options-insights');
-            insights.classList.remove('hidden', 'max-h-[92px]', 'overflow-hidden', 'opacity-75');
-            insights.classList.add('opacity-100');
+            document.getElementById('options-preview-cue').classList.add('hidden');
+            document.getElementById('options-insights-detail').classList.remove('hidden');
 
             const intrinsic = optionType === 'call' ? Math.max(spot - strike, 0) : Math.max(strike - spot, 0);
             const timeValue = Math.max(premium - intrinsic, 0);
@@ -1478,9 +1490,8 @@
                     yaxis: { showgrid: true, gridcolor: '#f3f4f6', zeroline: false }
                 }, {displayModeBar: false, responsive: true});
 
-                const backtestInsights = document.getElementById('backtest-insights');
-                backtestInsights.classList.remove('max-h-[92px]', 'overflow-hidden', 'opacity-75');
-                backtestInsights.classList.add('opacity-100');
+                document.getElementById('backtest-preview-cue').classList.add('hidden');
+                document.getElementById('backtest-insights-detail').classList.remove('hidden');
                 document.getElementById('out-bt-trades').innerText = kpis.completed_trades;
                 document.getElementById('out-bt-win').innerText = `${kpis.win_rate_pct.toFixed(1)}%`;
                 document.getElementById('out-bt-exposure').innerText = `${kpis.time_in_market_pct.toFixed(1)}%`;

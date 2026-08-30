@@ -18,7 +18,8 @@
             #market-risk-lab #model-chart,
             #market-risk-lab #pnl-chart,
             #market-risk-lab #corr-chart,
-            #market-risk-lab #risk-contribution-chart { height: 393px !important; }
+            #market-risk-lab #risk-contribution-chart,
+            #market-risk-lab #derivatives-chart { height: 393px !important; }
         }
     </style>
 </head>
@@ -464,6 +465,9 @@
                             </div>
                             <div id="positions" class="space-y-1.5"></div>
                         </div>
+                        <button type="button" onclick="openOptionsOverlay()" class="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-violet-200 bg-violet-50/60 hover:bg-violet-50 transition text-xs font-black text-violet-700">
+                            <span>Options Overlay</span><span id="option-count-badge" class="bg-white border border-violet-200 rounded-full px-2 py-0.5 text-[10px]">0 positions</span>
+                        </button>
                         <button type="submit" id="run-btn" class="w-full py-2.5 mt-3 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-lg shadow-sm transition">Run Risk Analysis</button>
                         <p id="risk-error" class="hidden text-sm text-red-600 font-semibold text-center mt-2"></p>
                     </form>
@@ -485,11 +489,13 @@
                                     <p id="risk-detail-subtitle" class="text-xs text-gray-500 truncate">Run an analysis to decompose portfolio VaR.</p>
                                 </div>
                                 <div class="flex shrink-0 rounded-lg bg-gray-100 p-1 text-[10px] font-black uppercase tracking-wide">
-                                    <button id="risk-tab-attribution" type="button" onclick="showRiskDetail('attribution')" class="px-2.5 py-1.5 rounded-md bg-white text-blue-700 shadow-sm">Contribution</button>
-                                    <button id="risk-tab-correlation" type="button" onclick="showRiskDetail('correlation')" class="px-2.5 py-1.5 rounded-md text-gray-500">Correlation</button>
+                                    <button id="risk-tab-attribution" type="button" onclick="showRiskDetail('attribution')" class="px-2 py-1.5 rounded-md bg-white text-blue-700 shadow-sm">Contribution</button>
+                                    <button id="risk-tab-greeks" type="button" onclick="showRiskDetail('greeks')" class="px-2 py-1.5 rounded-md text-gray-500">Greeks</button>
+                                    <button id="risk-tab-correlation" type="button" onclick="showRiskDetail('correlation')" class="px-2 py-1.5 rounded-md text-gray-500">Correlation</button>
                                 </div>
                             </div>
                             <div id="risk-attribution-view"><div id="risk-contribution-chart" style="height:255px"></div></div>
+                            <div id="derivatives-view" class="hidden"><div id="derivatives-chart" style="height:255px"></div></div>
                             <div id="correlation-view" class="hidden"><div id="corr-chart" style="height:255px"></div></div>
                         </div>
                     </div>
@@ -532,6 +538,29 @@
             <div id="feedback-success" class="hidden text-center mt-4 text-emerald-600 font-semibold text-sm">
                 Thank you! Your feedback has been transmitted securely.
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL: MARKET RISK LAB OPTIONS OVERLAY -->
+    <div id="modal-risk-options" class="hidden fixed inset-0 z-[220] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-5xl w-full relative max-h-[90vh] overflow-y-auto">
+            <button type="button" onclick="toggleModal('modal-risk-options')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-xl font-bold">×</button>
+            <div class="pr-10 mb-5">
+                <h3 class="text-2xl font-black text-gray-900">Options Risk Overlay</h3>
+                <p class="text-sm text-gray-500 mt-1">Add up to three European options. VaR uses a Delta–Gamma–Vega approximation with simulated spot and volatility shocks.</p>
+            </div>
+            <div class="grid grid-cols-12 gap-2 px-2 mb-2 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                <span class="col-span-2">Underlying</span><span class="col-span-2">Type</span><span class="col-span-2">Strike</span><span class="col-span-2">Expiry days</span><span class="col-span-2">IV %</span><span class="col-span-2">Contracts</span>
+            </div>
+            <div id="risk-options-editor" class="space-y-2"></div>
+            <div class="flex flex-wrap items-center justify-between gap-3 mt-5 pt-4 border-t border-gray-100">
+                <div class="flex gap-2">
+                    <button type="button" onclick="addRiskOption()" class="px-4 py-2 rounded-lg bg-violet-50 text-violet-700 font-black text-sm border border-violet-200">+ Add Option</button>
+                    <button type="button" onclick="clearRiskOptions()" class="px-4 py-2 rounded-lg bg-gray-50 text-gray-500 font-bold text-sm border border-gray-200">Clear</button>
+                </div>
+                <button type="button" onclick="applyRiskOptions()" class="px-5 py-2.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-black text-sm shadow-sm">Apply Overlay</button>
+            </div>
+            <p class="text-[11px] text-gray-400 mt-4">Positive contracts are long; negative contracts are short. Contract multiplier is 100. The approximation also includes Black–Scholes theta over the selected VaR horizon.</p>
         </div>
     </div>
 
@@ -1199,6 +1228,72 @@
         // MARKET RISK LAB V2 ENGINE
         // ==========================================
         let latestRiskData = null;
+        let activeRiskOptions = [];
+
+        function updateOptionBadge() {
+            const badge = document.getElementById('option-count-badge');
+            if (badge) badge.innerText = `${activeRiskOptions.length} ${activeRiskOptions.length === 1 ? 'position' : 'positions'}`;
+        }
+
+        function renderRiskOptionsEditor() {
+            const editor = document.getElementById('risk-options-editor');
+            if (!activeRiskOptions.length) {
+                editor.innerHTML = `<div class="rounded-xl border border-dashed border-gray-200 p-6 text-center text-sm text-gray-400">No derivatives overlay. Add an option to stress nonlinear risk.</div>`;
+                return;
+            }
+            editor.innerHTML = activeRiskOptions.map((o, i) => `
+                <div class="grid grid-cols-12 gap-2 items-center bg-gray-50 border border-gray-200 rounded-xl p-2">
+                    <input id="ro-underlying-${i}" value="${o.underlying || ''}" placeholder="AAPL" class="col-span-2 border border-gray-200 rounded-lg px-2 py-2 uppercase font-bold bg-white">
+                    <select id="ro-type-${i}" class="col-span-2 border border-gray-200 rounded-lg px-2 py-2 font-bold bg-white"><option value="call" ${o.option_type === 'call' ? 'selected' : ''}>Call</option><option value="put" ${o.option_type === 'put' ? 'selected' : ''}>Put</option></select>
+                    <input id="ro-strike-${i}" type="number" min="0.01" step="0.01" value="${o.strike ?? ''}" placeholder="200" class="col-span-2 border border-gray-200 rounded-lg px-2 py-2 font-bold bg-white">
+                    <input id="ro-expiry-${i}" type="number" min="1" max="1095" value="${o.days_to_expiry ?? 90}" class="col-span-2 border border-gray-200 rounded-lg px-2 py-2 font-bold bg-white">
+                    <input id="ro-iv-${i}" type="number" min="1.1" max="300" step="0.1" value="${o.implied_vol_pct ?? 25}" class="col-span-2 border border-gray-200 rounded-lg px-2 py-2 font-bold bg-white">
+                    <div class="col-span-2 flex gap-1"><input id="ro-contracts-${i}" type="number" min="-1000" max="1000" value="${o.contracts ?? 1}" class="min-w-0 w-full border border-gray-200 rounded-lg px-2 py-2 font-bold bg-white"><button type="button" onclick="removeRiskOption(${i})" class="px-2 text-red-500 font-black">×</button></div>
+                </div>`).join('');
+        }
+
+        function openOptionsOverlay() {
+            renderRiskOptionsEditor();
+            toggleModal('modal-risk-options');
+        }
+
+        function addRiskOption() {
+            if (activeRiskOptions.length >= 3) { alert('Use no more than three option positions in this risk overlay.'); return; }
+            const firstTicker = document.getElementById('ticker-0')?.value?.trim().toUpperCase() || 'AAPL';
+            activeRiskOptions.push({ underlying: firstTicker, option_type: 'call', strike: '', days_to_expiry: 90, implied_vol_pct: 25, contracts: 1 });
+            renderRiskOptionsEditor();
+        }
+
+        function removeRiskOption(index) {
+            activeRiskOptions.splice(index, 1);
+            renderRiskOptionsEditor();
+            updateOptionBadge();
+        }
+
+        function clearRiskOptions() {
+            activeRiskOptions = [];
+            renderRiskOptionsEditor();
+            updateOptionBadge();
+        }
+
+        function applyRiskOptions() {
+            const next = [];
+            for (let i = 0; i < activeRiskOptions.length; i++) {
+                const underlying = document.getElementById(`ro-underlying-${i}`).value.trim().toUpperCase();
+                const strike = parseFloat(document.getElementById(`ro-strike-${i}`).value);
+                const expiry = parseInt(document.getElementById(`ro-expiry-${i}`).value);
+                const ivPct = parseFloat(document.getElementById(`ro-iv-${i}`).value);
+                const contracts = parseInt(document.getElementById(`ro-contracts-${i}`).value);
+                if (!underlying || !(strike > 0) || !(expiry > 0) || !(ivPct > 1) || !Number.isFinite(contracts) || contracts === 0) {
+                    alert('Complete every option row with a valid underlying, strike, expiry, IV and non-zero contract count.');
+                    return;
+                }
+                next.push({ underlying, option_type: document.getElementById(`ro-type-${i}`).value, strike, days_to_expiry: expiry, implied_vol_pct: ivPct, contracts });
+            }
+            activeRiskOptions = next;
+            updateOptionBadge();
+            toggleModal('modal-risk-options');
+        }
 
         function renderCorrelationDetail(data) {
             if (!data || !data.diagnostics || !data.diagnostics.correlation_matrix) return;
@@ -1215,39 +1310,30 @@
         }
 
         function showRiskDetail(view) {
-            const attributionView = document.getElementById('risk-attribution-view');
-            const correlationView = document.getElementById('correlation-view');
-            const attributionTab = document.getElementById('risk-tab-attribution');
-            const correlationTab = document.getElementById('risk-tab-correlation');
+            const views = { attribution: document.getElementById('risk-attribution-view'), greeks: document.getElementById('derivatives-view'), correlation: document.getElementById('correlation-view') };
+            const tabs = { attribution: document.getElementById('risk-tab-attribution'), greeks: document.getElementById('risk-tab-greeks'), correlation: document.getElementById('risk-tab-correlation') };
             const title = document.getElementById('risk-detail-title');
             const subtitle = document.getElementById('risk-detail-subtitle');
-
-            const activeClasses = ['bg-white', 'text-blue-700', 'shadow-sm'];
-            const inactiveClasses = ['text-gray-500'];
+            Object.entries(views).forEach(([key, el]) => el.classList.toggle('hidden', key !== view));
+            Object.entries(tabs).forEach(([key, el]) => {
+                el.classList.toggle('bg-white', key === view); el.classList.toggle('text-blue-700', key === view); el.classList.toggle('shadow-sm', key === view); el.classList.toggle('text-gray-500', key !== view);
+            });
 
             if (view === 'correlation') {
-                attributionView.classList.add('hidden');
-                correlationView.classList.remove('hidden');
-                activeClasses.forEach(c => correlationTab.classList.add(c));
-                inactiveClasses.forEach(c => correlationTab.classList.remove(c));
-                activeClasses.forEach(c => attributionTab.classList.remove(c));
-                inactiveClasses.forEach(c => attributionTab.classList.add(c));
                 title.innerText = 'Asset Correlation Matrix';
                 const obs = latestRiskData?.diagnostics?.historical_observations;
-                subtitle.innerText = obs ? `${obs} observations · dependence structure for the Monte Carlo engine.` : 'Dependence structure for the Monte Carlo engine.';
+                subtitle.innerText = obs ? `${obs} observations · equity and option-underlying dependence.` : 'Dependence structure for the Monte Carlo engine.';
                 renderCorrelationDetail(latestRiskData);
+            } else if (view === 'greeks') {
+                title.innerText = 'Derivatives Risk';
+                const d = latestRiskData?.derivatives;
+                subtitle.innerText = d?.active ? `Δ £${Math.round(d.aggregate_dollar_delta).toLocaleString()} · Γ(1%) ${formatMoney(d.aggregate_gamma_pnl_1pct)} · Vega ${formatMoney(d.aggregate_vega_pnl_1vol)}/vol pt` : 'No options overlay is active.';
+                if (document.getElementById('derivatives-chart').data) Plotly.Plots.resize('derivatives-chart');
             } else {
-                correlationView.classList.add('hidden');
-                attributionView.classList.remove('hidden');
-                activeClasses.forEach(c => attributionTab.classList.add(c));
-                inactiveClasses.forEach(c => attributionTab.classList.remove(c));
-                activeClasses.forEach(c => correlationTab.classList.remove(c));
-                inactiveClasses.forEach(c => correlationTab.classList.add(c));
                 title.innerText = 'Risk Contribution';
                 const a = latestRiskData?.attribution;
-                subtitle.innerText = a
-                    ? `Parametric VaR ${formatMoney(a.portfolio_var)} · diversification ${a.diversification_pct.toFixed(1)}%`
-                    : 'Run an analysis to decompose portfolio VaR.';
+                const overlayNote = latestRiskData?.derivatives?.active ? ' · equity attribution only' : '';
+                subtitle.innerText = a ? `Parametric VaR ${formatMoney(a.portfolio_var)} · diversification ${a.diversification_pct.toFixed(1)}%${overlayNote}` : 'Run an analysis to decompose portfolio VaR.';
                 if (document.getElementById('risk-contribution-chart').data) Plotly.Plots.resize('risk-contribution-chart');
             }
         }
@@ -1305,6 +1391,7 @@
 
             const payload = {
                 positions,
+                options: activeRiskOptions.map(o => ({ underlying: o.underlying, option_type: o.option_type, strike: o.strike, days_to_expiry: o.days_to_expiry, implied_vol: o.implied_vol_pct / 100, contracts: o.contracts, multiplier: 100 })),
                 portfolio_value: parseFloat(document.getElementById('portfolio-value').value),
                 confidence: parseFloat(document.getElementById('confidence').value),
                 horizon_days: parseInt(document.getElementById('horizon').value),
@@ -1367,7 +1454,25 @@
                     showlegend: false
                 }, { displayModeBar: false, responsive: true });
 
-                showRiskDetail('attribution');
+                const derivatives = data.derivatives;
+                const derivativesChart = document.getElementById('derivatives-chart');
+                if (derivatives?.active && Array.isArray(derivatives.options)) {
+                    const labels = derivatives.options.map(o => `${o.underlying} ${o.option_type === 'call' ? 'C' : 'P'} ${o.strike}`);
+                    Plotly.newPlot('derivatives-chart', [
+                        { x: labels, y: derivatives.options.map(o => o.delta_pnl_1pct), name: 'Delta: +1% spot', type: 'bar', marker: { color: '#7c3aed' } },
+                        { x: labels, y: derivatives.options.map(o => o.gamma_pnl_1pct), name: 'Gamma: 1% move', type: 'bar', marker: { color: '#2563eb' } },
+                        { x: labels, y: derivatives.options.map(o => o.vega_pnl_1vol), name: 'Vega: +1 vol pt', type: 'bar', marker: { color: '#059669' } }
+                    ], {
+                        barmode: 'group', margin: { t: 10, r: 10, l: 50, b: 55 },
+                        yaxis: { title: 'P&L impact (£)', gridcolor: '#f3f4f6', zeroline: true, zerolinecolor: '#d1d5db' },
+                        legend: { orientation: 'h', y: 1.12, font: { size: 9 } },
+                        paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)'
+                    }, { displayModeBar: false, responsive: true });
+                    showRiskDetail('greeks');
+                } else {
+                    derivativesChart.innerHTML = `<div class="h-full flex items-center justify-center text-sm text-gray-400 italic text-center px-8">Add an option through Options Overlay to activate Delta, Gamma and Vega risk.</div>`;
+                    showRiskDetail('attribution');
+                }
 
             } catch (err) {
                 error.innerText = err.message;

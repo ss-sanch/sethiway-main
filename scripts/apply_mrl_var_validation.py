@@ -44,3 +44,4 @@ missing = [x for x in required if x not in s]
 if missing:
     raise SystemExit(f'Missing Phase 4 frontend markers: {missing}')
 print('Phase 4 VaR validation frontend applied.')
+# trigger workflow

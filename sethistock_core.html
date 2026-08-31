@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SethiStock | Proprietary Analytics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        html { scroll-behavior: smooth; }
+        .tf-btn.active, .type-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
+        .modal-active { overflow: hidden; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased pb-20">
+
+    <nav class="flex justify-between items-center py-6 px-6 md:px-10 bg-white shadow-sm sticky top-0 z-50">
+        <a href="index.html" class="flex items-center"><img src="logo.png" alt="Sethiway Logo" class="h-10 w-auto invert"></a>
+        <div class="hidden md:flex items-center space-x-6 text-xs font-bold uppercase tracking-widest text-gray-500">
+            <button onclick="window.scrollTo({ top: 0, behavior: 'smooth' });" class="hover:text-blue-600 transition cursor-pointer uppercase tracking-widest font-bold">Current Stats</button>
+            <a href="#key-metrics" class="hover:text-blue-600 transition">Key Graphs</a>
+            <a href="#comparisons" class="hover:text-blue-600 transition">Comparisons</a>
+            <a href="#valuation" class="hover:text-blue-600 transition">Valuations</a>
+            <a href="#extra" class="hover:text-blue-600 transition">Extra</a>
+            <a href="index.html" class="hover:text-blue-600 transition ml-4 pl-4 border-l border-gray-300">Back to Hub</a>
+        </div>
+    </nav>
+
+    <!-- THIN BLUE PROGRESS BAR -->
+    <div id="progress-container" class="w-full h-1 bg-transparent overflow-hidden sticky top-[88px] z-40 transition-opacity duration-500 opacity-0">
+        <div id="progress-bar" class="h-full bg-blue-600 w-0 transition-all duration-300 ease-out shadow-[0_0_10px_rgba(37,99,235,0.8)]"></div>
+    </div>
+
+    <div class="bg-white border-b border-gray-200 px-6 py-3 w-full overflow-x-auto whitespace-nowrap hidden md:flex items-center space-x-4" id="watchlist-ribbon">
+        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">My Watchlist:</span>
+        <div id="watchlist-container" class="flex space-x-2"></div>
+    </div>
+
+    <header class="pt-12 pb-8 flex flex-col justify-center items-center text-center px-6">
+        <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-4 text-gray-900">SETHISTOCK.</h1>
+        <form id="search-form" class="w-full max-w-lg flex shadow-xl rounded-lg mt-2 border border-gray-200 relative">
+            <input type="text" id="ticker-input" autocomplete="off" oninput="fetchSuggestions(this.value)" required placeholder="Enter Ticker or Company (e.g. AAPL or Apple)" class="w-full px-6 py-4 text-lg border-none focus:outline-none uppercase font-bold text-gray-700 rounded-l-lg">
+            <button type="submit" id="search-btn" class="px-8 bg-blue-600 text-white font-bold hover:bg-blue-700 transition rounded-r-lg z-10">Analyse</button>
+            
+            <ul id="search-suggestions" class="absolute top-full left-0 w-full bg-white border border-gray-200 rounded-b-xl shadow-2xl mt-1 hidden overflow-hidden text-left z-50">
+            </ul>
+        </form>
+        <p id="error-message" class="text-red-500 mt-4 hidden font-semibold"></p>
+
+        <!-- DYNAMIC LOADING BUBBLE (Hidden by default) -->
+        <div id="loading-bubble" class="hidden mx-auto mt-6 flex justify-center items-center py-2 px-6 bg-blue-50 border border-blue-100 rounded-full max-w-md transition-all duration-500 shadow-sm overflow-hidden">
+            <svg class="animate-spin h-4 w-4 text-blue-600 mr-3 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <span id="loading-bubble-text" class="text-xs font-bold text-blue-800 tracking-wider uppercase">Initializing SethiStock...</span>
+        </div>
+
+    </header>
+
+    <section id="dashboard" class="hidden px-6 md:px-10 w-full max-w-[1600px] mx-auto space-y-8 opacity-0 transition-opacity duration-300">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 flex items-center space-x-4 mb-2">
+            <div class="hidden md:flex p-3 bg-blue-50 text-blue-600 rounded-xl">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <div>
+                <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Company Overview</h3>
+                <p id="company-summary" class="text-sm text-gray-700 leading-relaxed font-medium">Loading profile...</p>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            <div class="xl:col-span-2 bg-white p-8 rounded-2xl shadow-sm border border-gray-200 flex flex-col">
+                <div class="flex flex-col md:flex-row justify-between items-center md:items-end mb-8 border-b pb-6">
+                    <div>
+                        <div class="flex items-center space-x-4">
+                            <h2 id="display-ticker" class="text-5xl font-black tracking-tighter">AAPL</h2>
+                            <button id="watchlist-btn" onclick="toggleWatchlist()" class="px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full border border-gray-200 text-gray-400 hover:text-yellow-500 hover:border-yellow-500 transition-colors">☆ Save</button>
+                        </div>
+                        <p class="text-sm font-bold text-gray-400 uppercase tracking-widest mt-1">Live Market Data</p>
+                    </div>
+                    <div class="text-right mt-6 md:mt-0 flex items-center space-x-6">
+                        <div class="flex flex-col items-center justify-center p-3 bg-gray-50 rounded-xl border border-gray-200 hidden md:flex">
+                            <div class="flex items-center space-x-1">
+                                <span class="text-[10px] text-gray-400 font-bold tracking-widest uppercase">Sethi Score</span>
+                                <button onclick="toggleModal('score-modal')" class="text-gray-400 hover:text-blue-600 transition-colors" title="Learn about the Sethi Score">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                </button>
+                            </div>
+                            <span id="sethi-score" class="text-3xl font-black mt-1">0/100</span>
+                        </div>
+                        <div>
+                            <h1 id="display-price" class="text-6xl font-light mb-2">$0.00</h1>
+                            <div class="flex items-center justify-end space-x-3">
+                                <span id="display-change" class="text-xl font-semibold">0.00</span>
+                                <span id="display-pct" class="px-3 py-1 text-sm font-bold text-white rounded-full">0.00%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-col lg:flex-row justify-between items-center mb-4 space-y-4 lg:space-y-0">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg border border-gray-200" id="timeframe-controls">
+                            <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="1d" data-interval="5m">1D</button>
+                            <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="5d" data-interval="15m">1W</button>
+                            <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="1mo" data-interval="1d">1M</button>
+                            <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="3mo" data-interval="1d">3M</button>
+                            <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="ytd" data-interval="1d">YTD</button>
+                            <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition active" data-period="1y" data-interval="1d">1Y</button>
+                            <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="5y" data-interval="1wk">5Y</button>
+                            <button class="tf-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-period="max" data-interval="1mo">MAX</button>
+                        </div>
+                        <span id="period-pct-pill" class="hidden px-3 py-1 text-sm font-bold text-white rounded-full shadow-sm">0.00%</span>
+                    </div>
+                    <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg border border-gray-200" id="type-controls">
+                        <button class="type-btn active px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-type="line">Line</button>
+                        <button class="type-btn px-4 py-1 text-sm font-bold rounded-md text-gray-600 transition" data-type="candlestick">Candle</button>
+                    </div>
+                </div>
+                <div id="price-chart" class="w-full h-[500px] mt-auto"></div>
+            </div>
+
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col relative h-full">
+                <h3 class="text-xl font-black text-gray-900 mb-6 flex items-center justify-between">
+                    Insights & Stats
+                    <button onclick="toggleModal('stats-modal')" class="text-gray-400 hover:text-blue-600 transition z-10 cursor-pointer">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                </h3>
+                
+                <div class="flex-grow flex flex-col justify-between space-y-6">
+                    
+                    <div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Value & Profitability</h4>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 px-1">
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Mkt Cap</span><span id="stat-mkt" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">EV/EBITDA</span><span id="stat-ev" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">P/E (TTM)</span><span id="stat-pe" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-blue-600">ROE</span><span id="roe" class="text-sm font-black text-blue-700">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">EPS (TTM)</span><span id="stat-eps" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">EPS (NTM)</span><span id="stat-feps" class="text-sm font-black text-gray-900">--</span></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Technicals & Momentum</h4>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 px-1">
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">14d RSI</span><span id="stat-rsi" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Stochastic</span><span id="stat-stoch" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">% From 200MA</span><span id="stat-sma" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">% From 52W High</span><span id="stat-52w" class="text-sm font-black text-gray-900">--</span></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Risk & Yield</h4>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 px-1">
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Beta</span><span id="stat-beta" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-red-500">Short Int.</span><span id="stat-short" class="text-sm font-black text-red-600">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Div Yield</span><span id="stat-div" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-green-600">FCF Yield</span><span id="stat-fcf" class="text-sm font-black text-green-700">--</span></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Catalysts</h4>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 px-1">
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-purple-600">Next Earnings</span><span id="stat-earn" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-purple-600">Ex-Dividend</span><span id="stat-exdiv" class="text-sm font-black text-gray-900">--</span></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div id="key-metrics" class="scroll-mt-24">
+            <h3 class="text-2xl font-black mt-10 mb-2 border-b pb-4">Key Financial Metrics</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="individual-charts-container"></div>
+        </div>
+
+        <div id="comparisons" class="scroll-mt-24">
+            <h3 class="text-2xl font-black mt-10 mb-2 border-b pb-4">Financial Comparisons</h3>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200"><h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">Revenue vs Net Income</h4><div id="comp-rev-net" class="h-64 w-full"></div></div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200"><h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">Cash vs Total Debt</h4><div id="comp-cash-debt" class="h-64 w-full"></div></div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200"><h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">Operating CF vs Free Cash Flow</h4><div id="comp-fcf-ocf" class="h-64 w-full"></div></div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200"><h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">Operating CF vs CapEx</h4><div id="comp-ocf-capex" class="h-64 w-full"></div></div>
+            </div>
+        </div>
+
+        <div id="valuation" class="mt-12 scroll-mt-24">
+            <h3 class="text-2xl font-black mb-6 border-b border-gray-200 pb-4">Advanced Valuation Engine</h3>
+            
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-4">
+                
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 relative flex flex-col justify-between">
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex items-center gap-3">
+                            <h4 class="text-xl font-bold tracking-tight text-gray-900">Reverse DCF Calculator</h4>
+                            <!-- MACRO-PEG BADGE -->
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 border border-indigo-100 rounded-md" title="Discount Rate is dynamically pegged to live US 10Y Real Yields via SethiMacro">
+                                <span class="relative flex h-2 w-2">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                                </span>
+                                <span class="text-[10px] font-bold text-indigo-700 uppercase tracking-widest">Macro-Pegged</span>
+                            </div>
+                        </div>
+                        <button onclick="toggleModal('dcf-modal')" class="text-gray-400 hover:text-blue-600 transition-colors" title="Learn about DCF Valuation">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-6 mb-8">
+                        <div class="flex flex-col"><label class="text-gray-500 font-bold mb-2 text-xs uppercase tracking-widest">Proj Years</label><input type="number" id="proj-num" value="5" class="bg-gray-50 text-gray-900 rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-200" oninput="document.getElementById('proj-sld').value=this.value; calculateDCF();"><input type="range" id="proj-sld" min="1" max="20" value="5" class="w-full accent-blue-500" oninput="document.getElementById('proj-num').value=this.value; calculateDCF();"></div>
+                        <div class="flex flex-col"><label class="text-gray-500 font-bold mb-2 text-xs uppercase tracking-widest">FCF Growth (%)</label><input type="number" id="grow-num" value="15" class="bg-gray-50 text-gray-900 rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-200" oninput="document.getElementById('grow-sld').value=this.value; calculateDCF();"><input type="range" id="grow-sld" min="1" max="100" value="15" class="w-full accent-blue-500" oninput="document.getElementById('grow-num').value=this.value; calculateDCF();"></div>
+                        <div class="flex flex-col"><label class="text-gray-500 font-bold mb-2 text-xs uppercase tracking-widest">Discount (%)</label><input type="number" id="disc-num" value="10" class="bg-gray-50 text-gray-900 rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-200" oninput="document.getElementById('disc-sld').value=this.value; calculateDCF();"><input type="range" id="disc-sld" min="1" max="50" value="10" class="w-full accent-blue-500" oninput="document.getElementById('disc-num').value=this.value; calculateDCF();"></div>
+                        <div class="flex flex-col"><label class="text-gray-500 font-bold mb-2 text-xs uppercase tracking-widest">Exit Mult</label><input type="number" id="exit-num" value="15" class="bg-gray-50 text-gray-900 rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-200" oninput="document.getElementById('exit-sld').value=this.value; calculateDCF();"><input type="range" id="exit-sld" min="1" max="100" value="15" class="w-full accent-blue-500" oninput="document.getElementById('exit-num').value=this.value; calculateDCF();"></div>
+                        <div class="flex flex-col col-span-2"><label class="text-gray-500 font-bold mb-2 text-xs uppercase tracking-widest text-center">Perp Growth (%)</label><div class="flex items-center space-x-4"><input type="number" id="perp-num" value="2.5" step="0.5" class="bg-gray-50 text-gray-900 rounded-lg p-2 w-24 text-center font-bold outline-none border border-gray-200" oninput="document.getElementById('perp-sld').value=this.value; calculateDCF();"><input type="range" id="perp-sld" min="0" max="10" value="2.5" step="0.5" class="w-full accent-green-500" oninput="document.getElementById('perp-num').value=this.value; calculateDCF();"></div></div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-auto">
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 text-center">
+                            <p class="text-blue-600 font-bold text-[10px] tracking-widest uppercase">Target (Exit Mult)</p>
+                            <h1 id="target-em" class="text-3xl font-light mt-2 text-gray-900">$0.00</h1>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 text-center">
+                            <p class="text-green-600 font-bold text-[10px] tracking-widest uppercase">Target (Gordon)</p>
+                            <h1 id="target-gg" class="text-3xl font-light mt-2 text-gray-900">$0.00</h1>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 relative flex flex-col justify-between">
+                    <div class="flex justify-between items-center mb-6">
+                        <h4 class="text-xl font-bold tracking-tight text-gray-900">Fair Value Range</h4>
+                        <button onclick="toggleModal('football-modal')" class="text-gray-400 hover:text-blue-600 transition-colors" title="Learn about the Football Field">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </button>
+                    </div>
+                    
+                    <div id="football-field" class="w-full flex-grow min-h-[300px]"></div>
+                </div>
+
+            </div>
+            
+            <p id="dcf-warning" class="text-red-500 text-center font-bold hidden">Insufficient Cash Flow or Estimates to run full Valuation Engine.</p>
+        </div>
+
+
+            <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 mt-6 relative">
+                <button onclick="toggleModal('modal-matrix')" class="absolute top-4 right-4 text-gray-400 hover:text-blue-600 transition z-10 cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </button>
+                <div class="mb-4 pr-8">
+                    <h3 class="text-lg font-bold text-gray-800">Live DCF Sensitivity Matrix</h3>
+                    <p class="text-xs font-semibold text-gray-500 mt-1">Implied Share Price based on Live DCF Inputs</p>
+                </div>
+                <div id="sensitivity-matrix-container" class="w-full overflow-x-auto">
+                    </div>
+            </div>
+
+            <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 mt-6 relative shadow-sm">
+                <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 mt-6 relative shadow-sm">
+                
+                <button onclick="toggleModal('lbo-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-blue-600 transition z-10 cursor-pointer" title="Learn about LBOs">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </button>
+
+                <div class="mb-6 border-b border-gray-200 pb-4 pr-8">
+                    <h3 class="text-lg font-bold text-gray-800">Mini-LBO (Leveraged Buyout) Model</h3>
+                    <p class="text-xs font-semibold text-gray-500 mt-1">Instant IRR & MoM calculations based on live cash flow metrics</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="md:col-span-2 grid grid-cols-2 gap-6">
+                        <div class="flex flex-col">
+                            <label class="text-gray-500 font-bold mb-2 text-xs uppercase tracking-widest">Entry/Exit Multiple</label>
+                            <input type="number" id="lbo-mult-num" value="15" class="bg-white text-gray-900 rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-200" oninput="document.getElementById('lbo-mult-sld').value=this.value; calculateLBO();">
+                            <input type="range" id="lbo-mult-sld" min="5" max="30" value="15" step="0.5" class="w-full accent-blue-600" oninput="document.getElementById('lbo-mult-num').value=this.value; calculateLBO();">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-gray-500 font-bold mb-2 text-xs uppercase tracking-widest">Debt Funding (%)</label>
+                            <input type="number" id="lbo-debt-num" value="60" class="bg-white text-gray-900 rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-200" oninput="document.getElementById('lbo-debt-sld').value=this.value; calculateLBO();">
+                            <input type="range" id="lbo-debt-sld" min="0" max="90" value="60" class="w-full accent-purple-600" oninput="document.getElementById('lbo-debt-num').value=this.value; calculateLBO();">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-gray-500 font-bold mb-2 text-xs uppercase tracking-widest">Interest Rate (%)</label>
+                            <input type="number" id="lbo-int-num" value="8" class="bg-white text-gray-900 rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-200" oninput="document.getElementById('lbo-int-sld').value=this.value; calculateLBO();">
+                            <input type="range" id="lbo-int-sld" min="1" max="20" value="8" step="0.5" class="w-full accent-red-500" oninput="document.getElementById('lbo-int-num').value=this.value; calculateLBO();">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-gray-500 font-bold mb-2 text-xs uppercase tracking-widest">Holding Period (Yrs)</label>
+                            <input type="number" id="lbo-years-num" value="5" class="bg-white text-gray-900 rounded-lg p-2 mb-3 text-center font-bold outline-none border border-gray-200" oninput="document.getElementById('lbo-years-sld').value=this.value; calculateLBO();">
+                            <input type="range" id="lbo-years-sld" min="1" max="10" value="5" class="w-full accent-green-500" oninput="document.getElementById('lbo-years-num').value=this.value; calculateLBO();">
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col justify-center space-y-4">
+                        <div class="bg-white p-4 rounded-xl border border-gray-200 text-center shadow-sm">
+                            <p class="text-gray-500 font-bold text-[10px] tracking-widest uppercase">Implied IRR</p>
+                            <h1 id="lbo-irr" class="text-3xl font-bold mt-2 text-gray-900">0.0%</h1>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border border-gray-200 text-center shadow-sm">
+                            <p class="text-gray-500 font-bold text-[10px] tracking-widest uppercase">Multiple on Money (MoM)</p>
+                            <h1 id="lbo-mom" class="text-3xl font-bold mt-2 text-gray-900">0.00x</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                    </div>
+        </div>
+
+        <div class="mt-10 border-t border-gray-200 pt-8 mb-6">
+            <h2 class="text-2xl font-black text-gray-900">Extra Info</h2>
+        </div>
+
+        <div id="extra" class="grid grid-cols-1 xl:grid-cols-2 gap-8 mt-12 mb-12 scroll-mt-24">
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+                <div class="flex justify-between items-center mb-6 border-b pb-4">
+                    <h3 class="text-2xl font-black">Peer Benchmarking</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead id="peer-table-head"></thead>
+                        <tbody id="peer-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+                <div class="flex justify-between items-center mb-6 border-b pb-4">
+                    <h3 class="text-2xl font-black">Insider Trading Activity</h3>
+                </div>
+                <div id="insider-visual"></div>
+                <div class="overflow-x-auto max-h-[350px] overflow-y-auto mt-4">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr>
+                                <th class="py-3 px-4 border-b text-gray-500 font-bold uppercase tracking-widest text-xs">Insider</th>
+                                <th class="py-3 px-4 border-b text-gray-500 font-bold uppercase tracking-widest text-xs">Action</th>
+                                <th class="py-3 px-4 border-b text-gray-500 font-bold uppercase tracking-widest text-xs">Shares</th>
+                                <th class="py-3 px-4 border-b text-gray-500 font-bold uppercase tracking-widest text-xs">Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="insider-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl p-8 border border-gray-200 shadow-sm mb-8 relative">
+            <button onclick="toggleModal('modal-dupont')" class="absolute top-4 right-4 text-gray-400 hover:text-blue-600 transition z-10 cursor-pointer">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </button>
+            <h3 class="text-xl font-black text-gray-900 mb-6 pr-8">DuPont ROE Decomposition</h3>
+            <div class="grid grid-cols-1 md:grid-cols-11 gap-2 text-center items-center">
+                <div class="bg-gray-50 border border-gray-100 p-4 rounded-xl col-span-2">
+                    <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Net Margin</span>
+                    <span id="dupont-margin" class="block text-xl font-black text-gray-900">--</span>
+                </div>
+                <div class="text-gray-300 font-black text-2xl hidden md:block">×</div>
+                <div class="bg-gray-50 border border-gray-100 p-4 rounded-xl col-span-2">
+                    <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Asset Turnover</span>
+                    <span id="dupont-turnover" class="block text-xl font-black text-gray-900">--</span>
+                </div>
+                <div class="text-gray-300 font-black text-2xl hidden md:block">×</div>
+                <div class="bg-gray-50 border border-gray-100 p-4 rounded-xl col-span-2">
+                    <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Equity Mult.</span>
+                    <span id="dupont-leverage" class="block text-xl font-black text-gray-900">--</span>
+                </div>
+                <div class="text-gray-300 font-black text-2xl hidden md:block">=</div>
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-200 col-span-2">
+                    <span class="block text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">True ROE</span>
+                    <span id="dupont-roe" class="block text-2xl font-black text-blue-700">--</span>
+                </div>
+            </div>
+        </div>
+        </div>
+
+
+    </section>
+
+    <div class="px-6 md:px-10 w-full max-w-[1600px] mx-auto mt-20 mb-12">
+        <div class="max-w-5xl mx-auto bg-gray-900 rounded-3xl p-10 flex flex-col md:flex-row justify-between items-start md:items-center text-center md:text-left shadow-xl gap-8">
+            
+            <div class="w-full md:w-1/3">
+                <h2 class="text-3xl font-black text-white mb-2">Got an idea?</h2>
+                <p class="text-gray-400">Let's build it together. Drop your details below and I'll get back to you.</p>
+            </div>
+            
+            <form action="https://api.web3forms.com/submit" method="POST" class="flex flex-col gap-4 w-full md:w-2/3">
+                
+                <input type="hidden" name="access_key" value="cd2ce7dc-37bf-4573-9c3b-680d8ccf17aa">
+                
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <input type="text" name="name" required placeholder="Your Name" class="px-6 py-3 rounded-xl bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500 w-full placeholder-gray-500">
+                    <input type="email" name="email" required placeholder="your@email.com" class="px-6 py-3 rounded-xl bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500 w-full placeholder-gray-500">
+                </div>
+                <textarea name="message" required placeholder="Tell me about your idea..." rows="3" class="px-6 py-3 rounded-xl bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-blue-500 w-full placeholder-gray-500 resize-none"></textarea>
+                
+                <button type="submit" class="px-8 py-3 mt-2 bg-white text-gray-900 font-bold rounded-xl hover:bg-gray-200 transition shadow-lg w-full sm:w-auto self-end">
+                    Submit Idea &rarr;
+                </button>
+            </form>
+            
+        </div>
+    </div>
+
+    <footer class="bg-white border-t border-gray-200 pt-12 pb-8 px-6 md:px-10 w-full mt-auto">
+        <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-6 md:mb-0 flex items-center">
+                <img src="logo.png" alt="Sethiway Logo" class="h-8 invert opacity-80">
+            </div>
+            <div class="flex space-x-6 text-sm font-bold text-gray-500 uppercase tracking-widest">
+                <a href="https://linkedin.com/in/sanchit-sethi17" target="_blank" class="hover:text-blue-600 transition">LinkedIn</a>
+            </div>
+        </div>
+        <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center mt-8 pt-8 border-t border-gray-100 text-xs text-gray-400 font-semibold">
+            <p>&copy; 2026 Sethiway. All rights reserved. <span class="mx-2">|</span> Made in the UK.</p>
+            <div class="flex space-x-4 mt-4 md:mt-0">
+                <a href="privacy.html" class="hover:text-gray-300 transition">Privacy Policy</a>
+                <a href="terms.html" class="hover:text-gray-300 transition">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <div id="modal-risk" class="fixed inset-0 z-[150] hidden flex items-center justify-center bg-black bg-opacity-60 transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-2xl w-11/12 md:w-1/2 lg:w-1/3 p-8 shadow-2xl transform scale-95 transition-transform duration-300">
+            <h2 class="text-2xl font-black text-gray-900 mb-4">Risk Profile (VaR & Volatility)</h2>
+            <p class="text-gray-600 mb-4"><strong>Value at Risk (VaR):</strong> A statistical technique used on Wall Street to quantify financial risk. A 95% VaR of -3.5% means we are 95% confident the stock will not lose more than 3.5% of its value in a single trading day, based on 5 years of historical data.</p>
+            <p class="text-gray-600 mb-6"><strong>Volatility:</strong> The annualized standard deviation of daily returns. Higher percentages indicate a wider swing in daily price action.</p>
+            <button onclick="toggleModal('modal-risk')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800">Understood</button>
+        </div>
+    </div>
+
+    <div id="dcf-modal" class="hidden fixed inset-0 z-[150] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-2xl font-black text-gray-900">Advanced Valuation Engine</h2>
+                <button onclick="toggleModal('dcf-modal')" class="text-gray-400 hover:text-red-500 text-3xl leading-none">&times;</button>
+            </div>
+            <p class="text-gray-600 text-sm mb-6">This engine uses distinct mathematical models to calculate a range of intrinsic values for the target company, creating a comprehensive "Football Field" of potential target entry prices.</p>
+            <div class="space-y-5 text-gray-700 text-sm leading-relaxed">
+                
+                <!-- NEW: Macro-Pegged Explanation -->
+                <p><strong class="text-indigo-600 font-black">Macro-Pegged Discount Rate:</strong> Your baseline discount rate is dynamically tethered to the live US 10-Year Real Treasury Yield via the SethiMacro terminal, plus a standard 5.0% Equity Risk Premium. This ensures your valuation automatically adapts to today's live macroeconomic risk environment.</p>
+                
+                <p><strong class="text-blue-600 font-black">Exit Multiple DCF:</strong> Calculates terminal value based on a multiple of the final year's cash flow. Best for established, steady-state businesses.</p>
+                <p><strong class="text-green-600 font-black">Gordon Growth DCF:</strong> Assumes the company will grow cash flows perpetually at a stable rate. Highly sensitive to the Perpetual Growth Rate input. If the discount rate is lower than the growth rate, this model mathematically breaks and returns N/A.</p>
+            </div>
+            <div class="mt-8 pt-4 text-center border-t border-gray-100">
+                <button onclick="toggleModal('dcf-modal')" class="bg-gray-900 text-white font-bold py-2 px-8 rounded-lg hover:bg-gray-700 transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-dupont" class="fixed inset-0 z-[150] hidden flex items-center justify-center bg-black bg-opacity-60 transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-2xl w-11/12 md:w-1/2 lg:w-1/3 p-8 shadow-2xl transform scale-95 transition-transform duration-300">
+            <h2 class="text-2xl font-black text-gray-900 mb-4">DuPont ROE Analysis</h2>
+            <p class="text-gray-600 mb-4">Return on Equity (ROE) is a massive profitability indicator, but it can be manipulated with debt. The DuPont model breaks ROE down into its three true drivers:</p>
+            <ul class="list-disc pl-5 text-gray-600 mb-6 space-y-2">
+                <li><strong>Net Margin:</strong> Operating efficiency (Are they pricing their product well?)</li>
+                <li><strong>Asset Turnover:</strong> Asset use efficiency (Are they selling enough product?)</li>
+                <li><strong>Equity Multiplier:</strong> Financial leverage (Are they pumping up returns using dangerous debt?)</li>
+            </ul>
+            <button onclick="toggleModal('modal-dupont')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800">Understood</button>
+        </div>
+    </div>
+
+    <div id="modal-matrix" class="fixed inset-0 z-[150] hidden flex items-center justify-center bg-black bg-opacity-60 transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-2xl w-11/12 md:w-1/2 lg:w-1/3 p-8 shadow-2xl transform scale-95 transition-transform duration-300">
+            <h2 class="text-2xl font-black text-gray-900 mb-4">Live Sensitivity Matrix</h2>
+            <p class="text-gray-600 mb-4">A standard single-scenario DCF is dangerous. Analysts use Sensitivity Matrices to see how slightly missing their assumptions affects the target price.</p>
+            <p class="text-gray-600 mb-6">This live grid pulls your exact inputs from the DCF Calculator above, and automatically calculates 25 different target prices by flexing the Exit Multiple (X-Axis) and the Discount Rate (Y-Axis) up and down. <span class="text-green-600 font-bold">Green values</span> mean the implied price is higher than today's market price (Undervalued).</p>
+            <button onclick="toggleModal('modal-matrix')" class="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800">Understood</button>
+        </div>
+    </div>
+
+    <div id="score-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-2xl font-black text-gray-900">The Sethi Score</h2>
+                <button onclick="toggleModal('score-modal')" class="text-gray-400 hover:text-red-500 text-3xl leading-none">&times;</button>
+            </div>
+            <p class="text-gray-600 text-sm mb-4">The Sethi Score is a proprietary algorithmic grading system out of 100. It quickly evaluates a stock's fundamental health based on 10 strict Wall Street financial metrics.</p>
+            <div class="space-y-2 text-gray-700 text-sm leading-relaxed mb-6 bg-gray-50 p-5 rounded-lg border border-gray-200">
+                <ul id="sethiscore-criteria-list" class="list-disc pl-5 space-y-2">
+                    <li><strong class="font-bold">Positive Net Income:</strong> Company is currently profitable.</li>
+                    <li><strong class="font-bold">Consistent Revenue Growth:</strong> Revenue has increased year-over-year.</li>
+                    <li><strong class="font-bold">Positive Free Cash Flow:</strong> Generating real cash after capital expenditures.</li>
+                    <li><strong class="font-bold">Return on Equity (ROE) > 15%:</strong> Highly efficient at generating profits from shareholder equity.</li>
+                    <li><strong class="font-bold">Net Profit Margin > 10%:</strong> Keeping a healthy percentage of total revenue as profit.</li>
+                    <li><strong class="font-bold">Debt-to-Equity Ratio < 1.0:</strong> Conservative leverage with manageable debt levels.</li>
+                    <li><strong class="font-bold">Free Cash Flow Yield > 5%:</strong> Attractive cash generation relative to its valuation.</li>
+                    <li><strong class="font-bold">P/E Ratio < 25:</strong> Trading at a reasonable valuation compared to its earnings.</li>
+                    <li><strong class="font-bold">P/B Ratio < 5:</strong> Trading at a reasonable valuation relative to its book value.</li>
+                    <li><strong class="font-bold">Pays a Dividend:</strong> Returns cash directly to shareholders.</li>
+                </ul>
+            </div>
+
+            <div id="sethiscore-modal-checklist" class="mt-4 mb-6"></div>
+
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-2">
+                <p class="text-xs text-red-700 font-bold uppercase tracking-widest mb-1">Disclaimer</p>
+                <p class="text-xs text-red-800">The Sethi Score is generated algorithmically for educational and informational purposes only. It does not constitute financial or investment advice. Always conduct your own due diligence or consult a certified financial advisor before making investment decisions.</p>
+            </div>
+            <div class="mt-8 pt-4 text-center"><button onclick="toggleModal('score-modal')" class="bg-gray-900 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition">Close</button></div>
+        </div>
+    </div>
+
+    <div id="stats-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-3xl w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-2xl font-black text-gray-900">Quantitative Terminal Glossary</h2>
+                <button onclick="toggleModal('stats-modal')" class="text-gray-400 hover:text-red-500 text-3xl leading-none">&times;</button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-gray-700 leading-relaxed">
+                <div>
+                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-200 pb-2 mb-3">Value & Profitability</h4>
+                    <ul class="space-y-3">
+                        <li><strong class="text-blue-600">Market Cap:</strong> The total market value of the company's outstanding shares.</li>
+                        <li><strong class="text-blue-600">EV/EBITDA:</strong> Compares a company's total value (including debt) to its raw cash earnings. The gold standard of valuation.</li>
+                        <li><strong class="text-blue-600">P/E Ratio:</strong> Price-to-Earnings. How much investors are willing to pay per dollar of earnings.</li>
+                        <li><strong class="text-blue-600">ROE (Return on Equity):</strong> Measures how efficiently the company turns shareholder cash into profits.</li>
+                        <li><strong class="text-blue-600">EPS (TTM):</strong> Earnings Per Share. The portion of a company's profit allocated to each outstanding share over the last 12 months.</li>
+                        <li><strong class="text-blue-600">Forward EPS:</strong> Wall Street analysts' consensus estimate of what the company's Earnings Per Share will be over the next 12 months.</li>
+                    </ul>
+
+                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-200 pb-2 mt-6 mb-3">Risk & Yield</h4>
+                    <ul class="space-y-3">
+                        <li><strong class="text-blue-600">Beta:</strong> A measure of volatility. A Beta > 1 means the stock is more volatile than the S&P 500; < 1 means it is less volatile.</li>
+                        <li><strong class="text-red-500">Short Interest:</strong> The percentage of available shares that are being shorted by hedge funds betting the price will fall.</li>
+                        <li><strong class="text-blue-600">Dividend Yield:</strong> How much the company pays out in dividends each year relative to its share price.</li>
+                        <li><strong class="text-green-600">FCF Yield:</strong> Free Cash Flow Yield. High numbers indicate the company is generating massive cash relative to its valuation.</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-200 pb-2 mb-3">Technicals & Momentum</h4>
+                    <ul class="space-y-3">
+                        <li><strong class="text-blue-600">14d RSI:</strong> Relative Strength Index. A momentum oscillator ranging from 0-100. >70 is historically "Overbought", <30 is "Oversold".</li>
+                        <li><strong class="text-blue-600">Stochastic:</strong> Compares a particular closing price to a range of its prices over a period of time to predict trend reversals.</li>
+                        <li><strong class="text-blue-600">% From 200MA:</strong> How far the current price has strayed from its 200-day Simple Moving Average (the baseline trend of the stock).</li>
+                        <li><strong class="text-blue-600">% From 52W High:</strong> Shows immediate upside required to break out into new yearly highs.</li>
+                    </ul>
+
+                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-200 pb-2 mt-6 mb-3">Catalysts</h4>
+                    <ul class="space-y-3">
+                        <li><strong class="text-purple-600">Next Earnings:</strong> The estimated date the company will report quarterly financials, driving major price volatility.</li>
+                        <li><strong class="text-purple-600">Ex-Dividend:</strong> You must own the stock before this date to receive the upcoming dividend payout.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-8 pt-4 text-center border-t border-gray-100">
+                <button onclick="toggleModal('stats-modal')" class="bg-gray-900 text-white font-bold py-2 px-8 rounded-lg hover:bg-gray-700 transition">Understood</button>
+            </div>
+        </div>
+    </div>
+    
+
+    <div id="football-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-2xl font-black text-gray-900">The Valuation Football Field</h2>
+                <button onclick="toggleModal('football-modal')" class="text-gray-400 hover:text-red-500 text-3xl leading-none">&times;</button>
+            </div>
+            <p class="text-gray-600 text-sm mb-6">The Football Field chart visually plots the intrinsic price targets generated by our valuation models against the stock's actual 52-Week trading range.</p>
+            <div class="bg-gray-50 p-4 border border-gray-200 rounded-lg text-sm text-gray-700">
+                <p><strong>How to read it:</strong> If the current price (the dotted red line) falls to the left of the colored valuation bars, the stock is currently trading <em>below</em> its theoretical fair value, indicating a potential margin of safety.</p>
+            </div>
+            <div class="mt-8 pt-4 text-center"><button onclick="toggleModal('football-modal')" class="bg-gray-900 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 transition">Close</button></div>
+        </div>
+    </div>
+
+    <div id="lbo-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden z-50 transition-opacity">
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-8">
+            <button onclick="toggleModal('lbo-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-900 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            <h2 class="text-2xl font-black mb-4 text-gray-900 border-b border-gray-200 pb-3">The Mini-LBO Model</h2>
+            
+            <div class="text-gray-700 space-y-4 text-sm leading-relaxed">
+                <p>A <strong>Leveraged Buyout (LBO)</strong> is the acquisition of another company using a significant amount of borrowed money (debt) to meet the cost of acquisition. The assets of the company being acquired are often used as collateral for the loans.</p>
+                
+                <p>This calculator executes a <strong>"Paper LBO"</strong> (a rapid, back-of-the-envelope model heavily utilized in Private Equity interview technical tests). While institutional PE models contain hundreds of rows for working capital, tax shields, and multi-tranche debt schedules, the fundamental drivers of returns are simplified here to four core levers:</p>
+                
+                <ul class="list-disc pl-5 space-y-2 text-gray-600">
+                    <li><strong class="text-gray-800">Entry/Exit Multiple:</strong> What the sponsor pays for the business versus what they sell it for, typically mapped to EV/EBITDA.</li>
+                    <li><strong class="text-gray-800">Debt Funding %:</strong> How much of the purchase price is funded by the bank. More debt means less sponsor equity is required, which amplifies returns (if the company performs well).</li>
+                    <li><strong class="text-gray-800">Interest Rate:</strong> The cost of the debt. The company's Free Cash Flow must be high enough to pay this off over the holding period.</li>
+                    <li><strong class="text-gray-800">Holding Period:</strong> Typically 3 to 7 years. The faster the sponsor can grow the company and pay down the debt, the higher the annualized return.</li>
+                </ul>
+                
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 mt-6 flex items-start gap-3">
+                    <div class="text-blue-500 mt-0.5">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <p class="text-xs font-semibold text-blue-800 leading-tight">
+                        <span class="block text-sm font-bold text-blue-900 mb-1">Target PE Returns</span>
+                        Private Equity firms typically target a minimum of <strong>>20% IRR</strong> (Internal Rate of Return) and a <strong>>2.0x MoM</strong> (Multiple on Money) over a standard 5-year holding period.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://sethistock-api.onrender.com";
+        let state = { ticker: "", period: "1y", interval: "1d", type: "line", fcf: 0, shares: 0, price: 0, stats: null, chartData: null };
+        let watchlist = JSON.parse(localStorage.getItem('sethiWatchlist')) || [];
+
+        const _originalGetElementById = document.getElementById;
+        document.getElementById = function(id) {
+            const el = _originalGetElementById.call(document, id);
+            if (!el) {
+                console.warn(`🛡️ Null-Shield intercepted missing ID: "${id}"`);
+                // Return a dummy safe object so setting .innerText never crashes your app
+                return { 
+                    style: {}, 
+                    classList: { add(){}, remove(){}, contains(){} },
+                    setAttribute() {},
+                    addEventListener() {},
+                    innerText: '',
+                    innerHTML: ''
+                };
+            }
+            return el;
+        };
+
+        function injectText(id, text) {
+            const el = document.getElementById(id);
+            if (el && !el.is_null_shield) {
+                el.innerText = text;
+            } else {
+                console.warn(`🚨 GHOST ID: Cannot find HTML element with id="${id}"`);
+            }
+        }
+
+        renderWatchlist();
+
+        function toggleModal(id) {
+            const modal = document.getElementById(id);
+            const content = modal.firstElementChild;
+            if(modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden'); document.body.classList.add('modal-active');
+                setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95', 'opacity-0'); }, 10);
+            } else {
+                modal.classList.add('opacity-0'); content.classList.add('scale-95', 'opacity-0'); document.body.classList.remove('modal-active');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
+
+        function renderWatchlist() {
+            const container = document.getElementById('watchlist-container');
+            if(watchlist.length === 0) {
+                container.innerHTML = '<span class="text-sm text-gray-400 italic">Your watchlist is empty. Save a ticker to see it here.</span>';
+                return;
+            }
+            container.innerHTML = watchlist.map(t => `<button onclick="loadTicker('${t}')" class="px-3 py-1 bg-white border border-gray-200 rounded-full text-sm font-bold text-blue-600 hover:bg-blue-50 transition shadow-sm">${t}</button>`).join('');
+        }
+
+        function loadTicker(t) {
+            document.getElementById('ticker-input').value = t;
+            document.getElementById('search-btn').click();
+        }
+
+        function toggleWatchlist() {
+            if(!state.ticker) return;
+            if(watchlist.includes(state.ticker)) { watchlist = watchlist.filter(t => t !== state.ticker); } 
+            else { watchlist.push(state.ticker); }
+            localStorage.setItem('sethiWatchlist', JSON.stringify(watchlist));
+            renderWatchlist();
+            updateWatchlistBtn();
+        }
+
+        function updateWatchlistBtn() {
+            const btn = document.getElementById('watchlist-btn');
+            if(watchlist.includes(state.ticker)) {
+                btn.innerHTML = '★ Saved';
+                btn.classList.add('text-yellow-500', 'border-yellow-500');
+                btn.classList.remove('text-gray-400', 'border-gray-200');
+            } else {
+                btn.innerHTML = '☆ Save';
+                btn.classList.remove('text-yellow-500', 'border-yellow-500');
+                btn.classList.add('text-gray-400', 'border-gray-200');
+            }
+        }
+
+        document.getElementById('search-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            state.ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+            
+            const btn = document.getElementById('search-btn');
+            const dash = document.getElementById('dashboard');
+            btn.innerHTML = 'Analysing...'; btn.disabled = true;
+            document.getElementById('error-message').classList.add('hidden');
+            
+            // Ensure dashboard is visible but maybe slightly faded out to show loading state
+            dash.classList.remove('hidden');
+            dash.classList.remove('opacity-100');
+            dash.classList.add('opacity-50'); // Dim the dashboard while loading
+
+            // --- NEW: SKELETON LOADER INJECTION ---
+            const loaderHTML = `<div class="animate-pulse h-6 bg-gray-700 rounded w-3/4 mx-auto"></div>`;
+            const statBoxes = ["current-price", "pe-ratio", "market-cap", "fcf-yield", "sethi-score", "dcf-target", "gordon-growth", "graham-number", "beta", "dividend-yield", "ev-ebitda", "profit-margin", "roe"];
+            statBoxes.forEach(id => {
+                const element = _originalGetElementById.call(document, id); 
+                if (element) element.innerHTML = loaderHTML;
+            });
+
+            // --- NEW: PROGRESS BAR & BUBBLE ENGINE ---
+            const progContainer = document.getElementById("progress-container");
+            const progBar = document.getElementById("progress-bar");
+            const loadingBubble = document.getElementById("loading-bubble");
+            const loadingBubbleText = document.getElementById("loading-bubble-text");
+            
+            if (progContainer) { progContainer.classList.remove("opacity-0"); progBar.style.width = "0%"; }
+            if (loadingBubble) { loadingBubble.classList.remove("hidden"); }
+
+            const loadingPhrases = ["Connecting to market data...", "Crunching Reverse DCF...", "Evaluating SEC Insider trades...", "Calculating SethiScore...", "Benchmarking peers..."];
+            let phraseIndex = 0;
+            let progress = 0;
+            
+            const loadingInterval = setInterval(() => {
+                phraseIndex = (phraseIndex + 1) % loadingPhrases.length;
+                if(loadingBubbleText) loadingBubbleText.innerText = loadingPhrases[phraseIndex];
+                
+                if (progress < 90) {
+                    progress += Math.random() * 15;
+                    if(progBar) progBar.style.width = `${progress}%`;
+                }
+            }, 1500);
+
+            try {
+                const res = await fetch(`${API_URL}/api/stock/${state.ticker}`);
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail);
+
+                // Smart Search: Update input to show the actual verified ticker found
+                document.getElementById('ticker-input').value = data.ticker;
+                
+                document.getElementById('display-ticker').innerText = data.ticker;
+                document.getElementById('display-price').innerText = `$${data.current_price.toFixed(2)}`;
+                
+                const changeEl = document.getElementById('display-change');
+                const pctEl = document.getElementById('display-pct');
+                changeEl.innerText = data.change > 0 ? `+${data.change.toFixed(2)}` : data.change.toFixed(2);
+                pctEl.innerText = data.change > 0 ? `+${data.pct_change.toFixed(2)}%` : `${data.pct_change.toFixed(2)}%`;
+                changeEl.className = data.change >= 0 ? "text-xl font-semibold text-green-600" : "text-xl font-semibold text-red-600";
+                pctEl.className = data.change >= 0 ? "px-3 py-1 text-sm font-bold text-white rounded-full bg-green-500" : "px-3 py-1 text-sm font-bold text-white rounded-full bg-red-500";
+
+                // --- BULLETPROOF INSIGHTS & STATS MAPPING ---
+                if (data.stats) {
+                    // Value
+                    injectText('stat-mkt', data.stats.mkt_cap || 'N/A');
+                    injectText('stat-ev', data.stats.ev_ebitda || 'N/A');
+                    injectText('stat-pe', data.stats.pe || 'N/A');
+                    injectText('roe', data.stats.roe || 'N/A');
+                    injectText('stat-eps', data.stats.eps !== 'N/A' ? '$' + data.stats.eps : 'N/A');
+                    injectText('stat-feps', data.stats.forward_eps !== 'N/A' ? '$' + data.stats.forward_eps : 'N/A');
+                    
+                    // Technicals
+                    injectText('stat-rsi', data.stats.rsi_14 || 'N/A');
+                    injectText('stat-stoch', data.stats.stoch_k || 'N/A');
+                    
+                    // Colorize the SMA so green is above, red is below
+                    const smaEl = document.getElementById('stat-sma');
+                    if(smaEl) {
+                        smaEl.innerText = data.stats.sma_200_pct || 'N/A';
+                        smaEl.className = (parseFloat(data.stats.sma_200_pct) > 0) ? "text-xs font-black text-green-600" : "text-xs font-black text-red-600";
+                    }
+                    
+                    injectText('stat-52w', data.stats.dist_52w_high || 'N/A');
+                    
+                    // Risk & Yield
+                    injectText('stat-beta', data.stats.beta || 'N/A');
+                    injectText('stat-short', data.stats.short_interest || 'N/A');
+                    injectText('stat-div', data.stats.div_yield || 'N/A');
+                    injectText('stat-fcf', data.stats.fcf_yield || 'N/A');
+
+                    injectText('stat-earn', data.stats.next_earnings || 'N/A');
+                    injectText('stat-exdiv', data.stats.next_dividend || 'N/A');
+                }
+
+
+                const score = data.stats.sethi_score;
+                const scoreEls = [document.getElementById('sethi-score'), document.getElementById('sethi-score-mobile')];
+
+                scoreEls.forEach(el => {
+                    if (el) {
+                        el.innerText = `${score}/100`;
+                        el.className = score >= 70 ? "text-3xl font-black mt-1 text-green-600" : (score >= 40 ? "text-3xl font-black mt-1 text-yellow-500" : "text-3xl font-black mt-1 text-red-500");
+                        if(el.id === 'sethi-score-mobile') el.className = el.className.replace('text-3xl', 'text-xl');
+                    }
+                });
+
+                // ==========================================
+                // 2. BUILD & INJECT THE MODAL CHECKLIST
+                // ==========================================
+                const breakdownData = data.stats.sethi_score_breakdown;
+                if (breakdownData) {
+                    const metricDescriptions = {
+                        "Positive Net Income": "Company is currently profitable.",
+                        "Consistent Revenue Growth": "Revenue has increased year-over-year.",
+                        "Positive Free Cash Flow": "Generating real cash after capital expenditures.",
+                        "Return on Equity (ROE) > 15%": "Highly efficient at generating profits from shareholder equity.",
+                        "Net Profit Margin > 10%": "Keeping a healthy percentage of total revenue as profit.",
+                        "Debt-to-Equity Ratio < 1.0": "Conservative leverage with manageable debt levels.",
+                        "Free Cash Flow Yield > 5%": "Attractive cash generation relative to its valuation.",
+                        "P/E Ratio < 25": "Trading at a reasonable valuation compared to its earnings.",
+                        "P/B Ratio < 5": "Trading at a reasonable valuation relative to its book value.",
+                        "Pays a Dividend": "Returns cash directly to shareholders."
+                    };
+
+                    let checklistHTML = '';
+                    for (const [metric, passed] of Object.entries(breakdownData)) {
+                        const icon = passed ? '✅' : '❌';
+                        const desc = metricDescriptions[metric] || "";
+                        
+                        // This formats it to match your original UI perfectly
+                        checklistHTML += `
+                        <li style="margin-bottom: 8px;">
+                            <strong style="color: #111827; font-weight: 800;">${icon} ${metric}:</strong> 
+                            <span style="color: #4b5563;">${desc}</span>
+                        </li>`;
+                    }
+
+                    const listTarget = document.getElementById('sethiscore-criteria-list');
+                    if (listTarget) {
+                        listTarget.style.listStyleType = "none"; // Removes standard bullet points
+                        listTarget.style.paddingLeft = "0";
+                        listTarget.innerHTML = checklistHTML;
+                    }
+                }
+
+                clearInterval(loadingInterval);
+                if (progBar) progBar.style.width = '100%';
+                setTimeout(() => {
+                    if (progContainer) progContainer.classList.add('opacity-0');
+                    if (loadingBubble) loadingBubble.classList.add('hidden');
+                }, 500);
+
+                document.getElementById('company-summary').innerText = data.summary || "Summary not available.";
+                
+            
+                state.fcf = data.fcf; state.shares = data.shares; state.price = data.current_price; 
+                state.stats = data.stats;
+                
+                calibrateMacroBridge();
+                calculateDCF();
+                updateWatchlistBtn();
+
+                // ==========================================
+                // --- ADVANCED QUANT ENGINE LOGIC ----------
+                // ==========================================                
+
+                // 1. Risk Profile Mapping
+                if (data.risk_profile && !data.risk_profile.error) {
+                    injectText('var-95', data.risk_profile.daily_var_95 + '%');
+                    injectText('volatility', data.risk_profile.annualized_volatility + '%');
+                } else {
+                    injectText('var-95', 'N/A');
+                    injectText('volatility', 'N/A');
+                }
+
+                // 2. DuPont Analysis Mapping
+                if (data.dupont_analysis && !data.dupont_analysis.error) {
+                    injectText('dupont-margin', data.dupont_analysis.net_profit_margin + '%');
+                    injectText('dupont-turnover', data.dupont_analysis.asset_turnover + 'x');
+                    injectText('dupont-leverage', data.dupont_analysis.equity_multiplier + 'x');
+                    injectText('dupont-roe', data.dupont_analysis.calculated_roe + '%');
+                } else {
+                    injectText('dupont-margin', 'N/A');
+                    injectText('dupont-turnover', 'N/A');
+                    injectText('dupont-leverage', 'N/A');
+                    injectText('dupont-roe', 'N/A');
+                }
+
+                let cleanFin = { years: [], revenue: [], net: [], gross_margin: [], op_margin: [], net_margin: [], fcf: [], ocf: [], capex: [], cash: [], debt: [], shares: [] };
+                for(let i=0; i<data.financials.years.length; i++) {
+                    if (data.financials.revenue[i] !== 0) {
+                        cleanFin.years.push(data.financials.years[i]);
+                        cleanFin.revenue.push(data.financials.revenue[i]);
+                        cleanFin.net.push(data.financials.net[i]);
+                        cleanFin.gross_margin.push(data.financials.gross_margin[i]);
+                        cleanFin.op_margin.push(data.financials.op_margin[i]);
+                        cleanFin.net_margin.push(data.financials.net_margin[i]);
+                        cleanFin.fcf.push(data.financials.fcf[i]);
+                        cleanFin.ocf.push(data.financials.ocf[i]);
+                        cleanFin.capex.push(data.financials.capex[i]);
+                        cleanFin.cash.push(data.financials.cash[i]);
+                        cleanFin.debt.push(data.financials.debt[i]);
+                        cleanFin.shares.push(data.financials.shares[i]);
+                    }
+                }
+
+                dash.classList.remove('hidden');
+                injectFinancialHTML(cleanFin);
+
+                setTimeout(async () => {
+                    await fetchChart();
+                    drawFinancials(cleanFin);
+                    loadPeers(data.peers);
+                    loadInsiders(data.insiders);
+                    dash.classList.add('opacity-100'); 
+                }, 150);
+
+            } catch (err) {
+                clearInterval(loadingInterval);
+                if(loadingBubbleText) loadingBubbleText.innerText = "Data Sync Failed.";
+                setTimeout(() => {
+                    if (progContainer) progContainer.classList.add('opacity-0');
+                    if (loadingBubble) loadingBubble.classList.add('hidden');
+                }, 1500);
+                document.getElementById('error-message').innerText = err.message;
+                document.getElementById('error-message').classList.remove('hidden');
+            } finally {
+                btn.innerHTML = 'Analyse'; btn.disabled = false;
+            }
+        });
+
+        async function loadPeers(peers) {
+            const tableBody = document.getElementById('peer-table-body');
+            const tableHead = document.getElementById('peer-table-head');
+            
+            tableHead.innerHTML = `<tr><th class="py-3 px-4 border-b">Metric</th><th colspan="3" class="py-3 px-4 border-b text-gray-400 font-normal">Loading competitors...</th></tr>`;
+            tableBody.innerHTML = '';
+            
+            try {
+                const promises = peers.map(p => fetch(`${API_URL}/api/stock/${p}?is_peer=true`).then(res => res.json()).catch(() => null));
+                let results = await Promise.all(promises);
+                results = results.filter(r => r !== null);
+                
+                results.unshift({ ticker: state.ticker, current_price: state.price, stats: state.stats });
+
+                let th = `<tr><th class="py-3 px-4 border-b text-gray-500 font-bold uppercase tracking-widest text-xs">Metric</th>`;
+                results.forEach(r => th += `<th class="py-3 px-4 border-b font-black text-lg ${r.ticker === state.ticker ? 'text-blue-600' : 'text-gray-900'}">${r.ticker}</th>`);
+                th += `</tr>`;
+                tableHead.innerHTML = th;
+
+                let html = '';
+                const metrics = ['Current Price', 'Market Cap', 'P/E Ratio', 'P/B Ratio', 'EPS', 'Div Yield', 'FCF Yield'];
+                const keys = ['price', 'mkt_cap', 'pe', 'pb', 'eps', 'div_yield', 'fcf_yield'];
+                
+                metrics.forEach((metric, idx) => {
+                    let tr = `<tr class="hover:bg-gray-50 border-b border-gray-100"><td class="py-3 px-4 font-bold text-gray-700 text-sm">${metric}</td>`;
+                    results.forEach(r => {
+                        let val = idx === 0 ? `$${r.current_price.toFixed(2)}` : r.stats[keys[idx]];
+                        tr += `<td class="py-3 px-4 text-gray-600 text-sm font-mono">${val}</td>`;
+                    });
+                    tr += `</tr>`;
+                    html += tr;
+                });
+                
+                tableBody.innerHTML = html;
+            } catch(err) {
+                tableHead.innerHTML = `<tr><th class="py-3 px-4 border-b">Metric</th><th colspan="3" class="py-3 px-4 border-b text-red-500 text-sm">Failed to fetch competitors.</th></tr>`;
+            }
+        }
+
+        function loadInsiders(insiders) {
+            const tbody = document.getElementById('insider-table-body');
+            const visual = document.getElementById('insider-visual');
+            
+            if (!insiders || insiders.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center text-gray-500 py-4">No recent insider transactions publicly filed.</td></tr>`;
+                visual.innerHTML = '';
+                return;
+            }
+            
+            let html = ''; let buyVol = 0; let sellVol = 0;
+
+            insiders.forEach(ins => {
+                const transStr = ins.transaction.toLowerCase();
+                const isBuy = transStr.includes('buy');
+                const isSell = transStr.includes('sell');
+                const color = isBuy ? 'text-green-600 font-bold' : (isSell ? 'text-red-600 font-bold' : 'text-gray-600');
+                
+                if (isBuy) buyVol += ins.shares;
+                if (isSell) sellVol += ins.shares;
+
+                const valStr = ins.value > 0 ? `$${ins.value.toLocaleString()}` : '-';
+                const shareStr = ins.shares > 0 ? ins.shares.toLocaleString() : '-';
+                
+                html += `
+                <tr class="hover:bg-gray-50 transition border-b border-gray-100">
+                    <td class="py-3 px-4 text-sm font-semibold">${ins.name} <span class="block text-xs text-gray-400 font-normal truncate max-w-[200px]">${ins.position}</span></td>
+                    <td class="py-3 px-4 text-sm ${color}">${ins.transaction}</td>
+                    <td class="py-3 px-4 text-sm">${shareStr}</td>
+                    <td class="py-3 px-4 text-sm font-mono">${valStr}</td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+
+            const total = buyVol + sellVol;
+            if (total > 0) {
+                const buyPct = (buyVol / total) * 100;
+                const sellPct = (sellVol / total) * 100;
+                visual.innerHTML = `
+                    <div class="mb-6">
+                        <div class="flex justify-between text-xs font-bold uppercase tracking-widest mb-1">
+                            <span class="text-green-600">Buy Volume (${buyPct.toFixed(0)}%)</span>
+                            <span class="text-red-600">Sell Volume (${sellPct.toFixed(0)}%)</span>
+                        </div>
+                        <div class="w-full h-3 rounded-full flex overflow-hidden bg-gray-200">
+                            <div style="width: ${buyPct}%" class="bg-green-500"></div>
+                            <div style="width: ${sellPct}%" class="bg-red-500"></div>
+                        </div>
+                    </div>
+                `;
+            } else { visual.innerHTML = ''; }
+        }
+
+        function getCAGR(data) {
+            if (!data || data.length < 2) return { '1Y': '-', '2Y': '-', '3Y': '-', 'MAX': '-' };
+            if (data.every(val => val === 0)) return { '1Y': '-', '2Y': '-', '3Y': '-', 'MAX': '-' };
+            const latest = data[data.length - 1];
+            const calc = (past, current, years) => {
+                if (past <= 0) return 'N/A'; 
+                const cagr = (Math.pow(current / past, 1 / years) - 1) * 100;
+                if (isNaN(cagr)) return 'N/A';
+                return (cagr > 0 ? '+' : '') + cagr.toFixed(2) + '%';
+            };
+            const len = data.length;
+            return {
+                '1Y': len >= 2 ? calc(data[len-2], latest, 1) : '-',
+                '2Y': len >= 3 ? calc(data[len-3], latest, 2) : '-',
+                '3Y': len >= 4 ? calc(data[len-4], latest, 3) : '-',
+                'MAX': len > 1 ? calc(data[0], latest, len-1) : '-'
+            };
+        }
+
+        function injectFinancialHTML(fin) {
+            const indMetrics = [
+                { id: 'ind-rev', title: 'Revenue' }, { id: 'ind-net', title: 'Net Income' }, { id: 'ind-margins', title: 'Margin Profile' },
+                { id: 'ind-ocf', title: 'Operating Cash Flow' }, { id: 'ind-fcf', title: 'Free Cash Flow' }, { id: 'ind-capex', title: 'Capital Expenditure' },
+                { id: 'ind-cash', title: 'Cash Equivalents' }, { id: 'ind-debt', title: 'Total Debt' }, { id: 'ind-shares', title: 'Shares Outstanding' }
+            ];
+
+            let cardsHTML = '';
+            indMetrics.forEach(m => {
+                let dataMatch = [];
+                if(m.id==='ind-rev') dataMatch = fin.revenue; else if(m.id==='ind-net') dataMatch = fin.net;
+                else if(m.id==='ind-margins') dataMatch = fin.net_margin; 
+                else if(m.id==='ind-ocf') dataMatch = fin.ocf; else if(m.id==='ind-fcf') dataMatch = fin.fcf; 
+                else if(m.id==='ind-capex') dataMatch = fin.capex; else if(m.id==='ind-cash') dataMatch = fin.cash; 
+                else if(m.id==='ind-debt') dataMatch = fin.debt; else if(m.id==='ind-shares') dataMatch = fin.shares;
+
+                const cagrs = getCAGR(dataMatch);
+                const colorCode = (val) => val === 'N/A' || val === '-' ? 'text-gray-400' : (val.includes('-') ? 'text-red-500' : 'text-green-500');
+                
+                cardsHTML += `
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col">
+                        <h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">${m.title}</h4>
+                        <div id="${m.id}" class="h-56 w-full mt-auto mb-2"></div>
+                        <div class="flex justify-around mt-4 pt-4 border-t border-gray-100">
+                            <div class="text-center"><p class="text-[10px] text-gray-400 font-bold uppercase">1Y CAGR</p><p class="font-semibold text-sm ${colorCode(cagrs['1Y'])}">${cagrs['1Y']}</p></div>
+                            <div class="text-center"><p class="text-[10px] text-gray-400 font-bold uppercase">2Y CAGR</p><p class="font-semibold text-sm ${colorCode(cagrs['2Y'])}">${cagrs['2Y']}</p></div>
+                            <div class="text-center"><p class="text-[10px] text-gray-400 font-bold uppercase">3Y CAGR</p><p class="font-semibold text-sm ${colorCode(cagrs['3Y'])}">${cagrs['3Y']}</p></div>
+                            <div class="text-center"><p class="text-[10px] text-gray-400 font-bold uppercase">MAX</p><p class="font-semibold text-sm ${colorCode(cagrs['MAX'])}">${cagrs['MAX']}</p></div>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('individual-charts-container').innerHTML = cardsHTML;
+        }
+
+        function drawFinancials(fin) {
+            if (!fin.years || !fin.years.length) return;
+            const layoutBase = { margin: {t: 10, b: 20, l: 30, r: 10}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent', showlegend: false, autosize: true };
+            const cfg = {displayModeBar: false, responsive: true};
+
+            const safePlot = (id, data, color, type='bar') => {
+                if (data && data.length > 0 && !data.every(v => v === 0)) {
+                    Plotly.newPlot(id, [{ x: fin.years, y: data, type: type, marker: {color: color, borderRadius: 4} }], layoutBase, cfg);
+                } else {
+                    document.getElementById(id).innerHTML = `<div class="flex h-full items-center justify-center text-gray-400 font-bold text-sm">Data Unavailable</div>`;
+                }
+            };
+
+            safePlot('ind-rev', fin.revenue, '#3b82f6');
+            safePlot('ind-net', fin.net, '#a855f7');
+            safePlot('ind-ocf', fin.ocf, '#10b981');
+            safePlot('ind-fcf', fin.fcf, '#059669');
+            safePlot('ind-capex', fin.capex, '#ef4444');
+            safePlot('ind-cash', fin.cash, '#0ea5e9');
+            safePlot('ind-debt', fin.debt, '#f97316');
+            safePlot('ind-shares', fin.shares, '#64748b', 'bar'); 
+
+            if (fin.gross_margin.length > 0 && !fin.gross_margin.every(v => v === 0)) {
+                Plotly.newPlot('ind-margins', [
+                    { x: fin.years, y: fin.gross_margin, name: 'Gross (%)', type: 'scatter', mode: 'lines+markers', line: {color: '#8b5cf6', width: 2} },
+                    { x: fin.years, y: fin.op_margin, name: 'Op (%)', type: 'scatter', mode: 'lines+markers', line: {color: '#22c55e', width: 2} },
+                    { x: fin.years, y: fin.net_margin, name: 'Net (%)', type: 'scatter', mode: 'lines+markers', line: {color: '#3b82f6', width: 2} }
+                ], {...layoutBase, margin: {t: 20, b: 30, l: 30, r: 10}, showlegend: true, legend: {orientation: 'h', xanchor: 'center', x: 0.5, y: -0.15}}, cfg);
+            } else {
+                document.getElementById('ind-margins').innerHTML = `<div class="flex h-full items-center justify-center text-gray-400 font-bold text-sm">Data Unavailable</div>`;
+            }
+
+            const safeCompPlot = (id, data1, name1, color1, data2, name2, color2) => {
+                 if (data1.length > 0 && !data1.every(v => v === 0) && data2.length > 0) {
+                     Plotly.newPlot(id, [
+                        { x: fin.years, y: data1, name: name1, type: 'bar', marker: {color: color1} },
+                        { x: fin.years, y: data2, name: name2, type: 'bar', marker: {color: color2} }
+                    ], {...layoutBase, barmode: 'group'}, cfg);
+                 } else {
+                     document.getElementById(id).innerHTML = `<div class="flex h-full items-center justify-center text-gray-400 font-bold text-sm">Data Unavailable</div>`;
+                 }
+            }
+            safeCompPlot('comp-rev-net', fin.revenue, 'Rev', '#94a3b8', fin.net, 'Net', '#3b82f6');
+            safeCompPlot('comp-cash-debt', fin.cash, 'Cash', '#0ea5e9', fin.debt, 'Debt', '#f97316');
+            safeCompPlot('comp-fcf-ocf', fin.ocf, 'OCF', '#10b981', fin.fcf, 'FCF', '#059669');
+            safeCompPlot('comp-ocf-capex', fin.ocf, 'OCF', '#10b981', fin.capex, 'CapEx', '#ef4444');
+        }
+
+        document.querySelectorAll('.tf-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                state.period = e.target.dataset.period; state.interval = e.target.dataset.interval;
+                await fetchChart();
+            });
+        });
+        document.querySelectorAll('.type-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                state.type = e.target.dataset.type;
+                drawPriceChart();
+            });
+        });
+
+        async function fetchChart() {
+            try {
+                const res = await fetch(`${API_URL}/api/chart/${state.ticker}?period=${state.period}&interval=${state.interval}`);
+                state.chartData = await res.json();
+                
+                if (state.chartData && state.chartData.closes.length > 0) {
+                    const first = state.chartData.closes[0];
+                    const last = state.chartData.closes[state.chartData.closes.length - 1];
+                    const pct = ((last - first) / first) * 100;
+                    
+                    const pill = document.getElementById('period-pct-pill');
+                    pill.innerText = (pct > 0 ? '+' : '') + pct.toFixed(2) + '%';
+                    pill.className = pct >= 0 
+                        ? "px-3 py-1 text-sm font-bold text-white rounded-full bg-green-500 shadow-sm transition-colors duration-300" 
+                        : "px-3 py-1 text-sm font-bold text-white rounded-full bg-red-500 shadow-sm transition-colors duration-300";
+                    pill.classList.remove('hidden');
+                } else {
+                    document.getElementById('period-pct-pill').classList.add('hidden');
+                }
+
+                drawPriceChart();
+            } catch (err) { console.error("Chart Error", err); }
+        }
+
+        function drawPriceChart() {
+            if (!state.chartData || state.chartData.dates.length === 0) return;
+            let trace = {};
+            if (state.type === 'candlestick') {
+                trace = { x: state.chartData.dates, open: state.chartData.opens, high: state.chartData.highs, low: state.chartData.lows, close: state.chartData.closes, type: 'candlestick', increasing: {line: {color: '#22c55e'}}, decreasing: {line: {color: '#ef4444'}} };
+            } else {
+                trace = { x: state.chartData.dates, y: state.chartData.closes, type: 'scatter', mode: 'lines', line: {color: '#2563eb', width: 2.5} };
+            }
+            const layout = { margin: {t: 10, b: 30, l: 40, r: 10}, xaxis: {showgrid: false, rangeslider: {visible: false}}, yaxis: {showgrid: true, gridcolor: '#f1f5f9'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent', autosize: true };
+            Plotly.newPlot('price-chart', [trace], layout, {displayModeBar: false, responsive: true});
+        }
+
+        // UPDATED: Removed Graham parameter and styling updated to Light Mode
+        function drawFootballField(em_target, gg_target) {
+            const low52 = state.stats.fiftyTwoWeekLow;
+            const high52 = state.stats.fiftyTwoWeekHigh;
+            
+            let yLabels = ['52W Range'];
+            let xMins = [low52];
+            let xMaxs = [high52];
+            let colors = ['#94a3b8']; 
+            
+            if (gg_target > 0) { yLabels.push('Gordon Growth'); xMins.push(gg_target*0.85); xMaxs.push(gg_target*1.15); colors.push('#4ade80'); }
+            if (em_target > 0) { yLabels.push('Exit Multiple'); xMins.push(em_target*0.85); xMaxs.push(em_target*1.15); colors.push('#3b82f6'); }
+            
+            const lengths = xMaxs.map((m, i) => m - xMins[i]);
+            
+            const trace = { type: 'bar', x: lengths, y: yLabels, base: xMins, orientation: 'h', marker: { color: colors, borderRadius: 4 }, width: 0.5 };
+            const layout = {
+                margin: {t: 10, b: 20, l: 110, r: 10}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+                xaxis: { showgrid: true, gridcolor: '#e2e8f0', zeroline: false, tickfont: {color: '#64748b'} },
+                yaxis: { showgrid: false, tickfont: {color: '#475569', size: 12} },
+                shapes: [{ type: 'line', x0: state.price, x1: state.price, y0: -0.5, y1: yLabels.length - 0.5, line: { color: '#ef4444', width: 2, dash: 'dash' } }],
+                annotations: [{ x: state.price, y: yLabels.length - 0.5, text: 'Current Price', showarrow: false, yshift: 15, font: {color: '#ef4444', size: 10, weight: 'bold'} }]
+            };
+            Plotly.newPlot('football-field', [trace], layout, {displayModeBar: false, responsive: true});
+        }
+
+        async function calibrateMacroBridge() {
+            try {
+                // 1. Ping the live SethiMacro backend (Pillar 2: Rates)
+                // Ensure this URL matches your actual live SethiMacro API domain!
+                const res = await fetch('https://sethimacro.onrender.com/api/pillar-rates'); // Change URL if needed
+                
+                if (res.ok) {
+                    const macroData = await res.json();
+                    
+                    // 2. Extract the live 10-Year Real Yield (Index 0 is the most recent)
+                    if (macroData.Real_Yield && macroData.Real_Yield.length > 0) {
+                        const latestRealYield = macroData.Real_Yield[0].value;
+                        const equityRiskPremium = 5.0; // Standard Wall St ERP
+                        
+                        // 3. Calculate dynamic WACC (Discount Rate)
+                        const dynamicDiscountRate = (latestRealYield + equityRiskPremium).toFixed(1);
+                        
+                        // 4. INJECT INTO SETHISTOCK UI using your exact IDs
+                        const discNum = document.getElementById('disc-num');
+                        const discSld = document.getElementById('disc-sld');
+                        
+                        if (discNum) discNum.value = dynamicDiscountRate;
+                        if (discSld) discSld.value = dynamicDiscountRate;
+                        
+                        // 5. Force the DCF engine to recalculate immediately
+                        if (typeof calculateDCF === "function") {
+                            calculateDCF();
+                        }
+                        
+                        console.log(`Macro Bridge Success: Pegged Discount Rate to ${dynamicDiscountRate}%`);
+                    }
+                }
+            } catch (error) {
+                console.warn("Macro Bridge disconnected. Defaulting to manual DCF rate.", error);
+            }
+        }
+
+        function calculateDCF() {
+            const warning = document.getElementById('dcf-warning');
+            
+            if (state.fcf <= 0 || state.shares <= 0 || state.price <= 0) {
+                warning.classList.remove('hidden');
+                document.getElementById('target-em').innerText = "N/A";
+                document.getElementById('target-gg').innerText = "N/A";
+                return;
+            }
+            warning.classList.add('hidden');
+
+            const py = parseInt(document.getElementById('proj-num').value);
+            const gr = parseFloat(document.getElementById('grow-num').value)/100;
+            const dr = parseFloat(document.getElementById('disc-num').value)/100;
+            const em = parseFloat(document.getElementById('exit-num').value);
+            const pgr = parseFloat(document.getElementById('perp-num').value)/100;
+            
+            // 1. Exit Multiple
+            let fcf_n = state.fcf; let sum_em = 0;
+            for(let t=1; t<=py; t++){ fcf_n *= (1+gr); sum_em += fcf_n / Math.pow((1+dr), t); }
+            let target_em = (sum_em + ((fcf_n * em) / Math.pow((1+dr), py))) / state.shares;
+            
+            // 2. Gordon Growth
+            let fcf_gg = state.fcf; let sum_gg = 0;
+            for(let t=1; t<=py; t++){ fcf_gg *= (1+gr); sum_gg += fcf_gg / Math.pow((1+dr), t); }
+            let tv_gg = dr > pgr ? (fcf_gg * (1 + pgr)) / (dr - pgr) : 0;
+            let target_gg = dr > pgr ? (sum_gg + (tv_gg / Math.pow((1+dr), py))) / state.shares : 0;
+
+            document.getElementById('target-em').innerText = '$' + target_em.toFixed(2);
+            document.getElementById('target-gg').innerText = target_gg > 0 ? '$' + target_gg.toFixed(2) : 'N/A';
+
+            drawFootballField(target_em, target_gg);
+            renderLiveSensitivityMatrix();
+            calculateLBO();
+        }
+
+        // ==========================================
+        // --- LIVE FRONTEND SENSITIVITY ENGINE -----
+        // ==========================================
+        function renderLiveSensitivityMatrix() {
+            if (!state.fcf || !state.shares) return;
+
+            // 1. Pull the LIVE inputs directly from the ACTUAL DCF HTML IDs
+            let baseWacc = parseFloat(document.getElementById('disc-sld').value) / 100 || 0.10;
+            let baseMult = parseFloat(document.getElementById('exit-sld').value) || 15.0;
+            let growth = parseFloat(document.getElementById('grow-sld').value) / 100 || 0.15;
+            let years = parseInt(document.getElementById('proj-sld').value) || 5;
+            
+            let currentPrice = state.price;
+            let fcf = state.fcf;
+            let shares = state.shares;
+
+            // 2. Define the Matrix Steps
+            const waccSteps = [baseWacc - 0.02, baseWacc - 0.01, baseWacc, baseWacc + 0.01, baseWacc + 0.02];
+            const multSteps = [baseMult - 2, baseMult - 1, baseMult, baseMult + 1, baseMult + 2];
+
+            // 3. Generate FCF Projections
+            let projections = [];
+            for (let i = 1; i <= years; i++) {
+                projections.push(fcf * Math.pow(1 + growth, i));
+            }
+
+            // 4. Build the HTML Table
+            let matrixHTML = '<table class="w-full text-sm text-center border-collapse">';
+            matrixHTML += `
+                <thead>
+                    <tr class="bg-gray-100 text-gray-600 text-xs uppercase tracking-wider">
+                        <th class="py-3 px-2 rounded-tl-lg font-bold border-b border-gray-200">WACC \\ Multiple</th>
+                        <th class="py-3 px-2 font-bold border-b border-gray-200">${(baseMult - 2).toFixed(1)}x</th>
+                        <th class="py-3 px-2 font-bold border-b border-gray-200">${(baseMult - 1).toFixed(1)}x</th>
+                        <th class="py-3 px-2 text-gray-900 font-black bg-gray-200 border-b border-gray-300">Base ${(baseMult).toFixed(1)}x</th>
+                        <th class="py-3 px-2 font-bold border-b border-gray-200">${(baseMult + 1).toFixed(1)}x</th>
+                        <th class="py-3 px-2 rounded-tr-lg font-bold border-b border-gray-200">${(baseMult + 2).toFixed(1)}x</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+
+            waccSteps.forEach(wacc => {
+                matrixHTML += `<tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">`;
+                matrixHTML += `<td class="py-3 px-2 font-bold bg-gray-50 text-gray-700 border-r border-gray-200">${(wacc * 100).toFixed(1)}%</td>`;
+
+                multSteps.forEach((mult, index) => {
+                    // Calculate Present Value of FCFs
+                    let pvFcfs = 0;
+                    projections.forEach((p, i) => { pvFcfs += p / Math.pow(1 + wacc, i + 1); });
+                    
+                    // Calculate Terminal Value & Discount it
+                    let terminalValue = projections[projections.length - 1] * mult;
+                    let pvTv = terminalValue / Math.pow(1 + wacc, years);
+                    
+                    // Implied Share Price
+                    let impliedPrice = (pvFcfs + pvTv) / shares;
+
+                    // Color coding
+                    let colorClass = impliedPrice > currentPrice ? 'text-green-600' : 'text-red-600';
+                    let bgClass = (index === 2) ? 'bg-gray-100/50' : '';
+
+                    matrixHTML += `<td class="py-3 px-2 ${colorClass} ${bgClass} font-semibold">$${impliedPrice.toFixed(2)}</td>`;
+                });
+                matrixHTML += '</tr>';
+            });
+
+            matrixHTML += '</tbody></table>';
+            document.getElementById('sensitivity-matrix-container').innerHTML = matrixHTML;
+        }
+
+        // ==========================================
+        // --- LIVE MINI-LBO SENSITIVITY ENGINE -----
+        // ==========================================
+        function calculateLBO() {
+            if (!state.fcf || state.fcf <= 0) {
+                document.getElementById('lbo-irr').innerText = "N/A";
+                document.getElementById('lbo-mom').innerText = "N/A";
+                return;
+            }
+
+            // 1. Fetch live user inputs
+            const entryMult = parseFloat(document.getElementById('lbo-mult-num').value);
+            const debtPct = parseFloat(document.getElementById('lbo-debt-num').value) / 100;
+            const interestRate = parseFloat(document.getElementById('lbo-int-num').value) / 100;
+            const years = parseInt(document.getElementById('lbo-years-num').value);
+            
+            // 2. Map Baseline Data (Using FCF to proxy EBITDA dynamically if it isn't in state)
+            let ebitda = state.ebitda ? state.ebitda : (state.fcf * 1.66); 
+            let fcfGrowth = parseFloat(document.getElementById('grow-num').value) / 100 || 0.10;
+
+            // 3. Entry Valuation Calculation
+            let entryEV = ebitda * entryMult;
+            let debtAmount = entryEV * debtPct;
+            let initialEquity = entryEV - debtAmount;
+
+            // 4. Cash Flow Sweep (Debt Paydown Simulation)
+            let currentDebt = debtAmount;
+            let currentEbitda = ebitda;
+            
+            for (let t = 1; t <= years; t++) {
+                currentEbitda *= (1 + fcfGrowth);
+                let interestExpense = currentDebt * interestRate;
+                let cashFlowAvailableForDebt = (currentEbitda * 0.6) - interestExpense; 
+                
+                if (cashFlowAvailableForDebt > 0) {
+                    currentDebt = Math.max(0, currentDebt - cashFlowAvailableForDebt);
+                }
+            }
+
+            // 5. Exit Valuation
+            let exitEV = currentEbitda * entryMult;
+            let exitEquity = exitEV - currentDebt;
+
+            // 6. Calculate Returns 
+            if (initialEquity <= 0 || exitEquity <= 0) {
+                document.getElementById('lbo-irr').innerText = "LOSS";
+                document.getElementById('lbo-mom').innerText = "0.0x";
+                return;
+            }
+
+            let mom = exitEquity / initialEquity;
+            let irr = Math.pow(mom, 1 / years) - 1;
+
+            // 7. Update UI with Dynamic PE Color Coding
+            const irrElem = document.getElementById('lbo-irr');
+            const momElem = document.getElementById('lbo-mom');
+            
+            irrElem.innerText = (irr * 100).toFixed(1) + '%';
+            momElem.innerText = mom.toFixed(2) + 'x';
+            
+            // Standard PE targets: >20% Green, >15% Yellow, <15% Red
+            irrElem.className = irr >= 0.20 ? 'text-3xl font-bold mt-2 text-green-600' : (irr >= 0.15 ? 'text-3xl font-bold mt-2 text-yellow-600' : 'text-3xl font-bold mt-2 text-red-600');
+            momElem.className = mom >= 2.0 ? 'text-3xl font-bold mt-2 text-green-600' : (mom >= 1.5 ? 'text-3xl font-bold mt-2 text-yellow-600' : 'text-3xl font-bold mt-2 text-red-600');
+        }
+
+        // ==========================================
+        // --- LIVE SEARCH AUTOCOMPLETE ENGINE ------
+        // ==========================================
+        let searchTimeout;
+        async function fetchSuggestions(query) {
+            const dropdown = document.getElementById('search-suggestions');
+            if (!query || query.length < 1) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(async () => {
+                try {
+                    // Uses your Render URL (Ensure this matches your actual backend domain if live)
+                    const response = await fetch(`https://sethistock-backend.onrender.com/autocomplete?q=${query}`);
+                    const data = await response.json();
+                    
+                    if (data.results && data.results.length > 0) {
+                        dropdown.innerHTML = data.results.map(item => `
+                            <li onclick="selectSuggestion('${item.symbol}')" class="px-6 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 flex justify-between items-center transition-colors">
+                                <span class="font-bold text-gray-900">${item.symbol}</span>
+                                <span class="text-xs text-gray-500 truncate ml-4">${item.name}</span>
+                            </li>
+                        `).join('');
+                        dropdown.classList.remove('hidden');
+                    } else {
+                        dropdown.classList.add('hidden');
+                    }
+                } catch (error) {
+                    console.error("Autocomplete error:", error);
+                }
+            }, 300); // 300ms delay protects the server
+        }
+
+        function selectSuggestion(symbol) {
+            document.getElementById('ticker-input').value = symbol;
+            document.getElementById('search-suggestions').classList.add('hidden');
+            // Call your main search function here (e.g., fetchStockData())
+            fetchStockData(); 
+        }
+
+        // Auto-hide the dropdown if the user clicks anywhere else on the screen
+        document.addEventListener('click', function(e) {
+            if (!document.getElementById('ticker-input').contains(e.target)) {
+                document.getElementById('search-suggestions').classList.add('hidden');
+            }
+        });
+
+        // ==========================================
+        // TELEMETRY: ANONYMOUS VISITOR TRACKING
+        // ==========================================
+        setTimeout(() => {
+            let visitorId = localStorage.getItem('sethiway_visitor_id');
+            if (!visitorId) {
+                visitorId = crypto.randomUUID();
+                localStorage.setItem('sethiway_visitor_id', visitorId);
+            }
+
+            // Using the telemetry endpoint we previously built in app.py
+            fetch(`${API_URL}/api/telemetry/log`, { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    project: 'SethiStock',
+                    action: 'page_view',
+                    visitor_id: visitorId
+                })
+            }).catch(() => {}); // Fails silently so it never interrupts the user
+        }, 1000); // 1-second delay so it doesn't slow down the initial page load
+    </script>
+</body>
+</html>

@@ -6,6 +6,14 @@
     <title>SethiPortfolio | Investment Journal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <style>
+        #loading-progress { height: 3px; background: #dbeafe; overflow: hidden; }
+        #loading-progress-bar { height: 100%; width: 6%; background: #2563eb; transition: width .35s ease; }
+        .loading-card { position: relative; overflow: hidden; }
+        .loading-card::before { content: ''; position: absolute; inset: 0; z-index: 40; background: rgba(243,244,246,.72); backdrop-filter: blur(1px); }
+        .loading-card::after { content: ''; position: absolute; z-index: 41; top: 50%; left: 50%; width: 28px; height: 28px; margin: -14px 0 0 -14px; border: 3px solid #bfdbfe; border-top-color: #2563eb; border-radius: 9999px; animation: portfolio-spin .8s linear infinite; }
+        @keyframes portfolio-spin { to { transform: rotate(360deg); } }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
 
@@ -24,6 +32,7 @@
         <header class="py-4 px-6 border-b border-gray-200 bg-white text-center">
             <h1 class="text-3xl md:text-4xl font-black tracking-tight text-gray-900">SETHI<span class="text-yellow-600">PORTFOLIO</span></h1>
         </header>
+        <div id="loading-progress" aria-label="Loading portfolio data"><div id="loading-progress-bar"></div></div>
 
         <main class="max-w-[1500px] mx-auto px-5 md:px-8 py-5 space-y-4">
             <!-- ABOVE-THE-FOLD PORTFOLIO HERO -->
@@ -35,21 +44,19 @@
                             <option>Fundamental Portfolio</option>
                         </select>
                         <span class="text-[9px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-1">Public Portfolio</span>
-                        <span class="text-[9px] font-black uppercase tracking-widest text-gray-500 bg-gray-50 border border-gray-200 rounded-full px-2.5 py-1">Illustrative V1 Data</span>
+                        <span class="text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-1">Live Portfolio Data</span>
                     </div>
-                    <h2 class="text-2xl font-black tracking-tight text-gray-900">Fundamental Portfolio</h2>
-                    <p class="text-sm text-gray-500 mt-1.5 leading-relaxed">
-                        Bottom-up equities focused on durable quality, valuation discipline and long-term capital allocation. Every material change links to a dated investment note.
-                    </p>
+                    <h2 id="portfolio-name" class="text-2xl font-black tracking-tight text-gray-900">Fundamental Portfolio</h2>
+                    <p id="portfolio-description" class="text-sm text-gray-500 mt-1.5 leading-relaxed">Loading portfolio strategy…</p>
 
                     <div class="grid grid-cols-2 gap-2.5 mt-4">
-                        <div class="rounded-xl bg-gray-900 text-white px-3.5 py-3"><p class="text-[9px] uppercase tracking-widest font-black text-gray-400">Portfolio Value</p><p class="text-xl font-black mt-0.5">£100,000</p></div>
-                        <div class="rounded-xl bg-emerald-50 border border-emerald-100 px-3.5 py-3"><p class="text-[9px] uppercase tracking-widest font-black text-emerald-700">Total Return</p><p class="text-xl font-black mt-0.5 text-emerald-700">+12.8%</p></div>
-                        <div class="rounded-xl bg-gray-50 border border-gray-100 px-3.5 py-3"><p class="text-[9px] uppercase tracking-widest font-black text-gray-400">Vs S&amp;P 500</p><p class="text-xl font-black mt-0.5 text-gray-900">+3.6pp</p></div>
-                        <div class="rounded-xl bg-gray-50 border border-gray-100 px-3.5 py-3"><p class="text-[9px] uppercase tracking-widest font-black text-gray-400">Since</p><p class="text-xl font-black mt-0.5 text-gray-900">Jun 2026</p></div>
+                        <div class="rounded-xl bg-gray-900 text-white px-3.5 py-3"><p class="text-[9px] uppercase tracking-widest font-black text-gray-400">Portfolio Value</p><p id="portfolio-value" class="text-xl font-black mt-0.5">Loading…</p></div>
+                        <div class="rounded-xl bg-emerald-50 border border-emerald-100 px-3.5 py-3"><p class="text-[9px] uppercase tracking-widest font-black text-emerald-700">Total Return</p><p id="total-return" class="text-xl font-black mt-0.5 text-emerald-700">Loading…</p></div>
+                        <div class="rounded-xl bg-gray-50 border border-gray-100 px-3.5 py-3"><p class="text-[9px] uppercase tracking-widest font-black text-gray-400">Vs S&amp;P 500</p><p id="vs-sp500" class="text-xl font-black mt-0.5 text-gray-900">Loading…</p></div>
+                        <div class="rounded-xl bg-gray-50 border border-gray-100 px-3.5 py-3"><p class="text-[9px] uppercase tracking-widest font-black text-gray-400">Since</p><p id="since-date" class="text-xl font-black mt-0.5 text-gray-900">Loading…</p></div>
                     </div>
 
-                    <div class="mt-auto pt-3"><span class="text-[9px] text-gray-400 bg-gray-50 border border-gray-100 rounded-full px-2.5 py-1">Illustrative only · not a live track record</span></div>
+                    <div class="mt-auto pt-3"><span id="data-status" class="text-[9px] text-gray-400 bg-gray-50 border border-gray-100 rounded-full px-2.5 py-1">Transaction-backed portfolio · market prices via API</span></div>
                 </div>
 
                 <!-- PERFORMANCE HERO -->
@@ -58,14 +65,12 @@
                         <div>
                             <p class="text-[10px] font-black uppercase tracking-widest text-blue-600 mb-1">Performance</p>
                             <h3 class="text-xl md:text-2xl font-black text-gray-900">Portfolio vs Benchmarks</h3>
-                            <p class="text-xs text-gray-500 mt-0.5">Rebased to 100 for a like-for-like comparison.</p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
                             <div class="flex rounded-lg bg-gray-100 p-1 text-xs font-black">
                                 <button onclick="setRange('1M', this)" class="range-btn px-3 py-1.5 rounded-md text-gray-500">1M</button>
                                 <button onclick="setRange('3M', this)" class="range-btn px-3 py-1.5 rounded-md text-gray-500">3M</button>
                                 <button onclick="setRange('YTD', this)" class="range-btn px-3 py-1.5 rounded-md text-gray-500">YTD</button>
-                                <button onclick="setRange('1Y', this)" class="range-btn px-3 py-1.5 rounded-md text-gray-500">1Y</button>
                                 <button onclick="setRange('SI', this)" class="range-btn px-3 py-1.5 rounded-md bg-white text-blue-700 shadow-sm">Since Inception</button>
                             </div>
                             <div class="relative">
@@ -81,7 +86,13 @@
                             </div>
                         </div>
                     </div>
-                    <div id="performance-chart" style="height:365px"></div>
+                    <div id="period-returns" class="grid grid-cols-2 xl:grid-cols-4 gap-2 mb-1">
+                        <div class="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2"><div class="text-[9px] font-black uppercase tracking-wider text-gray-400">Sethi Fundamental</div><div id="period-return-portfolio" class="text-sm font-black mt-0.5 text-gray-900">—</div></div>
+                        <div class="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2"><div class="text-[9px] font-black uppercase tracking-wider text-gray-400">S&amp;P 500 TR</div><div id="period-return-sp500" class="text-sm font-black mt-0.5 text-gray-900">—</div></div>
+                        <div class="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2"><div class="text-[9px] font-black uppercase tracking-wider text-gray-400">Nasdaq-100 (QQQ)</div><div id="period-return-nasdaq" class="text-sm font-black mt-0.5 text-gray-900">—</div></div>
+                        <div class="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2"><div class="text-[9px] font-black uppercase tracking-wider text-gray-400">VWRL</div><div id="period-return-vwrl" class="text-sm font-black mt-0.5 text-gray-900">—</div></div>
+                    </div>
+                    <div id="performance-chart" style="height:330px"></div>
                 </div>
             </section>
 
@@ -91,20 +102,20 @@
                     <div class="mb-2"><p class="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">Composition</p><h3 class="text-xl font-black">Where is the capital allocated?</h3></div>
                     <div id="weights-chart" style="height:315px"></div>
                     <div class="grid grid-cols-2 gap-3 mt-1">
-                        <div class="rounded-xl bg-gray-50 border border-gray-100 p-3"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Largest Position</p><p class="font-black mt-1">Company A · 24%</p></div>
-                        <div class="rounded-xl bg-gray-50 border border-gray-100 p-3"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Holdings</p><p class="font-black mt-1">6 positions</p></div>
+                        <div class="rounded-xl bg-gray-50 border border-gray-100 p-3"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Largest Position</p><p id="largest-position" class="font-black mt-1">Loading…</p></div>
+                        <div class="rounded-xl bg-gray-50 border border-gray-100 p-3"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Holdings</p><p id="holdings-count" class="font-black mt-1">Loading…</p></div>
                     </div>
                 </div>
 
                 <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
                     <div class="p-5 md:p-6 border-b border-gray-100 flex items-center justify-between gap-4">
                         <div><p class="text-[10px] font-black uppercase tracking-widest text-blue-600 mb-1">Holdings</p><h3 class="text-xl font-black">Position Detail</h3></div>
-                        <span class="text-xs text-gray-400">Illustrative holdings</span>
+                        <span id="holdings-status" class="text-xs text-gray-400">Live market snapshot</span>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead class="bg-gray-50 text-gray-400 uppercase tracking-wider text-[10px]">
-                                <tr><th class="text-left px-5 py-3">Holding</th><th class="text-right px-4 py-3">Weight</th><th class="text-right px-4 py-3">Entry</th><th class="text-right px-4 py-3">Current</th><th class="text-right px-4 py-3">Return</th><th class="text-right px-5 py-3">Contribution</th></tr>
+                                <tr><th class="text-left px-5 py-3">Holding</th><th class="text-right px-4 py-3">Weight</th><th class="text-right px-4 py-3">Avg Cost</th><th class="text-right px-4 py-3">Current</th><th class="text-right px-4 py-3">Return</th><th class="text-right px-5 py-3">Unrealised P&amp;L</th></tr>
                             </thead>
                             <tbody id="holdings-table"></tbody>
                         </table>
@@ -119,11 +130,11 @@
                     <button class="text-xs font-black text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-4 py-2 opacity-60 cursor-not-allowed" title="Planned integration">Analyse in SethiQuant · Coming later</button>
                 </div>
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-                    <div class="rounded-xl bg-gray-900 text-white p-4"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Total Return</p><p class="text-2xl font-black mt-1">+12.8%</p></div>
-                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Annualised</p><p class="text-2xl font-black mt-1">+18.4%</p></div>
-                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Volatility</p><p class="text-2xl font-black mt-1">14.2%</p></div>
-                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Max Drawdown</p><p class="text-2xl font-black mt-1 text-red-600">-7.6%</p></div>
-                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4 col-span-2 md:col-span-1"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Sharpe</p><p class="text-2xl font-black mt-1">1.18</p></div>
+                    <div class="rounded-xl bg-gray-900 text-white p-4"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Total Return</p><p id="analytics-total-return" class="text-2xl font-black mt-1">—</p></div>
+                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Annualised</p><p id="analytics-annualised" class="text-2xl font-black mt-1">—</p></div>
+                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Volatility</p><p id="analytics-volatility" class="text-2xl font-black mt-1">—</p></div>
+                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Max Drawdown</p><p id="analytics-drawdown" class="text-2xl font-black mt-1 text-red-600">—</p></div>
+                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4 col-span-2 md:col-span-1"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Sharpe*</p><p id="analytics-sharpe" class="text-2xl font-black mt-1">—</p><p class="text-[9px] text-gray-400 mt-1">0% risk-free rate</p></div>
                 </div>
             </section>
 
@@ -132,7 +143,7 @@
                 <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 md:p-6">
                     <div class="flex items-start justify-between gap-4 mb-5">
                         <div><p class="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">Investment Journal</p><h3 class="text-2xl font-black">The reasoning behind the portfolio</h3><p class="text-sm text-gray-500 mt-1">Dated notes create a permanent record of how the investment case evolved.</p></div>
-                        <span class="text-[10px] uppercase tracking-wider font-black text-gray-400 bg-gray-50 border border-gray-100 rounded-full px-3 py-1">3 demo notes</span>
+                        <span id="journal-count" class="text-[10px] uppercase tracking-wider font-black text-gray-400 bg-gray-50 border border-gray-100 rounded-full px-3 py-1">Loading notes…</span>
                     </div>
                     <div class="space-y-3" id="journal-list"></div>
                 </div>
@@ -173,25 +184,59 @@
     </footer>
 
 <script>
-    const portfolioData = {
-        dates: ['2026-06-01','2026-06-08','2026-06-15','2026-06-22','2026-07-01','2026-07-08','2026-07-15','2026-07-22','2026-08-01','2026-08-08','2026-08-15','2026-08-22','2026-08-30'],
-        portfolio: [100,101.2,99.8,103.1,104.5,105.9,108.4,107.6,110.1,111.7,109.9,112.2,112.8],
-        sp500: [100,100.8,100.1,101.9,103.0,104.2,105.5,105.1,106.3,107.4,106.8,108.2,109.2],
-        nasdaq: [100,101.4,100.3,103.2,104.8,106.0,107.8,106.9,108.4,109.6,108.7,110.0,110.9],
-        vwrl: [100,100.5,99.7,101.4,102.1,103.0,104.1,103.7,104.8,105.5,105.0,106.3,106.8]
-    };
+    const API_BASE = 'https://sethistock-api.onrender.com/api/portfolio';
+    const PORTFOLIO_SLUG = 'fundamental';
+    let portfolioData = { dates: [], portfolio: [], sp500: [], nasdaq: [], vwrl: [] };
+    let currentRange = 'SI';
     const activeSeries = {portfolio:true, sp500:true, nasdaq:true, vwrl:true};
     const seriesMeta = {
         portfolio:{name:'Sethi Fundamental', dash:'solid', width:3},
-        sp500:{name:'S&P 500', dash:'dot', width:2},
-        nasdaq:{name:'Nasdaq-100', dash:'dash', width:2},
+        sp500:{name:'S&P 500 Total Return', dash:'dot', width:2},
+        nasdaq:{name:'Nasdaq-100 (QQQ)', dash:'dash', width:2},
         vwrl:{name:'VWRL', dash:'dashdot', width:2}
     };
 
+    const fmtGBP = value => new Intl.NumberFormat('en-GB', {style:'currency', currency:'GBP', maximumFractionDigits:0}).format(value || 0);
+    const fmtMoney = (value, currency='GBP') => new Intl.NumberFormat('en-GB', {style:'currency', currency, minimumFractionDigits:2, maximumFractionDigits:2}).format(value || 0);
+    const fmtPct = value => `${value >= 0 ? '+' : ''}${Number(value || 0).toFixed(2)}%`;
+    const fmtPp = value => `${value >= 0 ? '+' : ''}${Number(value || 0).toFixed(2)}pp`;
+    const prettyDate = value => new Date(`${value}T00:00:00`).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
+
+    function rangeStartIndex(range) {
+        if (!portfolioData.dates.length || range === 'SI') return 0;
+        const last = new Date(`${portfolioData.dates.at(-1)}T00:00:00`);
+        let cutoff = new Date(last);
+        if (range === '1M') cutoff.setMonth(cutoff.getMonth() - 1);
+        else if (range === '3M') cutoff.setMonth(cutoff.getMonth() - 3);
+        else if (range === 'YTD') cutoff = new Date(last.getFullYear(), 0, 1);
+        const idx = portfolioData.dates.findIndex(d => new Date(`${d}T00:00:00`) >= cutoff);
+        return idx < 0 ? 0 : idx;
+    }
+
+    function updatePeriodReturns(start) {
+        const keys = ['portfolio', 'sp500', 'nasdaq', 'vwrl'];
+        keys.forEach(key => {
+            const series = portfolioData[key] || [];
+            const window = series.slice(start).filter(v => Number.isFinite(Number(v)));
+            const el = document.getElementById(`period-return-${key}`);
+            if (!el || window.length < 2 || Number(window[0]) === 0) { if (el) el.textContent = '—'; return; }
+            const change = (Number(window.at(-1)) / Number(window[0]) - 1) * 100;
+            el.textContent = fmtPct(change);
+            el.className = `text-sm font-black mt-0.5 ${change >= 0 ? 'text-emerald-600' : 'text-red-600'}`;
+        });
+    }
+
     function renderPerformance() {
+        const start = rangeStartIndex(currentRange);
+        const dates = portfolioData.dates.slice(start);
+        updatePeriodReturns(start);
         const traces = Object.keys(activeSeries).filter(k => activeSeries[k]).map(k => ({
-            x: portfolioData.dates, y: portfolioData[k], name: seriesMeta[k].name, type:'scatter', mode:'lines',
-            line:{width:seriesMeta[k].width, dash:seriesMeta[k].dash}, hovertemplate:'%{x}<br>%{y:.1f}<extra>'+seriesMeta[k].name+'</extra>'
+            x: dates,
+            y: portfolioData[k].slice(start),
+            name: seriesMeta[k].name,
+            type:'scatter', mode:'lines', connectgaps:false,
+            line:{width:seriesMeta[k].width, dash:seriesMeta[k].dash},
+            hovertemplate:'%{x}<br>%{y:.2f}<extra>'+seriesMeta[k].name+'</extra>'
         }));
         Plotly.react('performance-chart', traces, {
             margin:{t:15,r:25,l:50,b:45}, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)',
@@ -200,78 +245,159 @@
         }, {displayModeBar:false,responsive:true});
     }
 
-    function toggleSeriesMenu() {
-        document.getElementById('series-menu').classList.toggle('hidden');
-    }
-
+    function toggleSeriesMenu() { document.getElementById('series-menu').classList.toggle('hidden'); }
     function updateSeriesCount() {
-        const activeCount = 1 + ['sp500', 'nasdaq', 'vwrl'].filter(k => activeSeries[k]).length;
+        const activeCount = 1 + ['sp500','nasdaq','vwrl'].filter(k => activeSeries[k]).length;
         document.getElementById('series-count').textContent = `${activeCount}/4`;
     }
-
     document.querySelectorAll('[data-series-check]').forEach(input => input.addEventListener('change', () => {
-        const k = input.dataset.seriesCheck;
-        activeSeries[k] = input.checked;
-        updateSeriesCount();
-        renderPerformance();
+        activeSeries[input.dataset.seriesCheck] = input.checked;
+        updateSeriesCount(); renderPerformance();
     }));
-
-    document.addEventListener('click', (event) => {
+    document.addEventListener('click', event => {
         const menu = document.getElementById('series-menu');
         const button = document.getElementById('series-menu-btn');
         if (!menu.contains(event.target) && !button.contains(event.target)) menu.classList.add('hidden');
     });
-
     function setRange(range, btn) {
+        currentRange = range;
         document.querySelectorAll('.range-btn').forEach(b => b.className='range-btn px-3 py-1.5 rounded-md text-gray-500');
         btn.className='range-btn px-3 py-1.5 rounded-md bg-white text-blue-700 shadow-sm';
-        // V1 wireframe keeps the same short illustrative dataset. Real range filtering arrives with live portfolio history.
+        renderPerformance();
     }
 
-    const holdings = [
-        {name:'Company A',ticker:'AAA',weight:24,entry:82,current:96,ret:17.1,contrib:4.1,sector:'Industrials'},
-        {name:'Company B',ticker:'BBB',weight:20,entry:114,current:123,ret:7.9,contrib:1.6,sector:'Technology'},
-        {name:'Company C',ticker:'CCC',weight:18,entry:54,current:59,ret:9.3,contrib:1.7,sector:'Consumer'},
-        {name:'Company D',ticker:'DDD',weight:15,entry:71,current:67,ret:-5.6,contrib:-0.8,sector:'Healthcare'},
-        {name:'Company E',ticker:'EEE',weight:13,entry:38,current:43,ret:13.2,contrib:1.7,sector:'Financials'},
-        {name:'Cash',ticker:'CASH',weight:10,entry:1,current:1,ret:0,contrib:0,sector:'Cash'}
-    ];
+    function renderHoldings(snapshot) {
+        const holdings = snapshot.holdings || [];
+        const chartLabels = holdings.map(h => h.symbol);
+        const chartValues = holdings.map(h => h.weight_pct);
+        if ((snapshot.cash_weight_pct || 0) > 0.01) { chartLabels.push('Cash'); chartValues.push(snapshot.cash_weight_pct); }
+        Plotly.react('weights-chart', [{labels:chartLabels,values:chartValues,type:'pie',hole:.62,textinfo:'label+percent',hovertemplate:'%{label}: %{value:.2f}%<extra></extra>'}], {
+            margin:{t:10,r:10,l:10,b:10}, paper_bgcolor:'rgba(0,0,0,0)', showlegend:false
+        }, {displayModeBar:false,responsive:true});
 
-    Plotly.newPlot('weights-chart', [{labels:holdings.map(h=>h.ticker),values:holdings.map(h=>h.weight),type:'pie',hole:.62,textinfo:'label+percent',hovertemplate:'%{label}: %{value}%<extra></extra>'}], {
-        margin:{t:10,r:10,l:10,b:10},paper_bgcolor:'rgba(0,0,0,0)',showlegend:false
-    }, {displayModeBar:false,responsive:true});
+        const largest = holdings[0];
+        document.getElementById('largest-position').textContent = largest ? `${largest.symbol} · ${largest.weight_pct.toFixed(2)}%` : 'Cash';
+        document.getElementById('holdings-count').textContent = `${holdings.length} position${holdings.length === 1 ? '' : 's'}`;
+        document.getElementById('holdings-table').innerHTML = holdings.length ? holdings.map(h => `
+            <tr class="border-t border-gray-100 hover:bg-gray-50/60 transition">
+                <td class="px-5 py-4"><div class="font-black text-gray-900">${h.name}</div><div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">${h.symbol} · ${h.quantity.toLocaleString('en-GB')} units</div></td>
+                <td class="px-4 py-4 text-right font-black">${h.weight_pct.toFixed(2)}%</td>
+                <td class="px-4 py-4 text-right text-gray-500">${fmtMoney(h.average_cost, h.currency)}</td>
+                <td class="px-4 py-4 text-right text-gray-500">${fmtMoney(h.current_price, h.currency)}</td>
+                <td class="px-4 py-4 text-right font-black ${h.unrealised_return_pct>=0?'text-emerald-600':'text-red-600'}">${fmtPct(h.unrealised_return_pct)}</td>
+                <td class="px-5 py-4 text-right font-black ${h.unrealised_pnl>=0?'text-emerald-600':'text-red-600'}">${fmtMoney(h.unrealised_pnl, snapshot.base_currency)}</td>
+            </tr>`).join('') : '<tr><td colspan="6" class="px-5 py-8 text-center text-gray-400">No open holdings.</td></tr>';
+    }
 
-    document.getElementById('holdings-table').innerHTML = holdings.map(h => `
-        <tr class="border-t border-gray-100 hover:bg-gray-50/60 transition">
-            <td class="px-5 py-4"><div class="font-black text-gray-900">${h.name}</div><div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">${h.ticker}</div></td>
-            <td class="px-4 py-4 text-right font-black">${h.weight}%</td>
-            <td class="px-4 py-4 text-right text-gray-500">£${h.entry.toFixed(2)}</td>
-            <td class="px-4 py-4 text-right text-gray-500">£${h.current.toFixed(2)}</td>
-            <td class="px-4 py-4 text-right font-black ${h.ret>=0?'text-emerald-600':'text-red-600'}">${h.ret>=0?'+':''}${h.ret.toFixed(1)}%</td>
-            <td class="px-5 py-4 text-right font-black ${h.contrib>=0?'text-emerald-600':'text-red-600'}">${h.contrib>=0?'+':''}${h.contrib.toFixed(1)}pp</td>
-        </tr>`).join('');
+    function calculateAnalytics(values, dates) {
+        if (!values.length) return null;
+        const total = values.at(-1) - 100;
+        const start = new Date(`${dates[0]}T00:00:00`), end = new Date(`${dates.at(-1)}T00:00:00`);
+        const years = Math.max((end-start)/(365.25*24*3600*1000), 1/365.25);
+        const annualised = (Math.pow(values.at(-1)/100, 1/years)-1)*100;
+        const returns = values.slice(1).map((v,i) => v/values[i]-1).filter(Number.isFinite);
+        const mean = returns.reduce((a,b)=>a+b,0)/(returns.length || 1);
+        const variance = returns.length > 1 ? returns.reduce((sum,r)=>sum+(r-mean)**2,0)/(returns.length-1) : 0;
+        const vol = Math.sqrt(variance)*Math.sqrt(252)*100;
+        const sharpe = vol ? (mean*252)/(vol/100) : 0;
+        let peak = values[0], maxDD = 0;
+        values.forEach(v => { peak=Math.max(peak,v); maxDD=Math.min(maxDD,(v/peak-1)*100); });
+        return {total, annualised, vol, sharpe, maxDD};
+    }
 
-    const journal = [
-        {date:'30 Aug 2026',type:'Portfolio Review',title:'Why the portfolio remains concentrated',preview:'A review of position sizing, valuation dispersion and why conviction should not be confused with ignoring downside risk.'},
-        {date:'12 Aug 2026',type:'Increased',title:'Increased Company B from 15% to 20%',preview:'The valuation moved below my base-case range while the operating thesis remained intact, improving the expected return asymmetry.'},
-        {date:'21 Jul 2026',type:'Initial Thesis',title:'Initiated Company E at 13%',preview:'The position was initiated after reviewing earnings durability, capital returns and the gap between market expectations and my base case.'}
-    ];
-    document.getElementById('journal-list').innerHTML = journal.map((j,i)=>`
-        <article class="rounded-xl border border-gray-200 p-4 md:p-5 hover:border-amber-300 transition">
-            <div class="flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-wider"><span class="text-gray-400">${j.date}</span><span class="text-amber-700 bg-amber-50 border border-amber-100 rounded-full px-2 py-0.5">${j.type}</span></div>
-            <h4 class="text-lg font-black mt-2">${j.title}</h4><p class="text-sm text-gray-500 mt-1 leading-relaxed">${j.preview}</p>
-            <button class="mt-3 text-xs font-black text-blue-700 hover:text-blue-900">Read analysis →</button>
-        </article>`).join('');
+    function renderAnalytics(performance) {
+        const a = calculateAnalytics(performance.portfolio || [], performance.dates || []);
+        if (!a) return;
+        document.getElementById('analytics-total-return').textContent = fmtPct(a.total);
+        document.getElementById('analytics-annualised').textContent = fmtPct(a.annualised);
+        document.getElementById('analytics-volatility').textContent = `${a.vol.toFixed(2)}%`;
+        document.getElementById('analytics-drawdown').textContent = `${a.maxDD.toFixed(2)}%`;
+        document.getElementById('analytics-sharpe').textContent = a.sharpe.toFixed(2);
+    }
 
-    const changes = [
-        {date:'12 Aug',ticker:'BBB',action:'Increase',from:'15%',to:'20%',note:'Linked to journal note'},
-        {date:'21 Jul',ticker:'EEE',action:'Initiate',from:'0%',to:'13%',note:'Linked to initial thesis'},
-        {date:'05 Jul',ticker:'DDD',action:'Reduce',from:'20%',to:'15%',note:'Valuation / risk rebalance'}
-    ];
-    document.getElementById('change-log').innerHTML = changes.map(c=>`
-        <div class="p-5 hover:bg-gray-50/60 transition"><div class="flex items-center justify-between gap-3"><div><div class="flex items-center gap-2"><span class="font-black">${c.ticker}</span><span class="text-[10px] uppercase tracking-wider font-black text-blue-700 bg-blue-50 rounded-full px-2 py-0.5">${c.action}</span></div><p class="text-xs text-gray-500 mt-1">${c.from} → ${c.to}</p></div><span class="text-xs font-bold text-gray-400">${c.date}</span></div><button class="text-[11px] font-black text-blue-700 mt-3">Why? → ${c.note}</button></div>`).join('');
+    function renderJournal(entries) {
+        const list = entries || [];
+        document.getElementById('journal-count').textContent = `${list.length} published note${list.length === 1 ? '' : 's'}`;
+        document.getElementById('journal-list').innerHTML = list.length ? list.map(j => `
+            <article class="rounded-xl border border-gray-200 p-4 md:p-5 hover:border-amber-300 transition">
+                <div class="flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-wider"><span class="text-gray-400">${prettyDate(j.effective_date)}</span><span class="text-amber-700 bg-amber-50 border border-amber-100 rounded-full px-2 py-0.5">${j.category || 'Journal'}</span></div>
+                <h4 class="text-lg font-black mt-2">${j.title}</h4><p class="text-sm text-gray-500 mt-1 leading-relaxed">${j.summary || ''}</p>
+                ${j.body ? `<details class="mt-3"><summary class="text-xs font-black text-blue-700 cursor-pointer">Read analysis</summary><p class="text-sm text-gray-600 mt-2 whitespace-pre-line">${j.body}</p></details>` : ''}
+            </article>`).join('') : '<div class="rounded-xl border border-dashed border-gray-200 p-7 text-sm text-gray-400 text-center">No published investment notes yet. Future portfolio decisions will appear here with their dated rationale.</div>';
+    }
 
-    renderPerformance();
+    function renderTransactions(transactions) {
+        const list = (transactions || []).slice().reverse();
+        document.getElementById('change-log').innerHTML = list.length ? list.map(t => {
+            const instrument = t.instruments || {};
+            const side = String(t.side || '').toUpperCase();
+            return `<div class="p-5 hover:bg-gray-50/60 transition"><div class="flex items-center justify-between gap-3"><div><div class="flex items-center gap-2"><span class="font-black">${instrument.symbol || '—'}</span><span class="text-[10px] uppercase tracking-wider font-black ${side==='BUY'?'text-emerald-700 bg-emerald-50':'text-red-700 bg-red-50'} rounded-full px-2 py-0.5">${side}</span></div><p class="text-xs text-gray-500 mt-1">${Number(t.quantity).toLocaleString('en-GB')} units @ ${fmtMoney(Number(t.price), t.currency || instrument.currency || 'GBP')}</p></div><span class="text-xs font-bold text-gray-400">${prettyDate(t.trade_date)}</span></div>${t.note ? `<p class="text-[11px] text-gray-500 mt-3">${t.note}</p>` : ''}</div>`;
+        }).join('') : '<div class="p-6 text-sm text-gray-400 text-center">No portfolio transactions recorded.</div>';
+    }
+
+    let loadingTimer;
+    function startLoadingState() {
+        const cards = document.querySelectorAll('main section > div, main > section.bg-white');
+        cards.forEach(card => card.classList.add('loading-card'));
+        const progress = document.getElementById('loading-progress');
+        const bar = document.getElementById('loading-progress-bar');
+        progress.style.display = 'block';
+        bar.style.width = '8%';
+        let pct = 8;
+        loadingTimer = setInterval(() => { pct = Math.min(88, pct + Math.max(2, (88 - pct) * .12)); bar.style.width = `${pct}%`; }, 220);
+    }
+
+    function finishLoadingState() {
+        clearInterval(loadingTimer);
+        const bar = document.getElementById('loading-progress-bar');
+        const progress = document.getElementById('loading-progress');
+        bar.style.width = '100%';
+        document.querySelectorAll('.loading-card').forEach(card => card.classList.remove('loading-card'));
+        setTimeout(() => { progress.style.display = 'none'; bar.style.width = '6%'; }, 350);
+    }
+
+    async function loadPortfolio() {
+        startLoadingState();
+        try {
+            const [portfolioRes, performanceRes, journalRes, transactionsRes] = await Promise.all([
+                fetch(`${API_BASE}/${PORTFOLIO_SLUG}`),
+                fetch(`${API_BASE}/${PORTFOLIO_SLUG}/performance`),
+                fetch(`${API_BASE}/${PORTFOLIO_SLUG}/journal`),
+                fetch(`${API_BASE}/${PORTFOLIO_SLUG}/transactions`)
+            ]);
+            if (![portfolioRes,performanceRes,journalRes,transactionsRes].every(r=>r.ok)) throw new Error('One or more portfolio API requests failed.');
+            const [portfolioPayload, performance, journalPayload, transactionPayload] = await Promise.all([
+                portfolioRes.json(), performanceRes.json(), journalRes.json(), transactionsRes.json()
+            ]);
+            const info = portfolioPayload.portfolio, snapshot = portfolioPayload.snapshot;
+            const sp500 = performance.benchmarks['^SP500TR']?.values || [];
+            const nasdaq = performance.benchmarks['QQQ']?.values || [];
+            const vwrl = performance.benchmarks['VWRL.L']?.values || [];
+            portfolioData = {dates:performance.dates || [], portfolio:performance.portfolio || [], sp500, nasdaq, vwrl};
+
+            document.getElementById('portfolio-name').textContent = info.name;
+            document.getElementById('portfolio-description').textContent = info.description || '';
+            document.getElementById('portfolio-value').textContent = fmtGBP(snapshot.portfolio_value);
+            const totalReturn = (snapshot.portfolio_value / info.initial_capital - 1) * 100;
+            document.getElementById('total-return').textContent = fmtPct(totalReturn);
+            document.getElementById('since-date').textContent = new Date(`${info.inception_date}T00:00:00`).toLocaleDateString('en-GB',{month:'short',year:'numeric'});
+            const spReturn = sp500.length ? sp500.at(-1)-100 : 0;
+            document.getElementById('vs-sp500').textContent = fmtPp(totalReturn-spReturn);
+            document.getElementById('holdings-status').textContent = `Priced ${new Date(snapshot.pricing_timestamp).toLocaleString('en-GB')}`;
+
+            renderPerformance(); renderHoldings(snapshot); renderAnalytics(performance);
+            renderJournal(journalPayload.journal); renderTransactions(transactionPayload.transactions);
+        } catch (error) {
+            console.error('SethiPortfolio load failed:', error);
+            document.getElementById('data-status').textContent = 'Live data temporarily unavailable · please retry shortly';
+            document.getElementById('performance-chart').innerHTML = '<div class="h-full flex items-center justify-center text-sm text-gray-400">Unable to load live portfolio data.</div>';
+            document.getElementById('holdings-table').innerHTML = '<tr><td colspan="6" class="px-5 py-8 text-center text-gray-400">Unable to load holdings.</td></tr>';
+        } finally {
+            finishLoadingState();
+        }
+    }
+
+    loadPortfolio();
 </script>
 </body>
 </html>

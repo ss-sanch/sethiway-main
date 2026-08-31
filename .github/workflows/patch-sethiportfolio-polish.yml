@@ -1,0 +1,35 @@
+name: Patch SethiPortfolio Polish
+on:
+  push:
+    branches:
+      - feature/sethiportfolio-live-data
+    paths:
+      - scripts/patch_sethiportfolio_polish.py
+      - .github/workflows/patch-sethiportfolio-polish.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/sethiportfolio-live-data
+      - run: python scripts/patch_sethiportfolio_polish.py
+      - run: |
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('sethiportfolio.html').read_text(encoding='utf-8')
+          assert "period-return-portfolio" in s
+          assert "loading-progress-bar" in s
+          assert "setRange('1Y'" not in s
+          assert "Rebased to 100 for a like-for-like comparison." not in s
+          print('basic validation passed')
+          PY
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sethiportfolio.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Polish SethiPortfolio loading and range returns [skip ci]"
+          git push origin HEAD:feature/sethiportfolio-live-data

@@ -93,12 +93,12 @@
                         </div>
                         <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
                             <div class="flex items-center justify-between"><div><p class="text-[10px] font-black uppercase tracking-wider text-red-700">Funding leg</p><p class="text-sm font-black mt-0.5">Sell existing holding</p></div><span class="text-[9px] font-black uppercase rounded-full bg-red-50 text-red-700 px-2 py-1">SELL</span></div>
-                            <div class="grid grid-cols-2 gap-3"><div><label class="label" for="allocation-funding-symbol">Ticker</label><input id="allocation-funding-symbol" class="field uppercase" value="VUAG.L" required></div><div><label class="label" for="allocation-funding-qty">Quantity</label><input id="allocation-funding-qty" type="number" min="0" step="0.000001" class="field" required></div></div>
+                            <div class="grid grid-cols-2 gap-3"><div><label class="label" for="allocation-funding-symbol">Ticker</label><input id="allocation-funding-symbol" class="field uppercase" value="VUAG.L" required><p id="allocation-funding-status" class="text-[10px] font-bold text-gray-400 mt-1.5">Enter a ticker to verify.</p></div><div><label class="label" for="allocation-funding-qty">Quantity</label><input id="allocation-funding-qty" type="number" min="0" step="0.000001" class="field" required></div></div>
                             <div class="grid grid-cols-2 gap-3"><div><label class="label" for="allocation-funding-price">Price</label><input id="allocation-funding-price" type="number" min="0" step="0.0001" class="field" required></div><div><label class="label" for="allocation-funding-fees">Fees</label><input id="allocation-funding-fees" type="number" min="0" step="0.01" value="0" class="field" required></div></div>
                         </div>
                         <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
                             <div class="flex items-center justify-between"><div><p class="text-[10px] font-black uppercase tracking-wider text-emerald-700">Target leg</p><p class="text-sm font-black mt-0.5">Buy new investment</p></div><span class="text-[9px] font-black uppercase rounded-full bg-emerald-50 text-emerald-700 px-2 py-1">BUY</span></div>
-                            <div class="grid grid-cols-[.7fr_1.3fr] gap-3"><div><label class="label" for="allocation-target-symbol">Ticker</label><input id="allocation-target-symbol" class="field uppercase" placeholder="e.g. LSEG.L" required></div><div><label class="label" for="allocation-target-name">Instrument name</label><input id="allocation-target-name" class="field" placeholder="Company name" required></div></div>
+                            <div class="grid grid-cols-[.7fr_1.3fr] gap-3"><div><label class="label" for="allocation-target-symbol">Ticker</label><input id="allocation-target-symbol" class="field uppercase" placeholder="e.g. LSEG.L" required><p id="allocation-target-status" class="text-[10px] font-bold text-gray-400 mt-1.5">Enter a ticker to verify.</p></div><div><label class="label" for="allocation-target-name">Instrument name</label><input id="allocation-target-name" class="field" placeholder="Auto-filled after verification" required></div></div>
                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3"><div><label class="label" for="allocation-target-currency">Currency</label><select id="allocation-target-currency" class="field"><option>GBP</option><option>USD</option><option>EUR</option></select></div><div><label class="label" for="allocation-target-fx">FX to GBP</label><input id="allocation-target-fx" type="number" min="0" step="0.000001" value="1" class="field"></div><div><label class="label" for="allocation-target-qty">Quantity</label><input id="allocation-target-qty" type="number" min="0" step="0.000001" class="field" required></div><div><label class="label" for="allocation-target-price">Price</label><input id="allocation-target-price" type="number" min="0" step="0.0001" class="field" required></div></div>
                             <div class="max-w-[180px]"><label class="label" for="allocation-target-fees">Fees</label><input id="allocation-target-fees" type="number" min="0" step="0.01" value="0" class="field" required></div>
                         </div>
@@ -396,6 +396,51 @@
     el('correction-modal').addEventListener('click',event=>{if(event.target===el('correction-modal')) closeCorrectionModal();});
     document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!el('correction-modal').classList.contains('hidden')) closeCorrectionModal();});
 
+    const allocationLookupState={funding:0,target:0};
+
+    function resetAllocationVerification(kind){
+        allocationLookupState[kind]++;
+        const status=el(`allocation-${kind}-status`);
+        if(status){ status.textContent='Ticker changed · verify again.'; status.className='text-[10px] font-bold text-gray-400 mt-1.5'; }
+    }
+
+    async function verifyAllocationTicker(kind){
+        const symbolEl=el(`allocation-${kind}-symbol`);
+        const status=el(`allocation-${kind}-status`);
+        const symbol=symbolEl.value.trim().toUpperCase();
+        const tradeDate=el('allocation-date').value;
+        symbolEl.value=symbol;
+        if(!symbol || !tradeDate){ status.textContent='Enter ticker and trade date to verify.'; status.className='text-[10px] font-bold text-gray-400 mt-1.5'; return; }
+        const token=++allocationLookupState[kind];
+        status.textContent='Checking market data…'; status.className='text-[10px] font-bold text-blue-600 mt-1.5';
+        try{
+            const data=await apiFetch(`/admin/${PORTFOLIO}/instrument-lookup?symbol=${encodeURIComponent(symbol)}&trade_date=${encodeURIComponent(tradeDate)}`);
+            if(token!==allocationLookupState[kind]) return;
+            const previous=data.used_previous_session ? ` · previous session ${prettyDate(data.price_date)}` : ` · close ${prettyDate(data.price_date)}`;
+            if(kind==='funding'){
+                el('allocation-funding-price').value=Number(data.reference_close).toFixed(4);
+                status.textContent=`✓ Verified · ${data.name}${data.exchange?' · '+data.exchange:''} · ${Number(data.held_quantity||0).toLocaleString('en-GB')} units held${previous}`;
+            }else{
+                el('allocation-target-name').value=data.name||symbol;
+                if(['GBP','USD','EUR'].includes(data.currency)){ el('allocation-target-currency').value=data.currency; }
+                if(data.currency==='GBP') el('allocation-target-fx').value='1';
+                el('allocation-target-price').value=Number(data.reference_close).toFixed(4);
+                status.textContent=`✓ Verified · ${data.name}${data.exchange?' · '+data.exchange:''} · ${data.currency}${previous}`;
+            }
+            status.className='text-[10px] font-black text-emerald-700 mt-1.5';
+            updateAllocationPreview();
+        }catch(error){
+            if(token!==allocationLookupState[kind]) return;
+            status.textContent=`✕ ${error.message}`; status.className='text-[10px] font-bold text-red-600 mt-1.5';
+        }
+    }
+
+    el('allocation-funding-symbol').addEventListener('input',()=>resetAllocationVerification('funding'));
+    el('allocation-target-symbol').addEventListener('input',()=>resetAllocationVerification('target'));
+    el('allocation-funding-symbol').addEventListener('blur',()=>verifyAllocationTicker('funding'));
+    el('allocation-target-symbol').addEventListener('blur',()=>verifyAllocationTicker('target'));
+    el('allocation-date').addEventListener('change',()=>{ verifyAllocationTicker('funding'); if(el('allocation-target-symbol').value.trim()) verifyAllocationTicker('target'); });
+
     function updateAllocationPreview() {
         const fundingQty=Number(el('allocation-funding-qty').value||0), fundingPrice=Number(el('allocation-funding-price').value||0), fundingFees=Number(el('allocation-funding-fees').value||0);
         const targetQty=Number(el('allocation-target-qty').value||0), targetPrice=Number(el('allocation-target-price').value||0), targetFees=Number(el('allocation-target-fees').value||0), targetFx=Number(el('allocation-target-fx').value||1);
@@ -433,7 +478,7 @@
         try{
             const result=await apiFetch(`/admin/${PORTFOLIO}/active-allocation`,{method:'POST',body:JSON.stringify(payload)});
             setMessage('global-message',`Active allocation ${result.decision_id} recorded successfully. The new BUY is ready to link to an investment note.`,'success');
-            el('allocation-form').reset(); el('allocation-funding-symbol').value='VUAG.L'; el('allocation-funding-fees').value='0'; el('allocation-target-currency').value='GBP'; el('allocation-target-fx').value='1'; el('allocation-target-fees').value='0'; setTodayDefaults(); updateAllocationPreview();
+            el('allocation-form').reset(); el('allocation-funding-symbol').value='VUAG.L'; el('allocation-funding-fees').value='0'; el('allocation-target-currency').value='GBP'; el('allocation-target-fx').value='1'; el('allocation-target-fees').value='0'; setTodayDefaults(); el('allocation-funding-status').textContent='Enter a ticker to verify.'; el('allocation-funding-status').className='text-[10px] font-bold text-gray-400 mt-1.5'; el('allocation-target-status').textContent='Enter a ticker to verify.'; el('allocation-target-status').className='text-[10px] font-bold text-gray-400 mt-1.5'; updateAllocationPreview();
             await refreshAdminData();
             if(result.target_transaction?.id){ el('journal-transaction').value=result.target_transaction.id; el('journal-date').value=payload.trade_date; el('journal-category').value='Investment Note'; el('journal-title').scrollIntoView({behavior:'smooth',block:'center'}); }
         }catch(error){ setMessage('global-message',error.message,'error'); }

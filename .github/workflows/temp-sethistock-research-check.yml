@@ -28,8 +28,10 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           html = Path('sethistock.html').read_text(encoding='utf-8')
+          js = Path('sethistock-research.js').read_text(encoding='utf-8')
           assert html.count('sethistock-research.js?v=20260831') == 1
-          assert 'id="research-labs"' in Path('sethistock-research.js').read_text(encoding='utf-8')
+          assert 'section.id = "research-labs"' in js
+          assert '/api/research/' in js
           PY
 
       - name: Remove temporary check workflow

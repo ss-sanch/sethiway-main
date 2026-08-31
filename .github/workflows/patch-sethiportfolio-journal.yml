@@ -1,0 +1,35 @@
+name: Patch SethiPortfolio Journal
+on:
+  push:
+    branches:
+      - feature/sethiportfolio-journal-v1
+    paths:
+      - scripts/patch_sethiportfolio_journal.py
+      - .github/workflows/patch-sethiportfolio-journal.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/sethiportfolio-journal-v1
+      - run: python scripts/patch_sethiportfolio_journal.py
+      - run: |
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('sethiportfolio.html').read_text(encoding='utf-8')
+          assert 'journal-modal' in s
+          assert 'Read analysis →' in s
+          assert 'View rationale →' in s
+          assert 'Rationale linked' in s
+          print('journal validation passed')
+          PY
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sethiportfolio.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Add SethiPortfolio journal modal and rationale links [skip ci]"
+          git push origin HEAD:feature/sethiportfolio-journal-v1

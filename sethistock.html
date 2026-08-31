@@ -30,7 +30,7 @@
                 const response = await fetch('sethistock_core.html?v=20260831', { cache: 'no-store' });
                 if (!response.ok) throw new Error(`Core page returned ${response.status}`);
                 let html = await response.text();
-                const researchScript = '<script src="sethistock-research.js?v=20260831"><\\/script>';
+                const researchScript = '<script src="sethistock-research.js?v=20260831"><\/script>';
                 const bodyClose = html.toLowerCase().lastIndexOf('</body>');
                 html = bodyClose >= 0
                     ? html.slice(0, bodyClose) + researchScript + html.slice(bodyClose)

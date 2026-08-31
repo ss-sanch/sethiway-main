@@ -136,6 +136,7 @@
                             <span><span class="block text-xs font-black">Publish immediately</span><span class="block text-[11px] text-gray-500 mt-0.5">Untick to save the entry privately in the database.</span></span>
                         </label>
                         <button id="journal-submit" type="submit" class="w-full rounded-xl bg-amber-600 text-white px-4 py-3 text-sm font-black hover:bg-amber-700 transition">Save journal entry</button>
+                        <button id="journal-cancel-edit" type="button" onclick="cancelJournalEdit()" class="hidden w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-black text-gray-600 hover:bg-gray-50">Cancel edit</button>
                     </form>
                 </section>
             </div>
@@ -147,6 +148,30 @@
                 </div>
                 <div id="recent-transactions" class="divide-y divide-gray-100"><div class="p-6 text-sm text-gray-400">Loading transactions…</div></div>
             </section>
+
+            <section class="card mt-6 overflow-hidden">
+                <div class="p-5 border-b border-gray-100 flex items-center justify-between gap-4">
+                    <div><p class="text-[10px] font-black uppercase tracking-[0.14em] text-gray-400">Editorial control</p><h2 class="text-lg font-black mt-1">Manage Journal Entries</h2><p class="text-xs text-gray-500 mt-1">Edit publication state, linked rationale and written analysis, or deliberately delete an entry.</p></div>
+                    <span id="journal-count" class="text-[10px] font-black uppercase tracking-wider text-gray-400">0 entries</span>
+                </div>
+                <div id="journal-manager" class="divide-y divide-gray-100"><div class="p-6 text-sm text-gray-400">Loading journal entries…</div></div>
+            </section>
+
+            <div id="correction-modal" class="hidden fixed inset-0 z-[80] bg-gray-950/45 backdrop-blur-sm p-4 items-center justify-center">
+                <div class="w-full max-w-lg rounded-2xl bg-white border border-gray-200 shadow-2xl overflow-hidden">
+                    <div class="p-5 border-b border-gray-100 flex items-start justify-between gap-4">
+                        <div><p class="text-[10px] font-black uppercase tracking-[0.14em] text-red-700">Audit-preserving correction</p><h2 id="correction-title" class="text-xl font-black mt-1">Correct Transaction</h2><p class="text-xs text-gray-500 mt-1">The original row stays untouched. A reversal and corrected replacement are added on its original trade date.</p></div>
+                        <button type="button" onclick="closeCorrectionModal()" class="text-xl leading-none text-gray-400 hover:text-gray-900">×</button>
+                    </div>
+                    <form id="correction-form" class="p-5 space-y-4">
+                        <div class="grid grid-cols-2 gap-4"><div><label class="label" for="correction-qty">Correct quantity</label><input id="correction-qty" type="number" min="0" step="0.000001" class="field" required></div><div><label class="label" for="correction-price">Correct price</label><input id="correction-price" type="number" min="0" step="0.0001" class="field" required></div></div>
+                        <div class="grid grid-cols-2 gap-4"><div><label class="label" for="correction-fees">Correct fees</label><input id="correction-fees" type="number" min="0" step="0.01" class="field" required></div><div><label class="label" for="correction-fx">FX to GBP</label><input id="correction-fx" type="number" min="0" step="0.000001" class="field" required></div></div>
+                        <div><label class="label" for="correction-reason">Correction reason</label><textarea id="correction-reason" rows="3" class="field resize-y" placeholder="Explain the clerical/data correction" required></textarea></div>
+                        <div class="rounded-xl bg-amber-50 border border-amber-200 p-3 text-[11px] leading-relaxed text-amber-800">This does not erase history. The ledger will contain the original event, an explicit reversal and the corrected replacement.</div>
+                        <div class="flex gap-3"><button type="button" onclick="closeCorrectionModal()" class="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm font-black hover:bg-gray-50">Cancel</button><button id="correction-submit" type="submit" class="flex-1 rounded-xl bg-red-700 text-white px-4 py-3 text-sm font-black hover:bg-red-800">Record correction</button></div>
+                    </form>
+                </div>
+            </div>
         </section>
     </main>
 
@@ -155,6 +180,9 @@
     const PORTFOLIO = 'fundamental';
     let adminSecret = '';
     let liveTransactions = [];
+    let liveJournal = [];
+    let editingJournalId = null;
+    let correctingTransactionId = null;
 
     const money = (n, currency='GBP') => new Intl.NumberFormat('en-GB', { style:'currency', currency, maximumFractionDigits:2 }).format(Number(n || 0));
     const prettyDate = value => value ? new Date(`${value}T12:00:00`).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}) : '—';
@@ -208,6 +236,9 @@
     function logoutAdmin() {
         adminSecret = '';
         liveTransactions = [];
+        liveJournal = [];
+        editingJournalId = null;
+        correctingTransactionId = null;
         el('admin-panel').classList.add('hidden');
         el('login-panel').classList.remove('hidden');
         el('logout-btn').classList.add('hidden');
@@ -220,21 +251,24 @@
         el('refresh-spinner').classList.remove('hidden');
         try {
             await apiFetch('/admin/health');
-            const [portfolioResponse, txnResponse] = await Promise.all([
+            const [portfolioResponse, txnResponse, journalData] = await Promise.all([
                 fetch(`${API}/${PORTFOLIO}`),
-                fetch(`${API}/${PORTFOLIO}/transactions`)
+                fetch(`${API}/${PORTFOLIO}/transactions`),
+                apiFetch(`/admin/${PORTFOLIO}/journal`)
             ]);
             if (!portfolioResponse.ok || !txnResponse.ok) throw new Error('Unable to load current portfolio state.');
             const portfolio = await portfolioResponse.json();
             const txns = await txnResponse.json();
             const snapshot = portfolio.snapshot || portfolio;
             liveTransactions = txns.transactions || [];
+            liveJournal = journalData.journal || [];
             el('stat-value').textContent = money(snapshot.portfolio_value, snapshot.base_currency || 'GBP');
             el('stat-cash').textContent = money(snapshot.cash, snapshot.base_currency || 'GBP');
             el('stat-holdings').textContent = String((snapshot.holdings || []).length);
             el('stat-trades').textContent = String(liveTransactions.length);
             renderTransactionOptions();
             renderRecentTransactions();
+            renderJournalManager();
         } catch (error) {
             setMessage('global-message', error.message, 'error');
         } finally {
@@ -258,20 +292,68 @@
         if (!liveTransactions.length) {
             const empty = document.createElement('div'); empty.className='p-6 text-sm text-gray-400'; empty.textContent='No transactions recorded.'; container.appendChild(empty); return;
         }
-        [...liveTransactions].reverse().slice(0,8).forEach(txn => {
+        [...liveTransactions].reverse().slice(0,12).forEach(txn => {
             const instrument = txn.instruments || {};
-            const row = document.createElement('div'); row.className='p-4 md:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2';
-            const left = document.createElement('div');
-            const top = document.createElement('div'); top.className='flex items-center gap-2';
+            const isCorrection = /^(REVERSAL|CORRECTION) of /.test(txn.note || '');
+            const row = document.createElement('div'); row.className='p-4 md:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3';
+            const left = document.createElement('div'); left.className='min-w-0';
+            const top = document.createElement('div'); top.className='flex items-center gap-2 flex-wrap';
             const symbol = document.createElement('span'); symbol.className='text-sm font-black'; symbol.textContent=instrument.symbol || '—';
             const side = document.createElement('span'); side.className=`text-[9px] font-black uppercase tracking-wider rounded-full px-2 py-0.5 ${String(txn.side).toUpperCase()==='BUY'?'bg-emerald-50 text-emerald-700':'bg-red-50 text-red-700'}`; side.textContent=txn.side;
             top.append(symbol, side);
-            const detail = document.createElement('p'); detail.className='text-xs text-gray-500 mt-1'; detail.textContent=`${Number(txn.quantity || 0).toLocaleString('en-GB')} units @ ${money(txn.price, txn.currency || instrument.currency || 'GBP')}${txn.note ? ' · ' + txn.note : ''}`;
+            if (isCorrection) { const badge=document.createElement('span'); badge.className='text-[9px] font-black uppercase tracking-wider rounded-full px-2 py-0.5 bg-amber-50 text-amber-700'; badge.textContent=(txn.note||'').startsWith('REVERSAL')?'Reversal':'Corrected'; top.appendChild(badge); }
+            const detail = document.createElement('p'); detail.className='text-xs text-gray-500 mt-1 truncate'; detail.textContent=`${Number(txn.quantity || 0).toLocaleString('en-GB')} units @ ${money(txn.price, txn.currency || instrument.currency || 'GBP')}${txn.note ? ' · ' + txn.note : ''}`;
             left.append(top, detail);
-            const date = document.createElement('span'); date.className='text-xs font-bold text-gray-400'; date.textContent=prettyDate(txn.trade_date);
-            row.append(left,date); container.appendChild(row);
+            const actions=document.createElement('div'); actions.className='flex items-center gap-3 shrink-0';
+            const date = document.createElement('span'); date.className='text-xs font-bold text-gray-400'; date.textContent=prettyDate(txn.trade_date); actions.appendChild(date);
+            if (!isCorrection) { const btn=document.createElement('button'); btn.type='button'; btn.className='text-[11px] font-black text-red-700 hover:text-red-900'; btn.textContent='Correct trade'; btn.onclick=()=>openCorrectionModal(txn.id); actions.appendChild(btn); }
+            row.append(left,actions); container.appendChild(row);
         });
     }
+
+    function renderJournalManager() {
+        const container=el('journal-manager'); container.replaceChildren(); el('journal-count').textContent=`${liveJournal.length} ${liveJournal.length===1?'entry':'entries'}`;
+        if (!liveJournal.length) { const empty=document.createElement('div'); empty.className='p-6 text-sm text-gray-400'; empty.textContent='No journal entries recorded.'; container.appendChild(empty); return; }
+        liveJournal.forEach(entry=>{
+            const row=document.createElement('div'); row.className='p-4 md:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3';
+            const left=document.createElement('div'); left.className='min-w-0';
+            const top=document.createElement('div'); top.className='flex items-center gap-2 flex-wrap';
+            const title=document.createElement('span'); title.className='text-sm font-black'; title.textContent=entry.title;
+            const state=document.createElement('span'); state.className=`text-[9px] font-black uppercase tracking-wider rounded-full px-2 py-0.5 ${entry.is_published?'bg-emerald-50 text-emerald-700':'bg-gray-100 text-gray-600'}`; state.textContent=entry.is_published?'Published':'Draft';
+            top.append(title,state);
+            const detail=document.createElement('p'); detail.className='text-xs text-gray-500 mt-1 truncate'; detail.textContent=`${entry.category} · Effective ${prettyDate(entry.effective_date)}${entry.related_transaction_id?' · Linked decision':''}`; left.append(top,detail);
+            const actions=document.createElement('div'); actions.className='flex gap-3 shrink-0';
+            const edit=document.createElement('button'); edit.type='button'; edit.className='text-[11px] font-black text-blue-700 hover:text-blue-900'; edit.textContent='Edit'; edit.onclick=()=>editJournalEntry(entry.id);
+            const del=document.createElement('button'); del.type='button'; del.className='text-[11px] font-black text-red-700 hover:text-red-900'; del.textContent='Delete'; del.onclick=()=>deleteJournalEntry(entry.id); actions.append(edit,del); row.append(left,actions); container.appendChild(row);
+        });
+    }
+
+    function editJournalEntry(id) {
+        const entry=liveJournal.find(x=>x.id===id); if(!entry) return; editingJournalId=id;
+        el('journal-category').value=entry.category; el('journal-date').value=entry.effective_date; el('journal-title').value=entry.title; el('journal-summary').value=entry.summary; el('journal-body').value=entry.body; el('journal-transaction').value=entry.related_transaction_id||''; el('journal-published').checked=!!entry.is_published;
+        el('journal-submit').textContent='Update journal entry'; el('journal-cancel-edit').classList.remove('hidden'); el('journal-title').scrollIntoView({behavior:'smooth',block:'center'});
+    }
+
+    function cancelJournalEdit() { editingJournalId=null; el('journal-form').reset(); el('journal-published').checked=true; el('journal-submit').textContent='Save journal entry'; el('journal-cancel-edit').classList.add('hidden'); setTodayDefaults(); renderTransactionOptions(); }
+
+    async function deleteJournalEntry(id) {
+        const entry=liveJournal.find(x=>x.id===id); if(!entry) return;
+        const typed=prompt(`Delete journal entry “${entry.title}”?\n\nType DELETE to confirm.`); if(typed!=='DELETE') return;
+        try { await apiFetch(`/admin/${PORTFOLIO}/journal/${id}`,{method:'DELETE'}); setMessage('global-message',`Deleted journal entry: ${entry.title}.`,'success'); if(editingJournalId===id) cancelJournalEdit(); await refreshAdminData(); } catch(error){ setMessage('global-message',error.message,'error'); }
+    }
+
+    function openCorrectionModal(id) {
+        const txn=liveTransactions.find(x=>x.id===id); if(!txn) return; correctingTransactionId=id; const instrument=txn.instruments||{}; el('correction-title').textContent=`Correct ${txn.side} ${instrument.symbol||''}`; el('correction-qty').value=txn.quantity; el('correction-price').value=txn.price; el('correction-fees').value=txn.fees||0; el('correction-fx').value=txn.fx_rate_to_base||1; el('correction-reason').value=''; const modal=el('correction-modal'); modal.classList.remove('hidden'); modal.classList.add('flex'); document.body.style.overflow='hidden';
+    }
+    function closeCorrectionModal(){ correctingTransactionId=null; const modal=el('correction-modal'); modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.style.overflow=''; }
+
+    el('correction-form').addEventListener('submit',async event=>{
+        event.preventDefault(); if(!correctingTransactionId) return; const payload={quantity:Number(el('correction-qty').value),price:Number(el('correction-price').value),fees:Number(el('correction-fees').value||0),fx_rate_to_base:Number(el('correction-fx').value||1),reason:el('correction-reason').value.trim()};
+        if(!confirm('Record an audit-preserving reversal and replacement for this transaction?')) return; const btn=el('correction-submit'); btn.disabled=true; btn.textContent='Recording…';
+        try { await apiFetch(`/admin/${PORTFOLIO}/transaction/${correctingTransactionId}/correct`,{method:'POST',body:JSON.stringify(payload)}); closeCorrectionModal(); setMessage('global-message','Transaction correction recorded as reversal + corrected replacement.','success'); await refreshAdminData(); } catch(error){ setMessage('global-message',error.message,'error'); } finally { btn.disabled=false; btn.textContent='Record correction'; }
+    });
+    el('correction-modal').addEventListener('click',event=>{if(event.target===el('correction-modal')) closeCorrectionModal();});
+    document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!el('correction-modal').classList.contains('hidden')) closeCorrectionModal();});
 
     function updateTransactionPreview() {
         const qty = Number(el('txn-qty').value || 0), price = Number(el('txn-price').value || 0), fees = Number(el('txn-fees').value || 0), fx = Number(el('txn-fx').value || 1);
@@ -314,11 +396,13 @@
         if (!confirm(`Ready to ${action}?`)) return;
         const btn=el('journal-submit'); btn.disabled=true; btn.textContent='Saving…';
         try {
-            await apiFetch(`/admin/${PORTFOLIO}/journal`, { method:'POST', body:JSON.stringify(payload) });
-            setMessage('global-message', payload.is_published ? 'Journal entry published successfully.' : 'Journal entry saved as unpublished.', 'success');
-            el('journal-form').reset(); el('journal-published').checked=true; setTodayDefaults(); renderTransactionOptions();
+            const path = editingJournalId ? `/admin/${PORTFOLIO}/journal/${editingJournalId}` : `/admin/${PORTFOLIO}/journal`;
+            const method = editingJournalId ? 'PATCH' : 'POST';
+            await apiFetch(path, { method, body:JSON.stringify(payload) });
+            setMessage('global-message', editingJournalId ? 'Journal entry updated successfully.' : (payload.is_published ? 'Journal entry published successfully.' : 'Journal entry saved as unpublished.'), 'success');
+            editingJournalId=null; el('journal-form').reset(); el('journal-published').checked=true; el('journal-submit').textContent='Save journal entry'; el('journal-cancel-edit').classList.add('hidden'); setTodayDefaults(); renderTransactionOptions(); await refreshAdminData();
         } catch (error) { setMessage('global-message', error.message, 'error'); }
-        finally { btn.disabled=false; btn.textContent='Save journal entry'; }
+        finally { btn.disabled=false; btn.textContent=editingJournalId ? 'Update journal entry' : 'Save journal entry'; }
     });
 
     function setTodayDefaults() {

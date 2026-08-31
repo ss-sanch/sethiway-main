@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SethiPortfolio Admin | SethiWay</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .field { width:100%; border:1px solid #e5e7eb; border-radius:.75rem; padding:.7rem .85rem; font-size:.875rem; background:#fff; outline:none; transition:.15s; }
+        .field:focus { border-color:#93c5fd; box-shadow:0 0 0 3px rgba(59,130,246,.10); }
+        .label { display:block; font-size:.68rem; line-height:1rem; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:#6b7280; margin-bottom:.4rem; }
+        .card { background:#fff; border:1px solid #e5e7eb; border-radius:1rem; box-shadow:0 1px 2px rgba(15,23,42,.03); }
+        .spinner { width:18px; height:18px; border:2px solid #dbeafe; border-top-color:#2563eb; border-radius:9999px; animation:spin .75s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen">
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-200">
+        <div class="max-w-[1450px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="sethiportfolio.html" class="text-xs font-black tracking-[0.18em] text-blue-700">SETHIPORTFOLIO</a>
+                <span class="text-gray-300">/</span>
+                <span class="text-xs font-black tracking-[0.14em] text-gray-500">ADMIN</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <span id="auth-status" class="hidden sm:inline-flex text-[10px] font-black uppercase tracking-wider text-gray-400">Locked</span>
+                <button id="logout-btn" type="button" class="hidden text-xs font-bold text-gray-500 hover:text-gray-900" onclick="logoutAdmin()">Lock admin</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-[1450px] mx-auto px-4 md:px-6 py-8 md:py-10">
+        <section id="login-panel" class="max-w-md mx-auto pt-12 md:pt-20">
+            <div class="card p-6 md:p-8">
+                <div class="w-11 h-11 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-700 font-black mb-5">A</div>
+                <p class="text-[10px] font-black uppercase tracking-[0.16em] text-blue-700">Private control panel</p>
+                <h1 class="text-2xl font-black tracking-tight mt-2">SethiPortfolio Admin</h1>
+                <p class="text-sm text-gray-500 leading-relaxed mt-2">Authenticate against the SethiPortfolio backend to record transactions and publish investment journal entries.</p>
+                <form id="login-form" class="mt-6 space-y-4">
+                    <div>
+                        <label class="label" for="admin-secret">Admin secret</label>
+                        <input id="admin-secret" type="password" autocomplete="off" class="field" placeholder="Enter private admin secret" required>
+                    </div>
+                    <button id="login-btn" type="submit" class="w-full rounded-xl bg-gray-900 text-white px-4 py-3 text-sm font-black hover:bg-black transition flex items-center justify-center gap-2">
+                        <span>Unlock admin</span>
+                    </button>
+                </form>
+                <p id="login-message" class="hidden mt-4 text-xs leading-relaxed rounded-xl px-3 py-2"></p>
+                <p class="text-[11px] text-gray-400 leading-relaxed mt-5">The secret is held only in this page's memory. It is not written into the site code or sent anywhere except the authenticated SethiPortfolio API.</p>
+            </div>
+        </section>
+
+        <section id="admin-panel" class="hidden">
+            <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-5 mb-7">
+                <div>
+                    <p class="text-[10px] font-black uppercase tracking-[0.16em] text-blue-700">Fundamental Portfolio</p>
+                    <h1 class="text-3xl md:text-4xl font-black tracking-tight mt-1">Portfolio Control Panel</h1>
+                    <p class="text-sm text-gray-500 mt-2">Record portfolio history carefully. Transactions are treated as immutable accounting events.</p>
+                </div>
+                <button type="button" onclick="refreshAdminData()" class="self-start lg:self-auto rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs font-black hover:bg-gray-50 flex items-center gap-2">
+                    <span id="refresh-spinner" class="hidden spinner"></span><span>Refresh live state</span>
+                </button>
+            </div>
+
+            <div id="global-message" class="hidden mb-6 rounded-xl border px-4 py-3 text-sm"></div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-7">
+                <div class="card p-4"><p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Portfolio Value</p><p id="stat-value" class="text-xl font-black mt-1">—</p></div>
+                <div class="card p-4"><p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Cash Available</p><p id="stat-cash" class="text-xl font-black mt-1">—</p></div>
+                <div class="card p-4"><p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Open Holdings</p><p id="stat-holdings" class="text-xl font-black mt-1">—</p></div>
+                <div class="card p-4"><p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Recorded Trades</p><p id="stat-trades" class="text-xl font-black mt-1">—</p></div>
+            </div>
+
+            <div class="grid xl:grid-cols-[1fr_1fr] gap-6 items-start">
+                <section class="card overflow-hidden">
+                    <div class="p-5 md:p-6 border-b border-gray-100">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <p class="text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700">Portfolio ledger</p>
+                                <h2 class="text-xl font-black mt-1">Record Transaction</h2>
+                                <p class="text-xs text-gray-500 mt-1">BUY and SELL events immediately become part of reconstructed portfolio history.</p>
+                            </div>
+                            <span class="text-[9px] font-black uppercase tracking-wider rounded-full bg-red-50 text-red-700 border border-red-100 px-2 py-1">Permanent</span>
+                        </div>
+                    </div>
+                    <form id="transaction-form" class="p-5 md:p-6 space-y-5">
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div><label class="label" for="txn-side">Side</label><select id="txn-side" class="field"><option value="BUY">BUY</option><option value="SELL">SELL</option></select></div>
+                            <div><label class="label" for="txn-date">Trade date</label><input id="txn-date" type="date" class="field" required></div>
+                        </div>
+                        <div class="grid sm:grid-cols-[.8fr_1.2fr] gap-4">
+                            <div><label class="label" for="txn-symbol">Ticker</label><input id="txn-symbol" class="field uppercase" placeholder="e.g. VUAG.L" required></div>
+                            <div><label class="label" for="txn-name">Instrument name</label><input id="txn-name" class="field" placeholder="Company or fund name" required></div>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            <div><label class="label" for="txn-type">Asset type</label><select id="txn-type" class="field"><option value="equity">Equity</option><option value="etf">ETF</option><option value="fund">Fund</option></select></div>
+                            <div><label class="label" for="txn-currency">Currency</label><select id="txn-currency" class="field"><option>GBP</option><option>USD</option><option>EUR</option></select></div>
+                            <div><label class="label" for="txn-fx">FX to GBP</label><input id="txn-fx" type="number" min="0" step="0.000001" class="field" value="1"></div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div><label class="label" for="txn-qty">Quantity</label><input id="txn-qty" type="number" min="0" step="0.000001" class="field" required></div>
+                            <div><label class="label" for="txn-price">Price</label><input id="txn-price" type="number" min="0" step="0.0001" class="field" required></div>
+                            <div><label class="label" for="txn-fees">Fees</label><input id="txn-fees" type="number" min="0" step="0.01" value="0" class="field" required></div>
+                        </div>
+                        <div><label class="label" for="txn-note">Audit note</label><textarea id="txn-note" rows="3" class="field resize-y" placeholder="Short factual note explaining the transaction"></textarea></div>
+                        <div id="txn-preview" class="rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 text-xs text-gray-600">Enter quantity and price to preview the transaction value.</div>
+                        <button id="txn-submit" type="submit" class="w-full rounded-xl bg-emerald-700 text-white px-4 py-3 text-sm font-black hover:bg-emerald-800 transition">Record transaction</button>
+                    </form>
+                </section>
+
+                <section class="card overflow-hidden">
+                    <div class="p-5 md:p-6 border-b border-gray-100">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <p class="text-[10px] font-black uppercase tracking-[0.14em] text-amber-700">Investment reasoning</p>
+                                <h2 class="text-xl font-black mt-1">Publish Journal Entry</h2>
+                                <p class="text-xs text-gray-500 mt-1">Document methodology or rationale and optionally connect it to a portfolio transaction.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <form id="journal-form" class="p-5 md:p-6 space-y-5">
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div><label class="label" for="journal-category">Category</label><select id="journal-category" class="field"><option>Investment Note</option><option>Methodology</option><option>Portfolio Update</option><option>Risk Review</option><option>Exit Note</option></select></div>
+                            <div><label class="label" for="journal-date">Effective date</label><input id="journal-date" type="date" class="field" required></div>
+                        </div>
+                        <div><label class="label" for="journal-title">Title</label><input id="journal-title" class="field" placeholder="Clear decision or methodology title" required></div>
+                        <div><label class="label" for="journal-summary">Summary</label><textarea id="journal-summary" rows="3" class="field resize-y" placeholder="One concise paragraph shown on the public journal card" required></textarea></div>
+                        <div><label class="label" for="journal-body">Full analysis</label><textarea id="journal-body" rows="10" class="field resize-y" placeholder="Write the full reasoning. Use blank lines to separate sections." required></textarea></div>
+                        <div><label class="label" for="journal-transaction">Linked transaction (optional)</label><select id="journal-transaction" class="field"><option value="">No linked transaction</option></select></div>
+                        <label class="flex items-center gap-3 rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 cursor-pointer">
+                            <input id="journal-published" type="checkbox" checked class="w-4 h-4">
+                            <span><span class="block text-xs font-black">Publish immediately</span><span class="block text-[11px] text-gray-500 mt-0.5">Untick to save the entry privately in the database.</span></span>
+                        </label>
+                        <button id="journal-submit" type="submit" class="w-full rounded-xl bg-amber-600 text-white px-4 py-3 text-sm font-black hover:bg-amber-700 transition">Save journal entry</button>
+                    </form>
+                </section>
+            </div>
+
+            <section class="card mt-6 overflow-hidden">
+                <div class="p-5 border-b border-gray-100 flex items-center justify-between gap-4">
+                    <div><p class="text-[10px] font-black uppercase tracking-[0.14em] text-gray-400">Verification</p><h2 class="text-lg font-black mt-1">Recent Portfolio Transactions</h2></div>
+                    <a href="sethiportfolio.html" target="_blank" class="text-xs font-black text-blue-700 hover:text-blue-900">Open public portfolio →</a>
+                </div>
+                <div id="recent-transactions" class="divide-y divide-gray-100"><div class="p-6 text-sm text-gray-400">Loading transactions…</div></div>
+            </section>
+        </section>
+    </main>
+
+<script>
+    const API = 'https://sethistock-api.onrender.com/api/portfolio';
+    const PORTFOLIO = 'fundamental';
+    let adminSecret = '';
+    let liveTransactions = [];
+
+    const money = (n, currency='GBP') => new Intl.NumberFormat('en-GB', { style:'currency', currency, maximumFractionDigits:2 }).format(Number(n || 0));
+    const prettyDate = value => value ? new Date(`${value}T12:00:00`).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}) : '—';
+    const el = id => document.getElementById(id);
+
+    function setMessage(target, text, kind='info') {
+        const node = el(target);
+        const styles = kind === 'error' ? 'bg-red-50 border-red-200 text-red-700' : kind === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-blue-50 border-blue-200 text-blue-700';
+        node.className = `${target === 'global-message' ? 'mb-6 ' : 'mt-4 '}rounded-xl border px-4 py-3 text-sm ${styles}`;
+        node.textContent = text;
+        node.classList.remove('hidden');
+    }
+
+    async function apiFetch(path, options={}) {
+        const headers = { ...(options.headers || {}), 'X-Admin-Secret': adminSecret };
+        if (options.body) headers['Content-Type'] = 'application/json';
+        const response = await fetch(`${API}${path}`, { ...options, headers });
+        let data = {};
+        try { data = await response.json(); } catch (_) {}
+        if (!response.ok) throw new Error(data.detail || `Request failed (${response.status})`);
+        return data;
+    }
+
+    el('login-form').addEventListener('submit', async event => {
+        event.preventDefault();
+        const secret = el('admin-secret').value;
+        if (!secret) return;
+        const button = el('login-btn');
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner"></span><span>Authenticating…</span>';
+        adminSecret = secret;
+        try {
+            const health = await apiFetch('/admin/health');
+            if (!health.authenticated || !health.writes_configured) throw new Error('Admin writes are not fully configured.');
+            el('admin-secret').value = '';
+            el('login-panel').classList.add('hidden');
+            el('admin-panel').classList.remove('hidden');
+            el('logout-btn').classList.remove('hidden');
+            el('auth-status').textContent = 'Authenticated · writes enabled';
+            el('auth-status').className = 'hidden sm:inline-flex text-[10px] font-black uppercase tracking-wider text-emerald-700';
+            await refreshAdminData();
+        } catch (error) {
+            adminSecret = '';
+            setMessage('login-message', error.message, 'error');
+        } finally {
+            button.disabled = false;
+            button.innerHTML = '<span>Unlock admin</span>';
+        }
+    });
+
+    function logoutAdmin() {
+        adminSecret = '';
+        liveTransactions = [];
+        el('admin-panel').classList.add('hidden');
+        el('login-panel').classList.remove('hidden');
+        el('logout-btn').classList.add('hidden');
+        el('auth-status').textContent = 'Locked';
+        el('auth-status').className = 'hidden sm:inline-flex text-[10px] font-black uppercase tracking-wider text-gray-400';
+        el('admin-secret').focus();
+    }
+
+    async function refreshAdminData() {
+        el('refresh-spinner').classList.remove('hidden');
+        try {
+            await apiFetch('/admin/health');
+            const [portfolioResponse, txnResponse] = await Promise.all([
+                fetch(`${API}/${PORTFOLIO}`),
+                fetch(`${API}/${PORTFOLIO}/transactions`)
+            ]);
+            if (!portfolioResponse.ok || !txnResponse.ok) throw new Error('Unable to load current portfolio state.');
+            const portfolio = await portfolioResponse.json();
+            const txns = await txnResponse.json();
+            const snapshot = portfolio.snapshot || portfolio;
+            liveTransactions = txns.transactions || [];
+            el('stat-value').textContent = money(snapshot.portfolio_value, snapshot.base_currency || 'GBP');
+            el('stat-cash').textContent = money(snapshot.cash, snapshot.base_currency || 'GBP');
+            el('stat-holdings').textContent = String((snapshot.holdings || []).length);
+            el('stat-trades').textContent = String(liveTransactions.length);
+            renderTransactionOptions();
+            renderRecentTransactions();
+        } catch (error) {
+            setMessage('global-message', error.message, 'error');
+        } finally {
+            el('refresh-spinner').classList.add('hidden');
+        }
+    }
+
+    function renderTransactionOptions() {
+        const select = el('journal-transaction');
+        select.replaceChildren(new Option('No linked transaction', ''));
+        [...liveTransactions].reverse().forEach(txn => {
+            const instrument = txn.instruments || {};
+            const label = `${prettyDate(txn.trade_date)} · ${String(txn.side || '').toUpperCase()} ${instrument.symbol || '—'} · ${Number(txn.quantity || 0).toLocaleString('en-GB')} @ ${Number(txn.price || 0).toFixed(2)}`;
+            select.appendChild(new Option(label, txn.id));
+        });
+    }
+
+    function renderRecentTransactions() {
+        const container = el('recent-transactions');
+        container.replaceChildren();
+        if (!liveTransactions.length) {
+            const empty = document.createElement('div'); empty.className='p-6 text-sm text-gray-400'; empty.textContent='No transactions recorded.'; container.appendChild(empty); return;
+        }
+        [...liveTransactions].reverse().slice(0,8).forEach(txn => {
+            const instrument = txn.instruments || {};
+            const row = document.createElement('div'); row.className='p-4 md:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2';
+            const left = document.createElement('div');
+            const top = document.createElement('div'); top.className='flex items-center gap-2';
+            const symbol = document.createElement('span'); symbol.className='text-sm font-black'; symbol.textContent=instrument.symbol || '—';
+            const side = document.createElement('span'); side.className=`text-[9px] font-black uppercase tracking-wider rounded-full px-2 py-0.5 ${String(txn.side).toUpperCase()==='BUY'?'bg-emerald-50 text-emerald-700':'bg-red-50 text-red-700'}`; side.textContent=txn.side;
+            top.append(symbol, side);
+            const detail = document.createElement('p'); detail.className='text-xs text-gray-500 mt-1'; detail.textContent=`${Number(txn.quantity || 0).toLocaleString('en-GB')} units @ ${money(txn.price, txn.currency || instrument.currency || 'GBP')}${txn.note ? ' · ' + txn.note : ''}`;
+            left.append(top, detail);
+            const date = document.createElement('span'); date.className='text-xs font-bold text-gray-400'; date.textContent=prettyDate(txn.trade_date);
+            row.append(left,date); container.appendChild(row);
+        });
+    }
+
+    function updateTransactionPreview() {
+        const qty = Number(el('txn-qty').value || 0), price = Number(el('txn-price').value || 0), fees = Number(el('txn-fees').value || 0), fx = Number(el('txn-fx').value || 1);
+        const currency = el('txn-currency').value;
+        if (!qty || price < 0) { el('txn-preview').textContent='Enter quantity and price to preview the transaction value.'; return; }
+        const local = qty * price + (el('txn-side').value === 'BUY' ? fees : -fees);
+        el('txn-preview').textContent = `${el('txn-side').value} value: ${money(local, currency)} · approx. ${money(local * fx, 'GBP')} at stored FX ${fx.toFixed(6)}.`;
+    }
+    ['txn-qty','txn-price','txn-fees','txn-fx','txn-currency','txn-side'].forEach(id => el(id).addEventListener('input', updateTransactionPreview));
+    el('txn-currency').addEventListener('change', () => { if (el('txn-currency').value === 'GBP') el('txn-fx').value='1'; updateTransactionPreview(); });
+
+    el('transaction-form').addEventListener('submit', async event => {
+        event.preventDefault();
+        const payload = {
+            symbol: el('txn-symbol').value.trim().toUpperCase(), name: el('txn-name').value.trim(), asset_type: el('txn-type').value,
+            currency: el('txn-currency').value, trade_date: el('txn-date').value, side: el('txn-side').value,
+            quantity: Number(el('txn-qty').value), price: Number(el('txn-price').value), fees: Number(el('txn-fees').value || 0),
+            fx_rate_to_base: Number(el('txn-fx').value || 1), note: el('txn-note').value.trim() || null
+        };
+        const warning = `${payload.side} ${payload.quantity} ${payload.symbol} at ${payload.price} ${payload.currency} on ${payload.trade_date}.\n\nThis will permanently alter the transaction-backed portfolio history. Continue?`;
+        if (!confirm(warning)) return;
+        const btn = el('txn-submit'); btn.disabled=true; btn.textContent='Recording…';
+        try {
+            await apiFetch(`/admin/${PORTFOLIO}/transaction`, { method:'POST', body:JSON.stringify(payload) });
+            setMessage('global-message', `Transaction recorded: ${payload.side} ${payload.symbol}. Public portfolio data will now reconstruct from the updated ledger.`, 'success');
+            el('transaction-form').reset(); el('txn-side').value='BUY'; el('txn-type').value='equity'; el('txn-currency').value='GBP'; el('txn-fx').value='1'; el('txn-fees').value='0'; setTodayDefaults(); updateTransactionPreview();
+            await refreshAdminData();
+        } catch (error) { setMessage('global-message', error.message, 'error'); }
+        finally { btn.disabled=false; btn.textContent='Record transaction'; }
+    });
+
+    el('journal-form').addEventListener('submit', async event => {
+        event.preventDefault();
+        const payload = {
+            title: el('journal-title').value.trim(), summary: el('journal-summary').value.trim(), body: el('journal-body').value.trim(),
+            category: el('journal-category').value, effective_date: el('journal-date').value,
+            related_transaction_id: el('journal-transaction').value || null, is_published: el('journal-published').checked
+        };
+        const action = payload.is_published ? 'publish this entry to the public Investment Journal' : 'save this entry as an unpublished database draft';
+        if (!confirm(`Ready to ${action}?`)) return;
+        const btn=el('journal-submit'); btn.disabled=true; btn.textContent='Saving…';
+        try {
+            await apiFetch(`/admin/${PORTFOLIO}/journal`, { method:'POST', body:JSON.stringify(payload) });
+            setMessage('global-message', payload.is_published ? 'Journal entry published successfully.' : 'Journal entry saved as unpublished.', 'success');
+            el('journal-form').reset(); el('journal-published').checked=true; setTodayDefaults(); renderTransactionOptions();
+        } catch (error) { setMessage('global-message', error.message, 'error'); }
+        finally { btn.disabled=false; btn.textContent='Save journal entry'; }
+    });
+
+    function setTodayDefaults() {
+        const today = new Date().toISOString().slice(0,10);
+        if (!el('txn-date').value) el('txn-date').value=today;
+        if (!el('journal-date').value) el('journal-date').value=today;
+    }
+    setTodayDefaults();
+</script>
+</body>
+</html>

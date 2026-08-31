@@ -75,6 +75,45 @@
                 <div class="card p-4"><p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Recorded Trades</p><p id="stat-trades" class="text-xl font-black mt-1">—</p></div>
             </div>
 
+            <section class="card mb-6 overflow-hidden">
+                <div class="p-5 md:p-6 border-b border-gray-100 flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-[0.14em] text-blue-700">Active allocation</p>
+                        <h2 class="text-xl font-black mt-1">Fund a New Investment Idea</h2>
+                        <p class="text-xs text-gray-500 mt-1 max-w-3xl">Record the funding sale and new purchase as one portfolio decision. Both legs are validated together before either transaction is written.</p>
+                    </div>
+                    <span class="text-[9px] font-black uppercase tracking-wider rounded-full bg-blue-50 text-blue-700 border border-blue-100 px-2 py-1 self-start">Paired ledger write</span>
+                </div>
+                <form id="allocation-form" class="p-5 md:p-6 space-y-5">
+                    <div class="grid lg:grid-cols-[.7fr_1.15fr_1.15fr] gap-5">
+                        <div>
+                            <label class="label" for="allocation-date">Trade date</label>
+                            <input id="allocation-date" type="date" class="field" required>
+                            <p class="text-[11px] text-gray-400 leading-relaxed mt-2">Both legs use the same effective trade date.</p>
+                        </div>
+                        <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
+                            <div class="flex items-center justify-between"><div><p class="text-[10px] font-black uppercase tracking-wider text-red-700">Funding leg</p><p class="text-sm font-black mt-0.5">Sell existing holding</p></div><span class="text-[9px] font-black uppercase rounded-full bg-red-50 text-red-700 px-2 py-1">SELL</span></div>
+                            <div class="grid grid-cols-2 gap-3"><div><label class="label" for="allocation-funding-symbol">Ticker</label><input id="allocation-funding-symbol" class="field uppercase" value="VUAG.L" required></div><div><label class="label" for="allocation-funding-qty">Quantity</label><input id="allocation-funding-qty" type="number" min="0" step="0.000001" class="field" required></div></div>
+                            <div class="grid grid-cols-2 gap-3"><div><label class="label" for="allocation-funding-price">Price</label><input id="allocation-funding-price" type="number" min="0" step="0.0001" class="field" required></div><div><label class="label" for="allocation-funding-fees">Fees</label><input id="allocation-funding-fees" type="number" min="0" step="0.01" value="0" class="field" required></div></div>
+                        </div>
+                        <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
+                            <div class="flex items-center justify-between"><div><p class="text-[10px] font-black uppercase tracking-wider text-emerald-700">Target leg</p><p class="text-sm font-black mt-0.5">Buy new investment</p></div><span class="text-[9px] font-black uppercase rounded-full bg-emerald-50 text-emerald-700 px-2 py-1">BUY</span></div>
+                            <div class="grid grid-cols-[.7fr_1.3fr] gap-3"><div><label class="label" for="allocation-target-symbol">Ticker</label><input id="allocation-target-symbol" class="field uppercase" placeholder="e.g. LSEG.L" required></div><div><label class="label" for="allocation-target-name">Instrument name</label><input id="allocation-target-name" class="field" placeholder="Company name" required></div></div>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3"><div><label class="label" for="allocation-target-currency">Currency</label><select id="allocation-target-currency" class="field"><option>GBP</option><option>USD</option><option>EUR</option></select></div><div><label class="label" for="allocation-target-fx">FX to GBP</label><input id="allocation-target-fx" type="number" min="0" step="0.000001" value="1" class="field"></div><div><label class="label" for="allocation-target-qty">Quantity</label><input id="allocation-target-qty" type="number" min="0" step="0.000001" class="field" required></div><div><label class="label" for="allocation-target-price">Price</label><input id="allocation-target-price" type="number" min="0" step="0.0001" class="field" required></div></div>
+                            <div class="max-w-[180px]"><label class="label" for="allocation-target-fees">Fees</label><input id="allocation-target-fees" type="number" min="0" step="0.01" value="0" class="field" required></div>
+                        </div>
+                    </div>
+                    <div class="grid lg:grid-cols-[1.25fr_.75fr] gap-4 items-end">
+                        <div><label class="label" for="allocation-reason">Decision note</label><textarea id="allocation-reason" rows="3" class="field resize-y" placeholder="Short factual note tying the funding sale and new purchase to the same allocation decision" required></textarea></div>
+                        <div id="allocation-preview" class="rounded-xl bg-blue-50 border border-blue-100 px-4 py-3 text-xs text-blue-900 leading-relaxed">Enter both legs to preview funding versus purchase cost.</div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <p class="text-[11px] text-gray-400 leading-relaxed">This records the ledger decision only. After success, the new BUY will be pre-selected in the journal form below so the investment thesis can be documented separately.</p>
+                        <button id="allocation-submit" type="submit" class="shrink-0 rounded-xl bg-blue-700 text-white px-5 py-3 text-sm font-black hover:bg-blue-800 transition">Record active allocation</button>
+                    </div>
+                </form>
+            </section>
+
             <div class="grid xl:grid-cols-[1fr_1fr] gap-6 items-start">
                 <section class="card overflow-hidden">
                     <div class="p-5 md:p-6 border-b border-gray-100">
@@ -295,6 +334,7 @@
         [...liveTransactions].reverse().slice(0,12).forEach(txn => {
             const instrument = txn.instruments || {};
             const isCorrection = /^(REVERSAL|CORRECTION) of /.test(txn.note || '');
+            const isAllocation = /^ALLOCATION [a-f0-9]{12} /.test(txn.note || '');
             const row = document.createElement('div'); row.className='p-4 md:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3';
             const left = document.createElement('div'); left.className='min-w-0';
             const top = document.createElement('div'); top.className='flex items-center gap-2 flex-wrap';
@@ -302,6 +342,7 @@
             const side = document.createElement('span'); side.className=`text-[9px] font-black uppercase tracking-wider rounded-full px-2 py-0.5 ${String(txn.side).toUpperCase()==='BUY'?'bg-emerald-50 text-emerald-700':'bg-red-50 text-red-700'}`; side.textContent=txn.side;
             top.append(symbol, side);
             if (isCorrection) { const badge=document.createElement('span'); badge.className='text-[9px] font-black uppercase tracking-wider rounded-full px-2 py-0.5 bg-amber-50 text-amber-700'; badge.textContent=(txn.note||'').startsWith('REVERSAL')?'Reversal':'Corrected'; top.appendChild(badge); }
+            if (isAllocation) { const badge=document.createElement('span'); badge.className='text-[9px] font-black uppercase tracking-wider rounded-full px-2 py-0.5 bg-blue-50 text-blue-700'; badge.textContent='Allocation'; top.appendChild(badge); }
             const detail = document.createElement('p'); detail.className='text-xs text-gray-500 mt-1 truncate'; detail.textContent=`${Number(txn.quantity || 0).toLocaleString('en-GB')} units @ ${money(txn.price, txn.currency || instrument.currency || 'GBP')}${txn.note ? ' · ' + txn.note : ''}`;
             left.append(top, detail);
             const actions=document.createElement('div'); actions.className='flex items-center gap-3 shrink-0';
@@ -354,6 +395,50 @@
     });
     el('correction-modal').addEventListener('click',event=>{if(event.target===el('correction-modal')) closeCorrectionModal();});
     document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!el('correction-modal').classList.contains('hidden')) closeCorrectionModal();});
+
+    function updateAllocationPreview() {
+        const fundingQty=Number(el('allocation-funding-qty').value||0), fundingPrice=Number(el('allocation-funding-price').value||0), fundingFees=Number(el('allocation-funding-fees').value||0);
+        const targetQty=Number(el('allocation-target-qty').value||0), targetPrice=Number(el('allocation-target-price').value||0), targetFees=Number(el('allocation-target-fees').value||0), targetFx=Number(el('allocation-target-fx').value||1);
+        if(!fundingQty || fundingPrice<0 || !targetQty || targetPrice<0){ el('allocation-preview').textContent='Enter both legs to preview funding versus purchase cost.'; return; }
+        const proceeds=fundingQty*fundingPrice-fundingFees;
+        const targetLocal=targetQty*targetPrice+targetFees;
+        const targetBase=targetLocal*targetFx;
+        const residual=proceeds-targetBase;
+        el('allocation-preview').textContent=`Funding proceeds: ${money(proceeds,'GBP')} · Target cost: ${money(targetBase,'GBP')} · Net cash impact: ${residual>=0?'+':''}${money(residual,'GBP')}.`;
+    }
+    ['allocation-funding-qty','allocation-funding-price','allocation-funding-fees','allocation-target-qty','allocation-target-price','allocation-target-fees','allocation-target-fx'].forEach(id=>el(id).addEventListener('input',updateAllocationPreview));
+    el('allocation-target-currency').addEventListener('change',()=>{ if(el('allocation-target-currency').value==='GBP') el('allocation-target-fx').value='1'; updateAllocationPreview(); });
+
+    el('allocation-form').addEventListener('submit', async event=>{
+        event.preventDefault();
+        const payload={
+            trade_date:el('allocation-date').value,
+            funding_symbol:el('allocation-funding-symbol').value.trim().toUpperCase(),
+            funding_quantity:Number(el('allocation-funding-qty').value),
+            funding_price:Number(el('allocation-funding-price').value),
+            funding_fees:Number(el('allocation-funding-fees').value||0),
+            target_symbol:el('allocation-target-symbol').value.trim().toUpperCase(),
+            target_name:el('allocation-target-name').value.trim(),
+            target_asset_type:'equity',
+            target_currency:el('allocation-target-currency').value,
+            target_quantity:Number(el('allocation-target-qty').value),
+            target_price:Number(el('allocation-target-price').value),
+            target_fees:Number(el('allocation-target-fees').value||0),
+            target_fx_rate_to_base:Number(el('allocation-target-fx').value||1),
+            reason:el('allocation-reason').value.trim()
+        };
+        const warning=`Record one active allocation on ${payload.trade_date}?\n\nSELL ${payload.funding_quantity} ${payload.funding_symbol} @ ${payload.funding_price}\nBUY ${payload.target_quantity} ${payload.target_symbol} @ ${payload.target_price} ${payload.target_currency}\n\nBoth ledger rows will be permanent and share one decision ID.`;
+        if(!confirm(warning)) return;
+        const btn=el('allocation-submit'); btn.disabled=true; btn.textContent='Recording allocation…';
+        try{
+            const result=await apiFetch(`/admin/${PORTFOLIO}/active-allocation`,{method:'POST',body:JSON.stringify(payload)});
+            setMessage('global-message',`Active allocation ${result.decision_id} recorded successfully. The new BUY is ready to link to an investment note.`,'success');
+            el('allocation-form').reset(); el('allocation-funding-symbol').value='VUAG.L'; el('allocation-funding-fees').value='0'; el('allocation-target-currency').value='GBP'; el('allocation-target-fx').value='1'; el('allocation-target-fees').value='0'; setTodayDefaults(); updateAllocationPreview();
+            await refreshAdminData();
+            if(result.target_transaction?.id){ el('journal-transaction').value=result.target_transaction.id; el('journal-date').value=payload.trade_date; el('journal-category').value='Investment Note'; el('journal-title').scrollIntoView({behavior:'smooth',block:'center'}); }
+        }catch(error){ setMessage('global-message',error.message,'error'); }
+        finally{ btn.disabled=false; btn.textContent='Record active allocation'; }
+    });
 
     function updateTransactionPreview() {
         const qty = Number(el('txn-qty').value || 0), price = Number(el('txn-price').value || 0), fees = Number(el('txn-fees').value || 0), fx = Number(el('txn-fx').value || 1);
@@ -408,6 +493,7 @@
     function setTodayDefaults() {
         const today = new Date().toISOString().slice(0,10);
         if (!el('txn-date').value) el('txn-date').value=today;
+        if (!el('allocation-date').value) el('allocation-date').value=today;
         if (!el('journal-date').value) el('journal-date').value=today;
     }
     setTodayDefaults();

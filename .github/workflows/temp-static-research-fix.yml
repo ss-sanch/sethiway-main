@@ -1,0 +1,41 @@
+name: Temporary static SethiStock research fix
+
+on:
+  push:
+    branches:
+      - fix/sethistock-research-static
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/sethistock-research-static
+      - name: Apply static research integration
+        run: python .github/scripts/patch_sethistock_research_static.py
+      - name: Validate integration
+        run: |
+          node --check sethistock-research.js
+          python - <<'PY'
+          from pathlib import Path
+          h = Path('sethistock.html').read_text(encoding='utf-8')
+          assert h.count('id="research-labs"') == 1
+          assert '<a href="#research-labs" class="hover:text-blue-600 transition">Research</a>' in h
+          assert 'id="sethistock-research-inline"' in h
+          assert 'sethistock-research.js?v=20260831' not in h
+          assert 'Earnings Reaction Study' in h
+          assert 'Historical Valuation Bands' in h
+          PY
+      - name: Commit finished fix and remove temporary files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sethistock.html
+          git rm .github/scripts/patch_sethistock_research_static.py .github/workflows/temp-static-research-fix.yml
+          git commit -m "Make SethiStock Research Labs static and self-contained [skip ci]"
+          git push origin fix/sethistock-research-static

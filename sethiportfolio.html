@@ -155,6 +155,29 @@
             </section>
         </main>
 
+        <!-- JOURNAL MODAL -->
+        <div id="journal-modal" class="hidden fixed inset-0 z-[100] bg-gray-950/50 backdrop-blur-sm px-4 py-8 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="journal-modal-title">
+            <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+                <div class="flex items-start justify-between gap-4 p-5 md:p-6 border-b border-gray-100">
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2 mb-2">
+                            <span id="journal-modal-date" class="text-[10px] font-black uppercase tracking-wider text-gray-400"></span>
+                            <span id="journal-modal-category" class="text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-100 rounded-full px-2 py-0.5"></span>
+                        </div>
+                        <h3 id="journal-modal-title" class="text-2xl md:text-3xl font-black tracking-tight text-gray-900"></h3>
+                        <p id="journal-modal-summary" class="text-sm text-gray-500 mt-2 leading-relaxed"></p>
+                    </div>
+                    <button type="button" onclick="closeJournalModal()" class="shrink-0 w-9 h-9 rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 font-black" aria-label="Close journal entry">×</button>
+                </div>
+                <div class="p-5 md:p-7">
+                    <div class="mb-5 rounded-xl bg-blue-50 border border-blue-100 px-4 py-3 text-xs text-blue-800 leading-relaxed">
+                        Journal entries document the portfolio's reasoning and methodology. Where stated, retrospective notes are clearly distinguished from contemporaneous decisions.
+                    </div>
+                    <div id="journal-modal-body" class="text-sm md:text-[15px] text-gray-700 leading-7 whitespace-pre-line"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- GOT AN IDEA SECTION -->
         <section class="max-w-4xl mx-auto mb-0 pb-16 pt-8 px-4">
             <div class="bg-white rounded-2xl p-10 text-center border border-gray-200 shadow-sm">
@@ -187,6 +210,7 @@
     const API_BASE = 'https://sethistock-api.onrender.com/api/portfolio';
     const PORTFOLIO_SLUG = 'fundamental';
     let portfolioData = { dates: [], portfolio: [], sp500: [], nasdaq: [], vwrl: [] };
+    let journalEntries = [];
     let currentRange = 'SI';
     const activeSeries = {portfolio:true, sp500:true, nasdaq:true, vwrl:true};
     const seriesMeta = {
@@ -315,23 +339,48 @@
         document.getElementById('analytics-sharpe').textContent = a.sharpe.toFixed(2);
     }
 
+    function openJournalModal(entryId) {
+        const entry = journalEntries.find(j => j.id === entryId);
+        if (!entry) return;
+        document.getElementById('journal-modal-date').textContent = prettyDate(entry.effective_date);
+        document.getElementById('journal-modal-category').textContent = entry.category || 'Journal';
+        document.getElementById('journal-modal-title').textContent = entry.title || '';
+        document.getElementById('journal-modal-summary').textContent = entry.summary || '';
+        document.getElementById('journal-modal-body').textContent = entry.body || '';
+        const modal = document.getElementById('journal-modal');
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeJournalModal() {
+        document.getElementById('journal-modal').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') closeJournalModal(); });
+    document.getElementById('journal-modal').addEventListener('click', event => {
+        if (event.target.id === 'journal-modal') closeJournalModal();
+    });
+
     function renderJournal(entries) {
-        const list = entries || [];
-        document.getElementById('journal-count').textContent = `${list.length} published note${list.length === 1 ? '' : 's'}`;
-        document.getElementById('journal-list').innerHTML = list.length ? list.map(j => `
-            <article class="rounded-xl border border-gray-200 p-4 md:p-5 hover:border-amber-300 transition">
-                <div class="flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-wider"><span class="text-gray-400">${prettyDate(j.effective_date)}</span><span class="text-amber-700 bg-amber-50 border border-amber-100 rounded-full px-2 py-0.5">${j.category || 'Journal'}</span></div>
+        journalEntries = entries || [];
+        document.getElementById('journal-count').textContent = `${journalEntries.length} published note${journalEntries.length === 1 ? '' : 's'}`;
+        document.getElementById('journal-list').innerHTML = journalEntries.length ? journalEntries.map(j => `
+            <article id="journal-${j.id}" class="rounded-xl border border-gray-200 p-4 md:p-5 hover:border-amber-300 transition">
+                <div class="flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-wider"><span class="text-gray-400">${prettyDate(j.effective_date)}</span><span class="text-amber-700 bg-amber-50 border border-amber-100 rounded-full px-2 py-0.5">${j.category || 'Journal'}</span>${j.related_transaction_id ? '<span class="text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-2 py-0.5">Linked decision</span>' : ''}</div>
                 <h4 class="text-lg font-black mt-2">${j.title}</h4><p class="text-sm text-gray-500 mt-1 leading-relaxed">${j.summary || ''}</p>
-                ${j.body ? `<details class="mt-3"><summary class="text-xs font-black text-blue-700 cursor-pointer">Read analysis</summary><p class="text-sm text-gray-600 mt-2 whitespace-pre-line">${j.body}</p></details>` : ''}
+                ${j.body ? `<button type="button" onclick="openJournalModal('${j.id}')" class="mt-3 text-xs font-black text-blue-700 hover:text-blue-900">Read analysis →</button>` : ''}
             </article>`).join('') : '<div class="rounded-xl border border-dashed border-gray-200 p-7 text-sm text-gray-400 text-center">No published investment notes yet. Future portfolio decisions will appear here with their dated rationale.</div>';
     }
 
     function renderTransactions(transactions) {
         const list = (transactions || []).slice().reverse();
+        const rationaleByTransaction = new Map(journalEntries.filter(j => j.related_transaction_id).map(j => [j.related_transaction_id, j]));
         document.getElementById('change-log').innerHTML = list.length ? list.map(t => {
             const instrument = t.instruments || {};
             const side = String(t.side || '').toUpperCase();
-            return `<div class="p-5 hover:bg-gray-50/60 transition"><div class="flex items-center justify-between gap-3"><div><div class="flex items-center gap-2"><span class="font-black">${instrument.symbol || '—'}</span><span class="text-[10px] uppercase tracking-wider font-black ${side==='BUY'?'text-emerald-700 bg-emerald-50':'text-red-700 bg-red-50'} rounded-full px-2 py-0.5">${side}</span></div><p class="text-xs text-gray-500 mt-1">${Number(t.quantity).toLocaleString('en-GB')} units @ ${fmtMoney(Number(t.price), t.currency || instrument.currency || 'GBP')}</p></div><span class="text-xs font-bold text-gray-400">${prettyDate(t.trade_date)}</span></div>${t.note ? `<p class="text-[11px] text-gray-500 mt-3">${t.note}</p>` : ''}</div>`;
+            const rationale = rationaleByTransaction.get(t.id);
+            return `<div class="p-5 hover:bg-gray-50/60 transition"><div class="flex items-center justify-between gap-3"><div><div class="flex items-center gap-2"><span class="font-black">${instrument.symbol || '—'}</span><span class="text-[10px] uppercase tracking-wider font-black ${side==='BUY'?'text-emerald-700 bg-emerald-50':'text-red-700 bg-red-50'} rounded-full px-2 py-0.5">${side}</span>${rationale ? '<span class="text-[9px] uppercase tracking-wider font-black text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-2 py-0.5">Rationale linked</span>' : ''}</div><p class="text-xs text-gray-500 mt-1">${Number(t.quantity).toLocaleString('en-GB')} units @ ${fmtMoney(Number(t.price), t.currency || instrument.currency || 'GBP')}</p></div><span class="text-xs font-bold text-gray-400">${prettyDate(t.trade_date)}</span></div>${t.note ? `<p class="text-[11px] text-gray-500 mt-3">${t.note}</p>` : ''}${rationale ? `<button type="button" onclick="openJournalModal('${rationale.id}')" class="mt-3 text-xs font-black text-blue-700 hover:text-blue-900">View rationale →</button>` : ''}</div>`;
         }).join('') : '<div class="p-6 text-sm text-gray-400 text-center">No portfolio transactions recorded.</div>';
     }
 

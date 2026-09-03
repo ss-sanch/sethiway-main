@@ -286,6 +286,7 @@
         try {
             const health = await apiFetch('/admin/health');
             if (!health.authenticated || !health.writes_configured) throw new Error('Admin writes are not fully configured.');
+            if (!health.admin_ledger || !health.allocation_corrections) throw new Error('Backend deployment is missing the latest SethiPortfolio correction capabilities.');
             el('admin-secret').value = '';
             el('login-panel').classList.add('hidden');
             el('admin-panel').classList.remove('hidden');
@@ -322,10 +323,11 @@
     async function refreshAdminData() {
         el('refresh-spinner').classList.remove('hidden');
         try {
-            await apiFetch('/admin/health');
+            const health = await apiFetch('/admin/health');
+            if (!health.admin_ledger || !health.allocation_corrections) throw new Error('Backend deployment is missing the latest SethiPortfolio correction capabilities.');
             const [portfolioResponse, txnData, journalData] = await Promise.all([
                 fetch(`${API}/${PORTFOLIO}`),
-                apiFetch(`/admin/${PORTFOLIO}/transactions`),
+                apiFetch(`/admin/${PORTFOLIO}/ledger`),
                 apiFetch(`/admin/${PORTFOLIO}/journal`)
             ]);
             if (!portfolioResponse.ok) throw new Error('Unable to load current portfolio state.');

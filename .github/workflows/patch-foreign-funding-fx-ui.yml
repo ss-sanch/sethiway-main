@@ -3,7 +3,7 @@ on:
   push:
     branches: [feature/sethiportfolio-foreign-funding-fx-ui]
     paths:
-      - 'scripts/patch_foreign_funding_fx_ui.py'
+      - 'scripts/*foreign_funding_fx_ui*'
 jobs:
   patch:
     runs-on: ubuntu-latest

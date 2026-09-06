@@ -1,9 +1,0 @@
-name: Phase 1 Smoke Test
-on:
-  push:
-    branches: [phase1-integration]
-jobs:
-  smoke:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "workflow-ok"

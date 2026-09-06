@@ -13,54 +13,82 @@
         .loading-card::before { content: ''; position: absolute; inset: 0; z-index: 40; background: rgba(243,244,246,.72); backdrop-filter: blur(1px); }
         .loading-card::after { content: ''; position: absolute; z-index: 41; top: 50%; left: 50%; width: 28px; height: 28px; margin: -14px 0 0 -14px; border: 3px solid #bfdbfe; border-top-color: #2563eb; border-radius: 9999px; animation: portfolio-spin .8s linear infinite; }
         @keyframes portfolio-spin { to { transform: rotate(360deg); } }
+        html { scroll-behavior: smooth; }
+        #performance, #holdings, #analytics, #decisions, #journal, #changes { scroll-margin-top: 8rem; }
+        [hidden] { display: none !important; }
+        .expand-list { display: flex; align-items: center; justify-content: center; gap: .6rem; width: 100%; padding: 1rem; border-top: 1px solid #e5e7eb; margin-top: .75rem; color: #1d4ed8; font-size: .875rem; font-weight: 700; background: #fff; }
+        .expand-list:hover { background: #f9fafb; }
+        a:focus-visible, button:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
+        .series-swatch { display: inline-block; width: 1.75rem; flex-shrink: 0; }
+        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+        .section-intro { display: grid; grid-template-columns: fit-content(360px) minmax(0, 1fr); align-items: center; gap: 1.25rem; margin: 2.5rem 0 1.25rem; padding-top: 1.75rem; border-top: 1px solid #e5e7eb; }
+        .section-intro h2 { font-size: 2rem; line-height: 1.2; font-weight: 900; text-transform: uppercase; letter-spacing: -.025em; }
+        .section-overview { padding: 1rem 1.25rem; border: 1px solid #dbeafe; border-radius: .75rem; background: #eff6ff; color: #1e3a8a; font-size: .875rem; line-height: 1.65; }
+        .section-overview strong { display: block; margin-bottom: .25rem; color: #1d4ed8; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; }
+        .section-column { min-width: 0; }
+        #performance.section-intro { margin-top: 0; }
+        @media (max-width: 767px) { .section-intro { grid-template-columns: 1fr; gap: .75rem; } .section-intro h2 { grid-row: 1; } }
+        .portfolio-identity { text-align: center; background: linear-gradient(180deg, #fffbeb 0, #fff 10rem); border-top: 3px solid #d4a02c; }
+        .portfolio-identity select { text-align: center; text-align-last: center; }
+        .portfolio-identity .identity-label { font-size: .6875rem; letter-spacing: .08em; color: #64748b; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
 
     <!-- SETHIWAY UNIFIED NAVIGATION -->
-    <nav class="flex justify-between items-center py-6 px-6 md:px-10 bg-white shadow-sm sticky top-0 z-50">
-        <a href="index.html" class="flex items-center">
-            <h1 class="text-2xl font-black tracking-tighter">SETHIWAY.</h1>
-        </a>
-        <div class="hidden md:flex items-center space-x-6 text-sm font-semibold uppercase tracking-wide text-gray-500">
-            <a href="index.html" class="px-5 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition shadow-md">Back to Hub</a>
+    <nav class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200" aria-label="Portfolio navigation">
+        <div class="max-w-[1500px] mx-auto px-5 md:px-8 flex flex-wrap items-center justify-between gap-x-3 sm:gap-x-6">
+            <a href="index.html" class="flex items-center py-3 shrink-0" aria-label="SethiWay home">
+                <img src="logo.png" alt="SethiWay" class="h-6 sm:h-10 w-auto invert">
+            </a>
+            <div class="portfolio-section-links order-last xl:order-none w-full xl:w-auto flex items-center gap-6 overflow-x-auto whitespace-nowrap text-sm font-bold text-gray-600 pb-3 xl:pb-0">
+                <a href="#performance" class="hover:text-blue-600">Performance</a>
+                <a href="#holdings" class="hover:text-blue-600">Holdings</a>
+                <a href="#analytics" class="hover:text-blue-600">Analytics</a>
+                <a href="#decisions" class="hover:text-blue-600">Investment Decisions</a>
+            </div>
+            <a href="index.html" class="px-4 py-2.5 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-800 transition shadow-sm shrink-0">Back to Hub</a>
         </div>
     </nav>
+        <div id="loading-progress" aria-label="Loading portfolio data"><div id="loading-progress-bar"></div></div>
 
     <div class="flex-grow">
-        <!-- PORTFOLIO HEADER -->
-        <header class="py-4 px-6 border-b border-gray-200 bg-white text-center">
-            <h1 class="text-3xl md:text-4xl font-black tracking-tight text-gray-900">SETHI<span class="text-yellow-600">PORTFOLIO</span></h1>
-        </header>
-        <div id="loading-progress" aria-label="Loading portfolio data"><div id="loading-progress-bar"></div></div>
+        <div class="max-w-[1500px] mx-auto px-5 md:px-8 pt-8 pb-3 text-center">
+            <h1 class="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-gray-900">SETHI<span class="text-yellow-600">PORTFOLIO</span></h1>
+        </div>
 
         <main class="max-w-[1500px] mx-auto px-5 md:px-8 py-5 space-y-4">
             <!-- ABOVE-THE-FOLD PORTFOLIO HERO -->
+            <div id="performance" class="section-intro"><h2>Performance</h2><div class="section-overview"><strong>Measured against the benchmark</strong>Compare the portfolio with equity benchmarks over your chosen period to assess whether active decisions have added value.</div></div>
             <section class="grid grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)] gap-4 items-stretch">
                 <!-- PORTFOLIO IDENTITY -->
-                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-4 md:p-5 flex flex-col">
-                    <div class="flex flex-wrap items-center gap-2 mb-2">
-                        <select class="bg-gray-900 text-white text-sm font-black rounded-lg px-4 py-2 outline-none w-full">
+                <div class="portfolio-identity portfolio-data-card border border-gray-200 rounded-2xl shadow-sm p-4 md:p-5 flex flex-col">
+                    <div class="flex flex-wrap items-center justify-center gap-2 mb-4">
+                        <select aria-label="Select portfolio" class="bg-gray-900 text-white text-sm font-black rounded-lg px-4 py-2 outline-none w-full">
                             <option>Fundamental Portfolio</option>
                         </select>
-                        <span class="text-[9px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-1">Public Portfolio</span>
-                        <span class="text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-1">Live Portfolio Data</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-600 bg-white border border-gray-200 rounded-full px-2.5 py-1">Public Portfolio</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-2.5 py-1">Live Portfolio Data</span>
                     </div>
                     <h2 id="portfolio-name" class="text-2xl font-black tracking-tight text-gray-900">Fundamental Portfolio</h2>
-                    <p id="portfolio-description" class="text-sm text-gray-500 mt-1.5 leading-relaxed">Loading portfolio strategy…</p>
-
-                    <div class="grid grid-cols-2 gap-2.5 mt-4">
-                        <div class="rounded-xl bg-gray-900 text-white px-3.5 py-3"><p class="text-[9px] uppercase tracking-widest font-black text-gray-400">Portfolio Value</p><p id="portfolio-value" class="text-xl font-black mt-0.5">Loading…</p></div>
-                        <div class="rounded-xl bg-emerald-50 border border-emerald-100 px-3.5 py-3"><p class="text-[9px] uppercase tracking-widest font-black text-emerald-700">Total Return</p><p id="total-return" class="text-xl font-black mt-0.5 text-emerald-700">Loading…</p></div>
-                        <div class="rounded-xl bg-gray-50 border border-gray-100 px-3.5 py-3"><p class="text-[9px] uppercase tracking-widest font-black text-gray-400">Vs S&amp;P 500</p><p id="vs-sp500" class="text-xl font-black mt-0.5 text-gray-900">Loading…</p></div>
-                        <div class="rounded-xl bg-gray-50 border border-gray-100 px-3.5 py-3"><p class="text-[9px] uppercase tracking-widest font-black text-gray-400">Since</p><p id="since-date" class="text-xl font-black mt-0.5 text-gray-900">Loading…</p></div>
+                    <div class="mt-3">
+                        <p class="text-xs font-bold uppercase tracking-wider text-amber-700">Investment objective</p>
+                        <p class="text-sm text-gray-700 mt-1.5 leading-relaxed">Aim to outperform the S&amp;P 500 over the long term by owning quality businesses at attractive valuations, while keeping capital in the benchmark when no better opportunity is identified.</p>
+                        <p id="portfolio-description" class="text-xs text-gray-500 mt-2 leading-relaxed">Loading portfolio approach…</p>
                     </div>
 
-                    <div class="mt-auto pt-3"><span id="data-status" class="text-[9px] text-gray-400 bg-gray-50 border border-gray-100 rounded-full px-2.5 py-1">Transaction-backed portfolio · market prices via API</span></div>
+                    <div class="grid grid-cols-2 gap-2.5 mt-4">
+                        <div class="rounded-xl bg-gray-900 text-white px-3.5 py-3"><p class="text-[11px] uppercase tracking-wider font-bold text-gray-300">Portfolio Value</p><p id="portfolio-value" class="text-xl font-black mt-0.5">Loading…</p></div>
+                        <div class="rounded-xl bg-white border border-gray-200 px-3.5 py-3"><p class="identity-label uppercase font-bold">Total Return</p><p id="total-return" class="text-xl font-black mt-0.5 text-emerald-700">Loading…</p></div>
+                        <div class="rounded-xl bg-gray-50 border border-gray-100 px-3.5 py-3"><p class="identity-label uppercase font-bold">Vs S&amp;P 500</p><p id="vs-sp500" class="text-xl font-black mt-0.5 text-gray-900">Loading…</p></div>
+                        <div class="rounded-xl bg-gray-50 border border-gray-100 px-3.5 py-3"><p class="identity-label uppercase font-bold">Since</p><p id="since-date" class="text-xl font-black mt-0.5 text-gray-900">Loading…</p></div>
+                    </div>
+
+                    <div class="mt-auto pt-5"><span id="data-status" class="text-xs text-gray-500 leading-relaxed">Notional portfolio · GBP base currency</span></div>
                 </div>
 
                 <!-- PERFORMANCE HERO -->
-                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-4 md:p-5 min-w-0">
+                <div class="portfolio-data-card bg-white border border-gray-200 rounded-2xl shadow-sm p-4 md:p-5 min-w-0">
                     <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3 mb-2">
                         <div>
                             <p class="text-[10px] font-black uppercase tracking-widest text-blue-600 mb-1">Performance</p>
@@ -87,18 +115,19 @@
                         </div>
                     </div>
                     <div id="period-returns" class="grid grid-cols-2 xl:grid-cols-4 gap-2 mb-1">
-                        <div class="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2"><div class="text-[9px] font-black uppercase tracking-wider text-gray-400">Sethi Fundamental</div><div id="period-return-portfolio" class="text-sm font-black mt-0.5 text-gray-900">—</div></div>
-                        <div class="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2"><div class="text-[9px] font-black uppercase tracking-wider text-gray-400">S&amp;P 500 TR</div><div id="period-return-sp500" class="text-sm font-black mt-0.5 text-gray-900">—</div></div>
-                        <div class="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2"><div class="text-[9px] font-black uppercase tracking-wider text-gray-400">Nasdaq-100 (QQQ)</div><div id="period-return-nasdaq" class="text-sm font-black mt-0.5 text-gray-900">—</div></div>
-                        <div class="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2"><div class="text-[9px] font-black uppercase tracking-wider text-gray-400">VWRL</div><div id="period-return-vwrl" class="text-sm font-black mt-0.5 text-gray-900">—</div></div>
+                        <div data-series-card="portfolio" class="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2"><div class="flex items-center gap-2 text-xs font-bold text-gray-600"><svg class="series-swatch" viewBox="0 0 28 8" aria-hidden="true"><path d="M0 4 H28" fill="none" stroke="#1f77b4" stroke-width="3" stroke-dasharray=""/></svg>Sethi Fundamental</div><div id="period-return-portfolio" class="text-sm font-black mt-0.5 text-gray-900">—</div></div>
+                        <div data-series-card="sp500" class="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2"><div class="flex items-center gap-2 text-xs font-bold text-gray-600"><svg class="series-swatch" viewBox="0 0 28 8" aria-hidden="true"><path d="M0 4 H28" fill="none" stroke="#ff7f0e" stroke-width="3" stroke-dasharray="2 4"/></svg>S&amp;P 500 TR</div><div id="period-return-sp500" class="text-sm font-black mt-0.5 text-gray-900">—</div></div>
+                        <div data-series-card="nasdaq" class="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2"><div class="flex items-center gap-2 text-xs font-bold text-gray-600"><svg class="series-swatch" viewBox="0 0 28 8" aria-hidden="true"><path d="M0 4 H28" fill="none" stroke="#2ca02c" stroke-width="3" stroke-dasharray="8 5"/></svg>Nasdaq-100 (QQQ)</div><div id="period-return-nasdaq" class="text-sm font-black mt-0.5 text-gray-900">—</div></div>
+                        <div data-series-card="vwrl" class="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2"><div class="flex items-center gap-2 text-xs font-bold text-gray-600"><svg class="series-swatch" viewBox="0 0 28 8" aria-hidden="true"><path d="M0 4 H28" fill="none" stroke="#d62728" stroke-width="3" stroke-dasharray="8 3 2 3"/></svg>VWRL</div><div id="period-return-vwrl" class="text-sm font-black mt-0.5 text-gray-900">—</div></div>
                     </div>
                     <div id="performance-chart" style="height:330px"></div>
                 </div>
             </section>
 
             <!-- COMPOSITION + HOLDINGS -->
-            <section class="grid grid-cols-1 xl:grid-cols-[420px_minmax(0,1fr)] gap-5">
-                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 md:p-6">
+            <div id="holdings" class="section-intro"><h2>Holdings</h2><div class="section-overview"><strong>Where the capital sits</strong>Explore the current allocation, position sizes and unrealised gains or losses. Expand the table to see every holding.</div></div>
+            <section class="grid grid-cols-1 xl:grid-cols-[420px_minmax(0,1fr)] gap-5 items-start">
+                <div class="portfolio-data-card bg-white border border-gray-200 rounded-2xl shadow-sm p-5 md:p-6">
                     <div class="mb-2"><p class="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">Composition</p><h3 class="text-xl font-black">Where is the capital allocated?</h3></div>
                     <div id="weights-chart" style="height:315px"></div>
                     <div class="grid grid-cols-2 gap-3 mt-1">
@@ -107,7 +136,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                <div class="portfolio-data-card bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
                     <div class="p-5 md:p-6 border-b border-gray-100 flex items-center justify-between gap-4">
                         <div><p class="text-[10px] font-black uppercase tracking-widest text-blue-600 mb-1">Holdings</p><h3 class="text-xl font-black">Position Detail</h3></div>
                         <span id="holdings-status" class="text-xs text-gray-400">Live market snapshot</span>
@@ -120,11 +149,13 @@
                             <tbody id="holdings-table"></tbody>
                         </table>
                     </div>
+                    <button type="button" id="holdings-table-toggle" class="expand-list" aria-controls="holdings-table" aria-expanded="false" hidden></button>
                 </div>
             </section>
 
             <!-- PORTFOLIO ANALYTICS -->
-            <section class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 md:p-6">
+            <div id="analytics" class="section-intro"><h2>Analytics</h2><div class="section-overview"><strong>Return and risk together</strong>View returns alongside volatility, maximum drawdown and the Sharpe ratio to understand the path taken to achieve them.</div></div>
+            <section class="portfolio-data-card bg-white border border-gray-200 rounded-2xl shadow-sm p-5 md:p-6">
                 <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-4">
                     <div><p class="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-1">Analytics</p><h3 class="text-xl font-black">Performance in context</h3><p class="text-sm text-gray-500 mt-1">A restrained set of metrics — deeper optimisation and risk analytics belong in SethiQuant.</p></div>
                     <button class="text-xs font-black text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-lg px-4 py-2 opacity-60 cursor-not-allowed" title="Planned integration">Analyse in SethiQuant · Coming later</button>
@@ -139,18 +170,25 @@
             </section>
 
             <!-- JOURNAL + CHANGE LOG -->
-            <section class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.5fr)_minmax(340px,0.8fr)] gap-5">
-                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 md:p-6">
+            <div id="decisions" class="section-intro"><h2>Investment<br>Decisions</h2><div class="section-overview"><strong>From investment thesis to portfolio action</strong>Read the reasoning, valuation considerations and risks behind investment decisions alongside the purchases, sales and position adjustments they informed. Open a linked rationale to connect each change with its investment case.</div></div>
+            <section class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.5fr)_minmax(340px,0.8fr)] gap-5 items-start">
+                <div id="journal" class="section-column">
+                <div class="portfolio-data-card bg-white border border-gray-200 rounded-2xl shadow-sm p-5 md:p-6">
                     <div class="flex items-start justify-between gap-4 mb-5">
                         <div><p class="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1">Investment Journal</p><h3 class="text-2xl font-black">The reasoning behind the portfolio</h3><p class="text-sm text-gray-500 mt-1">Dated notes create a permanent record of how the investment case evolved.</p></div>
                         <span id="journal-count" class="text-[10px] uppercase tracking-wider font-black text-gray-400 bg-gray-50 border border-gray-100 rounded-full px-3 py-1">Loading notes…</span>
                     </div>
                     <div class="space-y-3" id="journal-list"></div>
+                    <button type="button" id="journal-list-toggle" class="expand-list" aria-controls="journal-list" aria-expanded="false" hidden></button>
+                </div>
                 </div>
 
-                <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                <div id="changes" class="section-column">
+                <div class="portfolio-data-card bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
                     <div class="p-5 md:p-6 border-b border-gray-100"><p class="text-[10px] font-black uppercase tracking-widest text-blue-600 mb-1">Audit Trail</p><h3 class="text-xl font-black">Portfolio Changes</h3><p class="text-sm text-gray-500 mt-1">Every material allocation change links back to its contemporaneous rationale.</p></div>
                     <div class="divide-y divide-gray-100" id="change-log"></div>
+                    <button type="button" id="change-log-toggle" class="expand-list" aria-controls="change-log" aria-expanded="false" hidden></button>
+                </div>
                 </div>
             </section>
         </main>
@@ -214,10 +252,10 @@
     let currentRange = 'SI';
     const activeSeries = {portfolio:true, sp500:true, nasdaq:true, vwrl:true};
     const seriesMeta = {
-        portfolio:{name:'Sethi Fundamental', dash:'solid', width:3},
-        sp500:{name:'S&P 500 Total Return', dash:'dot', width:2},
-        nasdaq:{name:'Nasdaq-100 (QQQ)', dash:'dash', width:2},
-        vwrl:{name:'VWRL', dash:'dashdot', width:2}
+        portfolio:{color:'#1f77b4', name:'Sethi Fundamental', dash:'solid', width:3},
+        sp500:{color:'#ff7f0e', name:'S&P 500 Total Return', dash:'dot', width:2},
+        nasdaq:{color:'#2ca02c', name:'Nasdaq-100 (QQQ)', dash:'dash', width:2},
+        vwrl:{color:'#d62728', name:'VWRL', dash:'dashdot', width:2}
     };
 
     const fmtGBP = value => new Intl.NumberFormat('en-GB', {style:'currency', currency:'GBP', maximumFractionDigits:0}).format(value || 0);
@@ -254,17 +292,22 @@
         const start = rangeStartIndex(currentRange);
         const dates = portfolioData.dates.slice(start);
         updatePeriodReturns(start);
+        document.querySelectorAll('[data-series-card]').forEach(card => {
+            const enabled = activeSeries[card.dataset.seriesCard];
+            card.style.opacity = enabled ? '1' : '.45';
+            card.title = enabled ? 'Shown on chart' : 'Hidden on chart · enable in Series menu';
+        });
         const traces = Object.keys(activeSeries).filter(k => activeSeries[k]).map(k => ({
             x: dates,
             y: portfolioData[k].slice(start),
             name: seriesMeta[k].name,
             type:'scatter', mode:'lines', connectgaps:false,
-            line:{width:seriesMeta[k].width, dash:seriesMeta[k].dash},
+            line:{color:seriesMeta[k].color, width:seriesMeta[k].width, dash:seriesMeta[k].dash},
             hovertemplate:'%{x}<br>%{y:.2f}<extra>'+seriesMeta[k].name+'</extra>'
         }));
         Plotly.react('performance-chart', traces, {
             margin:{t:15,r:25,l:50,b:45}, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)',
-            legend:{orientation:'h',y:1.08,x:0}, xaxis:{showgrid:false}, yaxis:{title:'Rebased value',gridcolor:'#f3f4f6'},
+            showlegend:false, xaxis:{showgrid:false}, yaxis:{title:'Rebased value',gridcolor:'#f3f4f6'},
             hovermode:'x unified'
         }, {displayModeBar:false,responsive:true});
     }
@@ -290,6 +333,30 @@
         renderPerformance();
     }
 
+    const collapsedLists = {
+        'holdings-table': {limit:5, label:'holdings', expanded:false},
+        'journal-list': {limit:3, label:'notes', expanded:false},
+        'change-log': {limit:5, label:'changes', expanded:false}
+    };
+    function updateExpandableList(id, count) {
+        const state = collapsedLists[id];
+        state.count = count;
+        const list = document.getElementById(id);
+        Array.from(list.children).forEach((item, index) => { item.hidden = !state.expanded && index >= state.limit; });
+        const button = document.getElementById(`${id}-toggle`);
+        button.hidden = count <= state.limit;
+        button.setAttribute('aria-expanded', String(state.expanded));
+        button.innerHTML = `<span>${state.expanded ? 'Show fewer '+state.label : 'Show all '+count+' '+state.label}</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="transform:rotate(${state.expanded ? 180 : 0}deg)"><path d="m6 9 6 6 6-6"/></svg>`;
+    }
+    Object.keys(collapsedLists).forEach(id => {
+        document.getElementById(`${id}-toggle`).addEventListener('click', () => {
+            const state = collapsedLists[id];
+            state.expanded = !state.expanded;
+            updateExpandableList(id, state.count);
+            if (!state.expanded) document.getElementById(`${id}-toggle`).scrollIntoView({block:'nearest'});
+        });
+    });
+
     function renderHoldings(snapshot) {
         const holdings = snapshot.holdings || [];
         const chartLabels = holdings.map(h => h.symbol);
@@ -311,6 +378,7 @@
                 <td class="px-4 py-4 text-right font-black ${h.unrealised_return_pct>=0?'text-emerald-600':'text-red-600'}">${fmtPct(h.unrealised_return_pct)}</td>
                 <td class="px-5 py-4 text-right font-black ${h.unrealised_pnl>=0?'text-emerald-600':'text-red-600'}">${fmtMoney(h.unrealised_pnl, snapshot.base_currency)}</td>
             </tr>`).join('') : '<tr><td colspan="6" class="px-5 py-8 text-center text-gray-400">No open holdings.</td></tr>';
+        updateExpandableList('holdings-table', holdings.length);
     }
 
     function calculateAnalytics(values, dates) {
@@ -371,6 +439,7 @@
                 <h4 class="text-lg font-black mt-2">${j.title}</h4><p class="text-sm text-gray-500 mt-1 leading-relaxed">${j.summary || ''}</p>
                 ${j.body ? `<button type="button" onclick="openJournalModal('${j.id}')" class="mt-3 text-xs font-black text-blue-700 hover:text-blue-900">Read analysis →</button>` : ''}
             </article>`).join('') : '<div class="rounded-xl border border-dashed border-gray-200 p-7 text-sm text-gray-400 text-center">No published investment notes yet. Future portfolio decisions will appear here with their dated rationale.</div>';
+        updateExpandableList('journal-list', journalEntries.length);
     }
 
     function renderTransactions(transactions) {
@@ -382,11 +451,12 @@
             const rationale = rationaleByTransaction.get(t.id);
             return `<div class="p-5 hover:bg-gray-50/60 transition"><div class="flex items-center justify-between gap-3"><div><div class="flex items-center gap-2"><span class="font-black">${instrument.symbol || '—'}</span><span class="text-[10px] uppercase tracking-wider font-black ${side==='BUY'?'text-emerald-700 bg-emerald-50':'text-red-700 bg-red-50'} rounded-full px-2 py-0.5">${side}</span>${rationale ? '<span class="text-[9px] uppercase tracking-wider font-black text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-2 py-0.5">Rationale linked</span>' : ''}</div><p class="text-xs text-gray-500 mt-1">${Number(t.quantity).toLocaleString('en-GB')} units @ ${fmtMoney(Number(t.price), t.currency || instrument.currency || 'GBP')}</p></div><span class="text-xs font-bold text-gray-400">${prettyDate(t.trade_date)}</span></div>${t.note ? `<p class="text-[11px] text-gray-500 mt-3">${t.note}</p>` : ''}${rationale ? `<button type="button" onclick="openJournalModal('${rationale.id}')" class="mt-3 text-xs font-black text-blue-700 hover:text-blue-900">View rationale →</button>` : ''}</div>`;
         }).join('') : '<div class="p-6 text-sm text-gray-400 text-center">No portfolio transactions recorded.</div>';
+        updateExpandableList('change-log', list.length);
     }
 
     let loadingTimer;
     function startLoadingState() {
-        const cards = document.querySelectorAll('main section > div, main > section.bg-white');
+        const cards = document.querySelectorAll('main .portfolio-data-card');
         cards.forEach(card => card.classList.add('loading-card'));
         const progress = document.getElementById('loading-progress');
         const bar = document.getElementById('loading-progress-bar');
@@ -411,7 +481,7 @@
             const [portfolioRes, performanceRes, journalRes, transactionsRes] = await Promise.all([
                 fetch(`${API_BASE}/${PORTFOLIO_SLUG}`),
                 fetch(`${API_BASE}/${PORTFOLIO_SLUG}/performance`),
-                fetch(`${API_BASE}/${PORTFOLIO_SLUG}/journal`),
+                fetch(`${API_BASE}/${PORTFOLIO_SLUG}/journal?limit=100`),
                 fetch(`${API_BASE}/${PORTFOLIO_SLUG}/transactions`)
             ]);
             if (![portfolioRes,performanceRes,journalRes,transactionsRes].every(r=>r.ok)) throw new Error('One or more portfolio API requests failed.');
@@ -429,6 +499,7 @@
             document.getElementById('portfolio-value').textContent = fmtGBP(snapshot.portfolio_value);
             const totalReturn = (snapshot.portfolio_value / info.initial_capital - 1) * 100;
             document.getElementById('total-return').textContent = fmtPct(totalReturn);
+            document.getElementById('total-return').className = `text-xl font-black mt-0.5 ${totalReturn >= 0 ? 'text-emerald-700' : 'text-red-600'}`;
             document.getElementById('since-date').textContent = new Date(`${info.inception_date}T00:00:00`).toLocaleDateString('en-GB',{month:'short',year:'numeric'});
             const spReturn = sp500.length ? sp500.at(-1)-100 : 0;
             document.getElementById('vs-sp500').textContent = fmtPp(totalReturn-spReturn);

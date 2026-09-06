@@ -252,6 +252,20 @@
     let correctingTransactionId = null;
     let correctingAllocationId = null;
     let allocationCorrectionPreviewPayload = '';
+    const inboundParams = new URLSearchParams(window.location.search);
+    const inboundTicker = (inboundParams.get('ticker') || '').trim().toUpperCase();
+    const inboundAction = (inboundParams.get('action') || '').trim().toLowerCase();
+
+    async function applyInboundPortfolioIntent() {
+        if (!adminSecret || !inboundTicker || inboundAction !== 'buy') return;
+        el('allocation-target-symbol').value = inboundTicker;
+        el('txn-symbol').value = inboundTicker;
+        el('txn-side').value = 'BUY';
+        resetAllocationVerification('target');
+        if (el('allocation-date').value) await verifyAllocationTicker('target');
+        setMessage('global-message', `${inboundTicker} was sent from SethiStock. The active-allocation target has been pre-filled; review the verified market data before recording anything.`, 'info');
+        el('allocation-target-symbol').scrollIntoView({ behavior:'smooth', block:'center' });
+    }
 
     const money = (n, currency='GBP') => new Intl.NumberFormat('en-GB', { style:'currency', currency, maximumFractionDigits:2 }).format(Number(n || 0));
     const prettyDate = value => value ? new Date(`${value}T12:00:00`).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}) : '—';
@@ -294,6 +308,7 @@
             el('auth-status').textContent = 'Authenticated · writes enabled';
             el('auth-status').className = 'hidden sm:inline-flex text-[10px] font-black uppercase tracking-wider text-emerald-700';
             await refreshAdminData();
+            await applyInboundPortfolioIntent();
         } catch (error) {
             adminSecret = '';
             setMessage('login-message', error.message, 'error');

@@ -75,6 +75,7 @@
                         <div class="flex items-center space-x-4">
                             <h2 id="display-ticker" class="text-5xl font-black tracking-tighter">AAPL</h2>
                             <button id="watchlist-btn" onclick="toggleWatchlist()" class="px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full border border-gray-200 text-gray-400 hover:text-yellow-500 hover:border-yellow-500 transition-colors">☆ Save</button>
+                            <button type="button" onclick="openPortfolioAdminFromStock()" class="px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:border-blue-300 transition-colors" title="Send this ticker to the protected SethiPortfolio admin page">＋ Add to Portfolio</button>
                         </div>
                         <p class="text-sm font-bold text-gray-400 uppercase tracking-widest mt-1">Live Market Data</p>
                     </div>
@@ -747,6 +748,12 @@
             localStorage.setItem('sethiWatchlist', JSON.stringify(watchlist));
             renderWatchlist();
             updateWatchlistBtn();
+        }
+
+        function openPortfolioAdminFromStock() {
+            if (!state.ticker) return;
+            const params = new URLSearchParams({ action: 'buy', ticker: state.ticker, source: 'sethistock' });
+            window.location.href = `sethiportfolio-admin.html?${params.toString()}`;
         }
 
         function updateWatchlistBtn() {

@@ -47,6 +47,7 @@
             
             <a href="sethistock.html" class="hover:text-blue-600 transition">SethiStock</a>
             <a href="sethimacro.html" class="hover:text-blue-600 transition">SethiMacro</a>
+            <a href="sethiportfolio.html" class="hover:text-blue-600 transition">SethiPortfolio</a>
             <a href="index.html" class="px-5 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition shadow-md">Back to Hub</a>
         </div>
     </nav>
@@ -1716,6 +1717,51 @@
 
         // Initial render on page load
         renderPositions(activePositions);
+
+        async function importPortfolioFromQuery() {
+            const params = new URLSearchParams(window.location.search);
+            const slug = (params.get('portfolio') || '').trim();
+            if (!slug) return;
+
+            const form = document.getElementById('risk-form');
+            const banner = document.createElement('div');
+            banner.id = 'portfolio-import-banner';
+            banner.className = 'mb-3 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2.5 text-[11px] font-bold text-blue-800 leading-relaxed';
+            banner.textContent = 'Importing live SethiPortfolio positions…';
+            form.parentNode.insertBefore(banner, form);
+
+            try {
+                const res = await fetch(`https://sethistock-api.onrender.com/api/portfolio/${encodeURIComponent(slug)}`);
+                if (!res.ok) throw new Error(`Portfolio request failed (${res.status})`);
+                const payload = await res.json();
+                const snapshot = payload.snapshot || {};
+                const holdings = (snapshot.holdings || []).filter(h => h.symbol && Number(h.weight_pct) > 0);
+                if (!holdings.length) throw new Error('No live holdings were returned.');
+
+                const investedWeight = holdings.reduce((sum, h) => sum + Number(h.weight_pct || 0), 0);
+                if (!(investedWeight > 0)) throw new Error('Portfolio weights are unavailable.');
+
+                activePositions = holdings.map(h => [
+                    String(h.symbol).toUpperCase(),
+                    Number(((Number(h.weight_pct) / investedWeight) * 100).toFixed(4))
+                ]);
+                renderPositions(activePositions);
+
+                const riskyCapital = Number(snapshot.portfolio_value || 0) * investedWeight / 100;
+                const valueInput = document.getElementById('portfolio-value');
+                if (Number.isFinite(riskyCapital) && riskyCapital > 0) valueInput.value = Math.round(riskyCapital);
+
+                const cashWeight = Math.max(0, Number(snapshot.cash_weight_pct || 0));
+                banner.innerHTML = `<strong>Imported from SethiPortfolio:</strong> ${holdings.length} live holding${holdings.length === 1 ? '' : 's'} loaded into the Market Risk Lab.${cashWeight > 0.01 ? ` Cash (${cashWeight.toFixed(1)}%) is excluded and risky holdings are re-normalised to 100%.` : ''}`;
+                banner.className = 'mb-3 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2.5 text-[11px] font-bold text-emerald-800 leading-relaxed';
+            } catch (error) {
+                console.error('SethiPortfolio import failed:', error);
+                banner.textContent = `SethiPortfolio import failed: ${error.message}`;
+                banner.className = 'mb-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2.5 text-[11px] font-bold text-red-700 leading-relaxed';
+            }
+        }
+
+        importPortfolioFromQuery();
 
         function formatMoney(v) {
             return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(v || 0);

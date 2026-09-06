@@ -16,7 +16,17 @@ jobs:
           ref: phase1-integration
 
       - name: Apply and validate Phase 1 pass 2
-        run: python .github/scripts/phase1_patch2.py
+        shell: bash
+        run: |
+          set +e
+          python .github/scripts/phase1_patch2.py 2>/tmp/phase1-pass2.err
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ]; then
+            cat /tmp/phase1-pass2.err
+            grep -q "admin apply inbound intent after login" /tmp/phase1-pass2.err || exit "$status"
+          fi
+          python .github/scripts/phase1_patch2_fix.py
 
       - name: Commit Phase 1 pass 2
         shell: bash

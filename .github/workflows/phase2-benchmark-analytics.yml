@@ -1,0 +1,53 @@
+name: Phase 2.2 Benchmark Analytics
+
+on:
+  push:
+    branches: [phase2-benchmark-analytics]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase2-benchmark-analytics
+
+      - name: Apply benchmark analytics patch
+        run: python .github/scripts/phase2_benchmark_analytics_patch.py
+
+      - name: Validate SethiPortfolio JavaScript
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re, subprocess, tempfile
+          text = Path('sethiportfolio.html').read_text()
+          scripts = re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', text, re.S | re.I)
+          for script in scripts:
+              if not script.strip():
+                  continue
+              with tempfile.NamedTemporaryFile('w', suffix='.js', delete=False) as f:
+                  f.write(script)
+                  temp = f.name
+              subprocess.run(['node', '--check', temp], check=True)
+          PY
+          grep -q 'Benchmark Analytics' sethiportfolio.html
+          grep -q 'benchmarkStats' sethiportfolio.html
+          grep -q 'benchmark-regression-chart' sethiportfolio.html
+          grep -q 'Information Ratio' sethiportfolio.html
+
+      - name: Commit benchmark analytics
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "Patch already applied."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sethiportfolio.html
+          git commit -m "Add benchmark analytics to SethiPortfolio"
+          git push origin HEAD:phase2-benchmark-analytics

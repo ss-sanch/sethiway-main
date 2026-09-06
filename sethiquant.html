@@ -552,7 +552,7 @@
                                 <div><label class="text-[10px] font-black uppercase tracking-widest text-gray-500">Positions</label><span class="text-[10px] text-gray-400 block mt-0.5">Must total 100%</span></div>
                                 <button type="button" onclick="importMarkowitzWeights()" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1.5 rounded transition shadow-sm border border-indigo-100 flex items-center gap-1">Import Optimal</button>
                             </div>
-                            <div id="positions" class="space-y-1.5"></div>
+                            <div id="positions" class="space-y-1.5 max-h-72 overflow-y-auto pr-1"></div>
                         </div>
                         <div class="grid grid-cols-2 gap-2">
                             <button type="button" onclick="openOptionsOverlay()" class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-violet-200 bg-violet-50/60 hover:bg-violet-50 transition text-[11px] font-black text-violet-700">
@@ -1779,6 +1779,12 @@
                 ticker: document.getElementById(`ticker-${i}`).value.trim().toUpperCase(),
                 weight: parseFloat(document.getElementById(`weight-${i}`).value) / 100
             })).filter(p => p.ticker && p.weight > 0);
+
+            if (positions.length < 2 || positions.length > 50) {
+                error.innerText = `Market Risk Lab supports between 2 and 50 assets. Current portfolio: ${positions.length}.`;
+                error.classList.remove('hidden');
+                return;
+            }
 
             const totalWeight = positions.reduce((sum, p) => sum + p.weight, 0);
             if (Math.abs(totalWeight - 1) > 0.005) {

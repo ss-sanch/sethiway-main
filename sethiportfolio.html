@@ -890,22 +890,29 @@
             ? `Trailing ${windowLabel} return for the portfolio and selected benchmark.`
             : `Annualised volatility of daily returns over a trailing ${windowLabel} window.`;
 
+        let chartStart = -1;
+        for (let i = displayStart; i < dates.length; i++) {
+            if (Number.isFinite(portfolioRolling[i]) || Number.isFinite(benchmarkRolling[i])) {
+                chartStart = i;
+                break;
+            }
+        }
+        if (chartStart < 0) {
+            chart.innerHTML = `<div class="h-full flex items-center justify-center text-center px-6 text-sm text-gray-400">Not enough history for a ${windowLabel} ${metricLabel.toLowerCase()} in the selected period.</div>`;
+            return;
+        }
+
         const traces = [
             {key:'portfolio', values:portfolioRolling, meta:seriesMeta.portfolio},
             {key:'benchmark', values:benchmarkRolling, meta:seriesMeta[currentBenchmark]},
         ].map(item => ({
-            x: dates.slice(displayStart),
-            y: item.values.slice(displayStart),
+            x: dates.slice(chartStart),
+            y: item.values.slice(chartStart),
             name: item.meta.name,
             type:'scatter', mode:'lines', connectgaps:false,
             line:{color:item.meta.color, width:item.key === 'portfolio' ? 3 : 2, dash:item.key === 'portfolio' ? 'solid' : item.meta.dash},
             hovertemplate:`%{x}<br>${metricLabel}: %{y:.2f}%<extra>${item.meta.name}</extra>`
         }));
-        const hasData = traces.some(trace => trace.y.some(Number.isFinite));
-        if (!hasData) {
-            chart.innerHTML = `<div class="h-full flex items-center justify-center text-center px-6 text-sm text-gray-400">Not enough history for a ${windowLabel} ${metricLabel.toLowerCase()} in the selected period.</div>`;
-            return;
-        }
         Plotly.react('rolling-chart', traces, {
             margin:{t:16,r:20,l:55,b:42}, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)',
             showlegend:true, legend:{orientation:'h',x:0,y:1.12,font:{size:10}},

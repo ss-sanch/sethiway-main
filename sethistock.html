@@ -820,7 +820,8 @@
                 if (!res.ok) throw new Error(data.detail);
 
                 // Smart Search: Update input to show the actual verified ticker found
-                document.getElementById('ticker-input').value = data.ticker;
+                state.ticker = String(data.ticker || state.ticker).toUpperCase();
+                document.getElementById('ticker-input').value = state.ticker;
                 
                 document.getElementById('display-ticker').innerText = data.ticker;
                 document.getElementById('display-price').innerText = `$${data.current_price.toFixed(2)}`;

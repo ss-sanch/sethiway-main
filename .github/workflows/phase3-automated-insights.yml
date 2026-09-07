@@ -1,0 +1,49 @@
+name: Phase 3.1 Automated Portfolio Insights
+
+on:
+  push:
+    branches: [phase3-automated-insights]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase3-automated-insights
+      - name: Apply automated insights patch
+        run: python .github/scripts/phase3_automated_insights_patch.py
+      - name: Validate inline JavaScript
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re, subprocess, tempfile
+          text = Path('sethiportfolio.html').read_text()
+          scripts = re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', text, re.S | re.I)
+          for script in scripts:
+              if not script.strip():
+                  continue
+              with tempfile.NamedTemporaryFile('w', suffix='.js', delete=False) as f:
+                  f.write(script)
+                  temp = f.name
+              subprocess.run(['node','--check',temp], check=True)
+          PY
+          grep -q 'Portfolio Insights' sethiportfolio.html
+          grep -q 'renderAutomatedInsights' sethiportfolio.html
+          grep -q 'What deserves attention?' sethiportfolio.html
+      - name: Commit automated insights UI
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo 'Patch already applied.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add sethiportfolio.html
+          git commit -m 'Add automated portfolio insights'
+          git push origin HEAD:phase3-automated-insights

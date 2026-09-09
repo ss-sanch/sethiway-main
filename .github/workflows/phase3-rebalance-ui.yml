@@ -1,0 +1,43 @@
+name: Phase 3.3 Rebalance Simulator UI
+
+on:
+  push:
+    branches: [phase3-rebalance-ui]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase3-rebalance-ui
+      - name: Apply rebalance simulator UI patch
+        run: python .github/scripts/phase3_rebalance_ui_patch.py
+      - name: Validate inline JavaScript and anchors
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          text = Path('sethiportfolio.html').read_text()
+          scripts = re.findall(r'<script>(.*?)</script>', text, flags=re.S)
+          Path('/tmp/sethiportfolio-inline.js').write_text('\n'.join(scripts))
+          assert 'id="rebalance"' in text
+          assert 'runRebalanceSimulation' in text
+          assert '/rebalance-simulator' in text
+          assert 'Simulation only · no trades' in text
+          PY
+          node --check /tmp/sethiportfolio-inline.js
+      - name: Commit rebalance simulator UI
+        run: |
+          if git diff --quiet; then
+            echo 'Patch already applied.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add sethiportfolio.html
+          git commit -m 'Add portfolio rebalance what-if simulator UI'
+          git push origin HEAD:phase3-rebalance-ui

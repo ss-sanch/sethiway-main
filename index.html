@@ -46,7 +46,10 @@
                 <div class="mt-6 max-w-2xl mx-auto rounded-2xl border border-gray-200 bg-white p-3 shadow-sm text-left">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 px-1 mb-2">
                         <span class="text-[10px] font-black uppercase tracking-[0.18em] text-gray-500">Quick Launch</span>
-                        <span class="text-xs text-gray-400">Open a company directly in SethiStock.</span>
+                        <button id="command-palette-trigger" type="button" class="inline-flex items-center gap-2 self-start rounded-lg text-xs font-semibold text-gray-400 transition hover:text-blue-600 sm:self-auto">
+                            Search platform
+                            <kbd id="command-shortcut" class="rounded-md border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[10px] font-bold text-gray-500">Ctrl K</kbd>
+                        </button>
                     </div>
                     <form id="stock-launcher" class="flex flex-col sm:flex-row gap-2">
                         <label for="launcher-ticker" class="sr-only">Ticker</label>
@@ -215,6 +218,15 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <button type="button" onclick="openCommandPalette()" class="group rounded-2xl border border-gray-200 bg-white p-5 text-left shadow-sm hover:border-blue-200 hover:shadow-md transition">
+                        <div class="flex items-center justify-between gap-3">
+                            <span class="text-[10px] font-black uppercase tracking-[0.16em] text-gray-400">Hub</span>
+                            <span class="text-blue-600 group-hover:translate-x-0.5 transition-transform">→</span>
+                        </div>
+                        <h3 class="mt-3 text-lg font-black text-gray-950">Command Palette</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-gray-500">Use Ctrl or Cmd + K to jump to a tool, section or ticker.</p>
+                    </button>
+
                     <a href="#top" class="group rounded-2xl border border-gray-200 bg-white p-5 shadow-sm hover:border-blue-200 hover:shadow-md transition">
                         <div class="flex items-center justify-between gap-3">
                             <span class="text-[10px] font-black uppercase tracking-[0.16em] text-gray-400">Hub</span>
@@ -231,15 +243,6 @@
                         </div>
                         <h3 class="mt-3 text-lg font-black text-gray-950">Watchlist Shortcuts</h3>
                         <p class="mt-2 text-sm leading-relaxed text-gray-500">Saved SethiStock tickers now appear inside Quick Launch for one-click access.</p>
-                    </a>
-
-                    <a href="#top" class="group rounded-2xl border border-gray-200 bg-white p-5 shadow-sm hover:border-blue-200 hover:shadow-md transition">
-                        <div class="flex items-center justify-between gap-3">
-                            <span class="text-[10px] font-black uppercase tracking-[0.16em] text-gray-400">Hub</span>
-                            <span class="text-blue-600 group-hover:translate-x-0.5 transition-transform">→</span>
-                        </div>
-                        <h3 class="mt-3 text-lg font-black text-gray-950">Quick Launch</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-gray-500">Enter a ticker on the homepage and open it directly in SethiStock.</p>
                     </a>
                 </div>
             </div>
@@ -319,6 +322,24 @@
         </section>
     </main>
 
+    <div id="command-palette" class="hidden fixed inset-0 z-[110] items-start justify-center bg-gray-950/45 px-4 pt-[12vh] backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="command-palette-title">
+        <div class="w-full max-w-2xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl">
+            <div class="border-b border-gray-100 p-3">
+                <div class="flex items-center gap-3 rounded-xl bg-gray-50 px-4 py-3">
+                    <svg class="h-5 w-5 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m1.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"></path></svg>
+                    <label id="command-palette-title" for="command-palette-input" class="sr-only">Search SethiWay</label>
+                    <input id="command-palette-input" type="text" autocomplete="off" spellcheck="false" placeholder="Search tools, sections or enter a ticker" class="min-w-0 flex-1 bg-transparent text-sm font-semibold text-gray-900 outline-none placeholder:font-medium placeholder:text-gray-400">
+                    <kbd class="rounded-md border border-gray-200 bg-white px-2 py-1 text-[10px] font-bold text-gray-400">Esc</kbd>
+                </div>
+            </div>
+            <div id="command-palette-results" class="max-h-[52vh] overflow-y-auto p-2"></div>
+            <div class="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 px-4 py-2.5 text-[10px] font-semibold text-gray-400">
+                <span>Type a ticker to open it in SethiStock.</span>
+                <span class="hidden sm:inline">↑ ↓ move · Enter open · Esc close</span>
+            </div>
+        </div>
+    </div>
+
     <div id="login-modal" class="hidden fixed inset-0 z-[100] items-center justify-center bg-gray-950/55 px-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="admin-login-title">
         <div class="relative w-full max-w-md rounded-2xl border border-gray-200 bg-white p-7 shadow-2xl">
             <button type="button" onclick="closeAdminModal()" class="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-900" aria-label="Close sign in">
@@ -357,6 +378,163 @@
     </footer>
 
 <script>
+    const commandPalette = document.getElementById('command-palette');
+    const commandPaletteTrigger = document.getElementById('command-palette-trigger');
+    const commandPaletteInput = document.getElementById('command-palette-input');
+    const commandPaletteResults = document.getElementById('command-palette-results');
+    const commandShortcut = document.getElementById('command-shortcut');
+    let commandSelection = 0;
+    let visibleCommands = [];
+
+    const platformCommands = [
+        { tool: 'SethiMacro', label: 'Open SethiMacro', detail: 'Macro dashboard', href: 'sethimacro.html', keywords: 'macro economy dashboard' },
+        { tool: 'SethiMacro', label: 'Job Market', detail: 'Employment and labour data', href: 'sethimacro.html#job-market', keywords: 'jobs employment labour unemployment' },
+        { tool: 'SethiMacro', label: 'Inflation & Rates', detail: 'Inflation, yields and central banks', href: 'sethimacro.html#inflation-rates', keywords: 'inflation rates yields central bank' },
+        { tool: 'SethiMacro', label: 'Currencies', detail: 'FX and currency indicators', href: 'sethimacro.html#currencies', keywords: 'fx currency currencies' },
+        { tool: 'SethiStock', label: 'Open SethiStock', detail: 'Single-equity analysis', href: 'sethistock.html', keywords: 'stock equity company security' },
+        { tool: 'SethiStock', label: 'Key Metrics', detail: 'Fundamentals and market statistics', href: 'sethistock.html#key-metrics', keywords: 'metrics fundamentals statistics stock' },
+        { tool: 'SethiStock', label: 'Research Labs', detail: 'Earnings reactions and valuation history', href: 'sethistock.html#research-labs', keywords: 'research earnings valuation history' },
+        { tool: 'SethiStock', label: 'Valuations', detail: 'DCF and valuation tools', href: 'sethistock.html#valuation', keywords: 'valuation dcf intrinsic value' },
+        { tool: 'SethiPortfolio', label: 'Open SethiPortfolio', detail: 'Portfolio management', href: 'sethiportfolio.html', keywords: 'portfolio holdings performance' },
+        { tool: 'SethiPortfolio', label: 'Performance', detail: 'Returns and benchmarks', href: 'sethiportfolio.html#performance', keywords: 'portfolio performance returns benchmark' },
+        { tool: 'SethiPortfolio', label: 'Portfolio Lab', detail: 'Exposure, FX and risk analysis', href: 'sethiportfolio.html#portfolio-lab', keywords: 'portfolio lab exposure fx risk' },
+        { tool: 'SethiPortfolio', label: 'Exposure Map', detail: 'Sector, currency and geography exposure', href: 'sethiportfolio.html#exposure', keywords: 'sector currency geography exposure' },
+        { tool: 'SethiPortfolio', label: 'FX Analytics', detail: 'Sterling and translation effects', href: 'sethiportfolio.html#fx', keywords: 'fx sterling currency translation' },
+        { tool: 'SethiPortfolio', label: 'Portfolio Risk', detail: 'Concentration and risk contribution', href: 'sethiportfolio.html#risk', keywords: 'portfolio risk concentration correlation var' },
+        { tool: 'SethiPortfolio', label: 'Decisions', detail: 'Investment journal and portfolio changes', href: 'sethiportfolio.html#decisions', keywords: 'decisions journal changes rationale' },
+        { tool: 'SethiQuant', label: 'Open SethiQuant', detail: 'Quantitative and risk terminal', href: 'sethiquant.html', keywords: 'quant quantitative terminal' },
+        { tool: 'SethiQuant', label: 'Options & Greeks', detail: 'Option pricing and sensitivities', href: 'sethiquant.html#section-options', keywords: 'options greeks derivatives pricing' },
+        { tool: 'SethiQuant', label: 'Backtesting', detail: 'Strategy testing', href: 'sethiquant.html#section-backtest', keywords: 'backtest backtesting strategy' },
+        { tool: 'SethiQuant', label: 'Market Risk Lab', detail: 'VaR, stress tests and risk attribution', href: 'sethiquant.html#section-var', keywords: 'market risk var stress correlation attribution' }
+    ];
+
+    const commandToolTone = {
+        SethiMacro: 'text-red-600 bg-red-50 border-red-100',
+        SethiStock: 'text-emerald-700 bg-emerald-50 border-emerald-100',
+        SethiPortfolio: 'text-amber-700 bg-amber-50 border-amber-100',
+        SethiQuant: 'text-blue-700 bg-blue-50 border-blue-100'
+    };
+
+    function commandSearchText(command) {
+        return `${command.tool} ${command.label} ${command.detail} ${command.keywords || ''}`.toLowerCase();
+    }
+
+    function buildVisibleCommands(query) {
+        const clean = query.trim();
+        const lower = clean.toLowerCase();
+        const matches = platformCommands
+            .filter(command => !lower || commandSearchText(command).includes(lower))
+            .slice(0, 8);
+
+        const ticker = clean.toUpperCase();
+        if (clean && /^[A-Z0-9.^-]{1,20}$/.test(ticker)) {
+            matches.push({
+                tool: 'SethiStock',
+                label: `Analyse ${ticker}`,
+                detail: 'Open ticker directly in SethiStock',
+                href: `sethistock.html?ticker=${encodeURIComponent(ticker)}&source=command-palette`,
+                tickerAction: true
+            });
+        }
+        return matches;
+    }
+
+    function renderCommandPaletteResults() {
+        visibleCommands = buildVisibleCommands(commandPaletteInput.value);
+        if (commandSelection >= visibleCommands.length) commandSelection = Math.max(0, visibleCommands.length - 1);
+        commandPaletteResults.replaceChildren();
+
+        if (!visibleCommands.length) {
+            const empty = document.createElement('p');
+            empty.className = 'px-4 py-8 text-center text-sm font-semibold text-gray-400';
+            empty.textContent = 'No matching tool or section.';
+            commandPaletteResults.appendChild(empty);
+            return;
+        }
+
+        visibleCommands.forEach((command, index) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.dataset.index = String(index);
+            button.className = `flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition ${index === commandSelection ? 'bg-gray-100' : 'hover:bg-gray-50'}`;
+
+            const badge = document.createElement('span');
+            badge.className = `shrink-0 rounded-md border px-2 py-1 text-[9px] font-black uppercase tracking-wider ${commandToolTone[command.tool] || 'text-gray-600 bg-gray-50 border-gray-200'}`;
+            badge.textContent = command.tool.replace('Sethi', '');
+
+            const copy = document.createElement('span');
+            copy.className = 'min-w-0 flex-1';
+            const title = document.createElement('span');
+            title.className = 'block truncate text-sm font-black text-gray-900';
+            title.textContent = command.label;
+            const detail = document.createElement('span');
+            detail.className = 'mt-0.5 block truncate text-xs text-gray-400';
+            detail.textContent = command.detail;
+            copy.append(title, detail);
+
+            const arrow = document.createElement('span');
+            arrow.className = 'shrink-0 text-sm font-bold text-gray-300';
+            arrow.textContent = '→';
+            button.append(badge, copy, arrow);
+            button.addEventListener('mouseenter', () => { commandSelection = index; renderCommandPaletteResults(); });
+            button.addEventListener('click', () => openCommand(index));
+            commandPaletteResults.appendChild(button);
+        });
+    }
+
+    function openCommand(index = commandSelection) {
+        const command = visibleCommands[index];
+        if (!command) return;
+        window.location.href = command.href;
+    }
+
+    function openCommandPalette() {
+        commandPalette.classList.remove('hidden');
+        commandPalette.classList.add('flex');
+        commandPaletteInput.value = '';
+        commandSelection = 0;
+        renderCommandPaletteResults();
+        setTimeout(() => commandPaletteInput.focus(), 0);
+    }
+
+    function closeCommandPalette() {
+        commandPalette.classList.add('hidden');
+        commandPalette.classList.remove('flex');
+    }
+
+    commandShortcut.textContent = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘ K' : 'Ctrl K';
+    commandPaletteTrigger.addEventListener('click', openCommandPalette);
+    commandPalette.addEventListener('click', event => {
+        if (event.target === commandPalette) closeCommandPalette();
+    });
+    commandPaletteInput.addEventListener('input', () => {
+        commandSelection = 0;
+        renderCommandPaletteResults();
+    });
+    commandPaletteInput.addEventListener('keydown', event => {
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            if (visibleCommands.length) commandSelection = (commandSelection + 1) % visibleCommands.length;
+            renderCommandPaletteResults();
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            if (visibleCommands.length) commandSelection = (commandSelection - 1 + visibleCommands.length) % visibleCommands.length;
+            renderCommandPaletteResults();
+        } else if (event.key === 'Enter') {
+            event.preventDefault();
+            openCommand();
+        }
+    });
+    document.addEventListener('keydown', event => {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+            event.preventDefault();
+            if (commandPalette.classList.contains('hidden')) openCommandPalette();
+            else closeCommandPalette();
+        } else if (event.key === 'Escape' && !commandPalette.classList.contains('hidden')) {
+            closeCommandPalette();
+        }
+    });
+
     const adminModal = document.getElementById('login-modal');
     const adminLoginForm = document.getElementById('admin-login-form');
     const adminUser = document.getElementById('portal-user');

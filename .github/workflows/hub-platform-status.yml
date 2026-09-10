@@ -1,0 +1,38 @@
+name: Hub platform status
+on:
+  push:
+    branches: [hub-platform-status]
+    paths:
+      - '.github/scripts/hub_platform_status_patch.py'
+      - '.github/workflows/hub-platform-status.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hub-platform-status
+      - name: Apply platform status
+        run: python .github/scripts/hub_platform_status_patch.py
+      - name: Validate homepage
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text()
+          assert s.count('id="platform-status-modal"') == 1
+          assert s.count('id="platform-status-trigger"') == 1
+          assert '—' not in s
+          scripts=re.findall(r'<script>(.*?)</script>', s, flags=re.S)
+          Path('/tmp/index-inline.js').write_text('\n'.join(scripts))
+          PY
+          node --check /tmp/index-inline.js
+      - name: Commit platform status
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Add live platform status to hub'
+          git push

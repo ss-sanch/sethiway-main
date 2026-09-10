@@ -7,6 +7,10 @@
     <title>SethiWay | Connected Financial Research Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
+    <style>
+        html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased">
 
@@ -28,16 +32,18 @@
     <main id="top">
         <header class="px-6 lg:px-10 pt-8 md:pt-9 pb-5 bg-gradient-to-b from-white to-gray-50">
             <div class="max-w-4xl mx-auto text-center">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-amber-200 bg-amber-50 text-amber-800 text-[10px] font-black uppercase tracking-wider mb-3">
-                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                    New · SethiPortfolio is now live
-                </div>
                 <h1 class="text-4xl md:text-5xl font-black tracking-tight leading-[1.02] text-gray-950">
                     One connected platform for <span class="text-blue-600">financial research and risk.</span>
                 </h1>
                 <p class="mt-3 text-base md:text-lg text-gray-500 max-w-3xl mx-auto leading-relaxed">
-                    Macro context, security analysis, portfolio management and quantitative risk — connected around real financial decisions.
+                    Macro context, security analysis, portfolio management and quantitative risk. Each tool is built around real financial decisions.
                 </p>
+                <div class="mt-4">
+                    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-200 bg-blue-50 text-blue-700 text-[10px] font-black uppercase tracking-wider">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                        SethiPortfolio is now live
+                    </span>
+                </div>
                 <div class="mt-4 flex flex-col sm:flex-row justify-center gap-3">
                     <a href="#platform" class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-black hover:bg-blue-700 transition shadow-sm">Explore the Platform →</a>
                     <a href="sethiportfolio.html" class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-white border border-gray-200 text-gray-900 text-sm font-black hover:border-amber-300 hover:bg-amber-50 transition">Open SethiPortfolio →</a>
@@ -48,21 +54,22 @@
 
         <section id="platform" class="px-6 lg:px-10 pt-3 pb-16 bg-gray-50">
             <div class="max-w-[1720px] mx-auto">
-                <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-2 mb-4">
-                    <div>
-                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">The Platform</p>
-                        <h2 class="text-2xl md:text-3xl font-black mt-1">Four tools. One connected workflow.</h2>
-                    </div>
-                    <p class="text-sm text-gray-500">Move from market context to security research, allocation and risk.</p>
+                <div class="mb-4">
+                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">The Platform</p>
+                    <h2 class="text-2xl md:text-3xl font-black mt-1">Four tools. One connected workflow.</h2>
                 </div>
 
                 <div id="workflow" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 xl:gap-7">
                     <div class="flex flex-col">
                         <div class="h-14 flex items-center px-1 mb-2">
-                            <span class="text-4xl font-black tracking-tighter text-red-500">01</span>
-                            <span class="ml-3 text-xs font-black uppercase tracking-[0.18em] text-gray-500">Macro</span>
-                            <span class="hidden xl:block flex-1 h-px bg-gray-300 ml-4"></span>
-                            <span class="hidden xl:block text-2xl text-gray-300 ml-2">→</span>
+                            <div class="flex items-baseline w-[150px] shrink-0">
+                                <span class="text-4xl font-black tracking-tighter text-red-500">01</span>
+                                <span class="ml-3 text-xs font-black uppercase tracking-[0.18em] text-gray-500">Macro</span>
+                            </div>
+                            <div class="hidden xl:flex flex-1 items-center gap-2">
+                                <span class="flex-1 h-px bg-gray-300"></span>
+                                <span class="text-xl leading-none text-gray-300 -translate-y-px">→</span>
+                            </div>
                         </div>
                         <article class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col flex-grow">
                             <div class="h-48 bg-gray-900 flex items-center justify-center text-white relative">
@@ -86,10 +93,14 @@
 
                     <div class="flex flex-col">
                         <div class="h-14 flex items-center px-1 mb-2">
-                            <span class="text-4xl font-black tracking-tighter text-emerald-500">02</span>
-                            <span class="ml-3 text-xs font-black uppercase tracking-[0.18em] text-gray-500">Stock</span>
-                            <span class="hidden xl:block flex-1 h-px bg-gray-300 ml-4"></span>
-                            <span class="hidden xl:block text-2xl text-gray-300 ml-2">→</span>
+                            <div class="flex items-baseline w-[150px] shrink-0">
+                                <span class="text-4xl font-black tracking-tighter text-emerald-500">02</span>
+                                <span class="ml-3 text-xs font-black uppercase tracking-[0.18em] text-gray-500">Stock</span>
+                            </div>
+                            <div class="hidden xl:flex flex-1 items-center gap-2">
+                                <span class="flex-1 h-px bg-gray-300"></span>
+                                <span class="text-xl leading-none text-gray-300 -translate-y-px">→</span>
+                            </div>
                         </div>
                         <article class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col flex-grow">
                             <div class="h-48 bg-gray-900 flex items-center justify-center text-white relative">
@@ -113,10 +124,14 @@
 
                     <div class="flex flex-col">
                         <div class="h-14 flex items-center px-1 mb-2">
-                            <span class="text-4xl font-black tracking-tighter text-amber-500">03</span>
-                            <span class="ml-3 text-xs font-black uppercase tracking-[0.18em] text-gray-500">Portfolio</span>
-                            <span class="hidden xl:block flex-1 h-px bg-gray-300 ml-4"></span>
-                            <span class="hidden xl:block text-2xl text-gray-300 ml-2">→</span>
+                            <div class="flex items-baseline w-[150px] shrink-0">
+                                <span class="text-4xl font-black tracking-tighter text-amber-500">03</span>
+                                <span class="ml-3 text-xs font-black uppercase tracking-[0.18em] text-gray-500">Portfolio</span>
+                            </div>
+                            <div class="hidden xl:flex flex-1 items-center gap-2">
+                                <span class="flex-1 h-px bg-gray-300"></span>
+                                <span class="text-xl leading-none text-gray-300 -translate-y-px">→</span>
+                            </div>
                         </div>
                         <article class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col flex-grow">
                             <div class="h-48 bg-gray-900 flex items-center justify-center text-white relative">
@@ -124,7 +139,7 @@
                             </div>
                             <div class="p-8 flex flex-col flex-grow">
                                 <div class="flex justify-between items-start gap-3 mb-4">
-                                    <div><h3 class="text-2xl font-bold">SethiPortfolio Vault</h3><p class="text-sm font-bold text-gray-500 mt-1">How is capital allocated and performing?</p></div>
+                                    <div><h3 class="text-2xl font-bold">SethiPortfolio</h3><p class="text-sm font-bold text-gray-500 mt-1">How is capital allocated and performing?</p></div>
                                     <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold uppercase rounded-full tracking-wide shrink-0">Live</span>
                                 </div>
                                 <p class="text-gray-600 font-light leading-relaxed mb-6 flex-grow">Track holdings, benchmark-relative performance, exposures, portfolio risk, FX effects and hypothetical rebalancing.</p>
@@ -133,15 +148,17 @@
                                     <span class="px-2 py-1 text-xs font-semibold text-fuchsia-600 bg-fuchsia-50 rounded border border-fuchsia-100">FX Analytics</span>
                                     <span class="px-2 py-1 text-xs font-semibold text-teal-700 bg-teal-50 rounded border border-teal-100">What-If</span>
                                 </div>
-                                <a href="sethiportfolio.html" class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition w-full">Unlock Vault →</a>
+                                <a href="sethiportfolio.html" class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition w-full">Open Portfolio →</a>
                             </div>
                         </article>
                     </div>
 
                     <div class="flex flex-col">
                         <div class="h-14 flex items-center px-1 mb-2">
-                            <span class="text-4xl font-black tracking-tighter text-blue-500">04</span>
-                            <span class="ml-3 text-xs font-black uppercase tracking-[0.18em] text-gray-500">Quant</span>
+                            <div class="flex items-baseline w-[150px] shrink-0">
+                                <span class="text-4xl font-black tracking-tighter text-blue-500">04</span>
+                                <span class="ml-3 text-xs font-black uppercase tracking-[0.18em] text-gray-500">Quant</span>
+                            </div>
                         </div>
                         <article class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col flex-grow">
                             <div class="h-48 bg-gray-900 flex items-center justify-center text-white relative">
@@ -170,8 +187,8 @@
             <div class="max-w-7xl mx-auto">
                 <div class="text-center max-w-3xl mx-auto mb-10">
                     <p class="text-[11px] font-black uppercase tracking-[0.18em] text-blue-600">Behind SethiWay</p>
-                    <h2 class="text-3xl md:text-4xl font-black mt-2">Built where finance, maths and software meet.</h2>
-                    <p class="mt-4 text-gray-500">The platform is less about displaying data and more about turning financial questions into usable analytical systems.</p>
+                    <h2 class="text-3xl md:text-4xl font-black mt-2">Built from the questions I wanted to answer.</h2>
+                    <p class="mt-4 text-gray-500">SethiWay started as a set of tools for analysing markets, companies and portfolios. The maths and code sit underneath those questions.</p>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="rounded-2xl border border-gray-200 bg-gray-50 p-7">
@@ -233,7 +250,7 @@
                     <div id="success-message" class="hidden max-w-3xl mx-auto text-center py-8">
                         <div class="w-12 h-12 rounded-full bg-emerald-500/15 text-emerald-400 flex items-center justify-center mx-auto text-xl font-black">✓</div>
                         <h3 class="text-xl font-black mt-4">Message sent.</h3>
-                        <p class="text-gray-400 mt-2">Thanks — I’ll take a look.</p>
+                        <p class="text-gray-400 mt-2">Thanks. I’ll take a look.</p>
                     </div>
                 </div>
             </div>

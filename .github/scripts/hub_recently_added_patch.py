@@ -12,15 +12,18 @@ section = '''        <section id="recently-added" class="px-6 lg:px-10 pb-16 bg-
 
 text = text.replace(anchor, section + anchor, 1)
 
-checks = [
+unique_checks = [
     'id="recently-added"',
     '>Quick Launch</h3>',
-    'sethiportfolio.html#portfolio-lab',
-    'sethiquant.html#section-var',
 ]
-for item in checks:
+for item in unique_checks:
     if text.count(item) != 1:
         raise SystemExit(f'Missing or duplicated recent item: {item}')
+
+for target in ['sethiportfolio.html#portfolio-lab', 'sethiquant.html#section-var']:
+    if text.count(target) != 2:
+        raise SystemExit(f'Expected existing shortcut plus recent item for: {target}')
+
 if '—' in text:
     raise SystemExit('Em dash remains in homepage copy')
 

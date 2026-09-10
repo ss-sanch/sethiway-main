@@ -1,0 +1,36 @@
+name: Hub Redesign Validation
+
+on:
+  push:
+    branches: [hub-redesign-h1]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hub-redesign-h1
+      - name: Validate hub structure and JavaScript
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          text = Path('index.html').read_text()
+          assert 'xl:grid-cols-4' in text
+          for href in ['sethimacro.html','sethistock.html','sethiportfolio.html','sethiquant.html']:
+              assert f'href="{href}"' in text
+          assert 'The SethiWay Workflow' in text
+          assert 'New · SethiPortfolio is now live' in text
+          assert 'Thesis Blog' not in text
+          assert 'Streamlit' not in text
+          assert 'Locked - In Development' not in text
+          assert 'login-modal' not in text
+          assert '>Sign In<' not in text
+          assert 'privacy.html' in text and 'terms.html' in text
+          assert 'Object.fromEntries(new FormData(form))' in text
+          scripts = re.findall(r'<script>(.*?)</script>', text, flags=re.S)
+          Path('/tmp/hub-inline.js').write_text('\n'.join(scripts))
+          print('Hub structure validated')
+          PY
+          node --check /tmp/hub-inline.js

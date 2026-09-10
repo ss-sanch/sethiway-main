@@ -3,7 +3,7 @@ on:
   push:
     branches: [hub-platform-status]
     paths:
-      - '.github/scripts/hub_platform_status_patch.py'
+      - '.github/scripts/hub_platform_status_patch_v2.py'
       - '.github/workflows/hub-platform-status.yml'
 permissions:
   contents: write
@@ -15,9 +15,7 @@ jobs:
         with:
           ref: hub-platform-status
       - name: Apply platform status
-        run: |
-          sed -i 's/bg-gray-950\/50/bg-gray-950\/55/' .github/scripts/hub_platform_status_patch.py
-          python .github/scripts/hub_platform_status_patch.py
+        run: python .github/scripts/hub_platform_status_patch_v2.py
       - name: Validate homepage
         run: |
           python - <<'PY'

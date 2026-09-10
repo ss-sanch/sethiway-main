@@ -1,0 +1,38 @@
+name: Admin service health
+on:
+  push:
+    branches: [admin-service-health]
+    paths:
+      - '.github/scripts/admin_service_health_patch.py'
+      - '.github/workflows/admin-service-health.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: admin-service-health
+      - name: Apply admin service health
+        run: python .github/scripts/admin_service_health_patch.py
+      - name: Validate admin page
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('admin.html').read_text()
+          assert s.count('id="service-health-recheck"') == 1
+          assert s.count('id="service-macro-label"') == 1
+          assert s.count('checkServiceHealth();') == 1
+          scripts=re.findall(r'<script>(.*?)</script>', s, flags=re.S)
+          Path('/tmp/admin-inline.js').write_text('\n'.join(scripts))
+          PY
+          node --check /tmp/admin-inline.js
+      - name: Commit admin service health
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add admin.html
+          git commit -m 'Add service health to admin dashboard'
+          git push

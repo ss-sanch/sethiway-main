@@ -63,6 +63,13 @@
                         <span class="shrink-0 font-medium text-gray-400">Watchlist:</span>
                         <div id="hub-watchlist-items" class="flex min-w-0 flex-wrap gap-1.5"></div>
                     </div>
+                    <div id="hub-continue" class="hidden mt-2 items-center gap-2 px-1 text-xs">
+                        <span class="shrink-0 font-medium text-gray-400">Continue:</span>
+                        <a id="hub-continue-link" href="#" class="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 font-bold text-blue-700 transition hover:border-blue-200 hover:bg-blue-100">
+                            <span id="hub-continue-label" class="truncate"></span>
+                            <span aria-hidden="true">→</span>
+                        </a>
+                    </div>
                     <p id="launcher-error" class="hidden mt-2 px-1 text-xs font-semibold text-red-600">Enter a valid ticker symbol.</p>
                 </div>
             </div>
@@ -213,6 +220,15 @@
                             <span class="text-[10px] font-black uppercase tracking-[0.16em] text-gray-400">Hub</span>
                             <span class="text-blue-600 group-hover:translate-x-0.5 transition-transform">→</span>
                         </div>
+                        <h3 class="mt-3 text-lg font-black text-gray-950">Continue Shortcut</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-gray-500">Return to the last SethiWay tool, stock or section you were using.</p>
+                    </a>
+
+                    <a href="#top" class="group rounded-2xl border border-gray-200 bg-white p-5 shadow-sm hover:border-blue-200 hover:shadow-md transition">
+                        <div class="flex items-center justify-between gap-3">
+                            <span class="text-[10px] font-black uppercase tracking-[0.16em] text-gray-400">Hub</span>
+                            <span class="text-blue-600 group-hover:translate-x-0.5 transition-transform">→</span>
+                        </div>
                         <h3 class="mt-3 text-lg font-black text-gray-950">Watchlist Shortcuts</h3>
                         <p class="mt-2 text-sm leading-relaxed text-gray-500">Saved SethiStock tickers now appear inside Quick Launch for one-click access.</p>
                     </a>
@@ -224,15 +240,6 @@
                         </div>
                         <h3 class="mt-3 text-lg font-black text-gray-950">Quick Launch</h3>
                         <p class="mt-2 text-sm leading-relaxed text-gray-500">Enter a ticker on the homepage and open it directly in SethiStock.</p>
-                    </a>
-
-                    <a href="sethiportfolio.html#portfolio-lab" class="group rounded-2xl border border-gray-200 bg-white p-5 shadow-sm hover:border-amber-200 hover:shadow-md transition">
-                        <div class="flex items-center justify-between gap-3">
-                            <span class="text-[10px] font-black uppercase tracking-[0.16em] text-amber-600">SethiPortfolio</span>
-                            <span class="text-amber-600 group-hover:translate-x-0.5 transition-transform">→</span>
-                        </div>
-                        <h3 class="mt-3 text-lg font-black text-gray-950">Portfolio Lab</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-gray-500">Review exposure, FX effects, portfolio risk and proposed reallocations in one place.</p>
                     </a>
                 </div>
             </div>
@@ -453,6 +460,44 @@
     renderHubWatchlist();
     window.addEventListener('storage', event => {
         if (event.key === 'sethiWatchlist') renderHubWatchlist();
+    });
+
+    const hubContinue = document.getElementById('hub-continue');
+    const hubContinueLink = document.getElementById('hub-continue-link');
+    const hubContinueLabel = document.getElementById('hub-continue-label');
+
+    function getLastSethiwayDestination() {
+        try {
+            const saved = JSON.parse(localStorage.getItem('sethiwayLastDestination') || 'null');
+            if (!saved || typeof saved !== 'object') return null;
+            const href = String(saved.href || '');
+            const label = String(saved.label || '');
+            const updatedAt = Number(saved.updatedAt || 0);
+            const allowedHref = /^(sethimacro|sethistock|sethiportfolio|sethiquant)\.html(?:\?[^#]*)?(?:#.*)?$/i.test(href);
+            const recentEnough = updatedAt > 0 && Date.now() - updatedAt < 1000 * 60 * 60 * 24 * 30;
+            if (!allowedHref || !label || !recentEnough) return null;
+            return { href, label };
+        } catch {
+            return null;
+        }
+    }
+
+    function renderHubContinue() {
+        const destination = getLastSethiwayDestination();
+        if (!destination) {
+            hubContinue.classList.add('hidden');
+            hubContinue.classList.remove('flex');
+            return;
+        }
+        hubContinueLink.href = destination.href;
+        hubContinueLabel.textContent = destination.label;
+        hubContinue.classList.remove('hidden');
+        hubContinue.classList.add('flex');
+    }
+
+    renderHubContinue();
+    window.addEventListener('storage', event => {
+        if (event.key === 'sethiwayLastDestination') renderHubContinue();
     });
 
     const form = document.getElementById('idea-form');

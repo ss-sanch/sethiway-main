@@ -1,0 +1,50 @@
+name: Hub Visual Rework
+
+on:
+  push:
+    branches: [hub-redesign-h1]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hub-redesign-h1
+      - name: Apply hub visual rework
+        run: python .github/scripts/hub_visual_rework.py
+      - name: Validate hub structure
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          text = Path('index.html').read_text()
+          assert 'One connected platform for <span class="text-blue-600">financial research and risk.</span>' in text
+          assert 'id="workflow" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4' in text
+          assert 'text-4xl font-black tracking-tighter text-red-500">01<' in text
+          assert 'text-4xl font-black tracking-tighter text-emerald-500">02<' in text
+          assert 'text-4xl font-black tracking-tighter text-amber-500">03<' in text
+          assert 'text-4xl font-black tracking-tighter text-blue-500">04<' in text
+          assert '<section id="workflow"' not in text
+          assert 'h-48 bg-gray-900 flex items-center justify-center' in text
+          assert 'absolute left-1/2 -translate-x-1/2' in text
+          assert text.count('class="mt-4 text-lg text-gray-600 leading-relaxed"') >= 1
+          scripts = re.findall(r'<script>(.*?)</script>', text, flags=re.S)
+          Path('/tmp/index-inline.js').write_text('\n'.join(scripts))
+          print('Hub visual rework structure validated')
+          PY
+          node --check /tmp/index-inline.js
+      - name: Commit hub visual rework
+        run: |
+          if git diff --quiet; then
+            echo 'Patch already applied.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '4189828+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Refine hub hero, workflow and project cards'
+          git push origin HEAD:hub-redesign-h1

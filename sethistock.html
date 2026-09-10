@@ -769,6 +769,20 @@
             }
         }
 
+        function rememberRecentSethiStockTicker(ticker) {
+            const cleanTicker = String(ticker || '').trim().toUpperCase();
+            if (!/^[A-Z0-9.^-]{1,20}$/.test(cleanTicker)) return;
+            try {
+                const raw = JSON.parse(localStorage.getItem('sethiwayRecentTickers') || '[]');
+                const existing = Array.isArray(raw) ? raw
+                    .map(item => typeof item === 'string' ? item : item?.ticker)
+                    .map(item => String(item || '').trim().toUpperCase())
+                    .filter(item => /^[A-Z0-9.^-]{1,20}$/.test(item)) : [];
+                const updated = [cleanTicker, ...existing.filter(item => item !== cleanTicker)].slice(0, 8);
+                localStorage.setItem('sethiwayRecentTickers', JSON.stringify(updated));
+            } catch (error) {}
+        }
+
         document.getElementById('search-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             state.ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
@@ -821,6 +835,7 @@
 
                 // Smart Search: Update input to show the actual verified ticker found
                 state.ticker = String(data.ticker || state.ticker).toUpperCase();
+                rememberRecentSethiStockTicker(state.ticker);
                 document.getElementById('ticker-input').value = state.ticker;
                 
                 document.getElementById('display-ticker').innerText = data.ticker;

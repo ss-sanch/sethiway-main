@@ -15,7 +15,9 @@ jobs:
         with:
           ref: hub-platform-status
       - name: Apply platform status
-        run: python .github/scripts/hub_platform_status_patch.py
+        run: |
+          sed -i 's/bg-gray-950\/50/bg-gray-950\/55/' .github/scripts/hub_platform_status_patch.py
+          python .github/scripts/hub_platform_status_patch.py
       - name: Validate homepage
         run: |
           python - <<'PY'

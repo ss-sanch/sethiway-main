@@ -24,7 +24,7 @@
                 <a href="#about" class="hover:text-blue-600 transition">About</a>
                 <a href="#feedback" class="hover:text-blue-600 transition">Feedback</a>
             </div>
-            <a href="#platform" class="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-gray-900 text-white text-sm font-bold hover:bg-blue-600 transition shrink-0">Explore Platform</a>
+            <button type="button" onclick="openAdminModal()" class="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-gray-900 text-white text-sm font-bold hover:bg-blue-600 transition shrink-0">Sign In</button>
         </div>
     </nav>
 
@@ -43,11 +43,6 @@
                         SethiPortfolio is now live
                     </span>
                 </div>
-                <div class="mt-4 flex flex-col sm:flex-row justify-center gap-3">
-                    <a href="#platform" class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-black hover:bg-blue-700 transition shadow-sm">Explore the Platform →</a>
-                    <a href="sethiportfolio.html" class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-white border border-gray-200 text-gray-900 text-sm font-black hover:border-amber-300 hover:bg-amber-50 transition">Open SethiPortfolio →</a>
-                </div>
-
                 <div class="mt-6 max-w-2xl mx-auto rounded-2xl border border-gray-200 bg-white p-3 shadow-sm text-left">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 px-1 mb-2">
                         <span class="text-[10px] font-black uppercase tracking-[0.18em] text-gray-500">Quick Launch</span>
@@ -272,6 +267,31 @@
         </section>
     </main>
 
+    <div id="login-modal" class="hidden fixed inset-0 z-[100] items-center justify-center bg-gray-950/55 px-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="admin-login-title">
+        <div class="relative w-full max-w-md rounded-2xl border border-gray-200 bg-white p-7 shadow-2xl">
+            <button type="button" onclick="closeAdminModal()" class="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-900" aria-label="Close sign in">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div class="pr-10">
+                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">Admin Access</p>
+                <h2 id="admin-login-title" class="mt-1 text-2xl font-black text-gray-950">Sign in to the dashboard</h2>
+                <p class="mt-2 text-sm leading-relaxed text-gray-500">Enter the admin credentials to open the telemetry dashboard.</p>
+            </div>
+            <form id="admin-login-form" class="mt-6 space-y-4">
+                <div>
+                    <label for="portal-user" class="mb-1.5 block text-xs font-bold text-gray-500">Username</label>
+                    <input type="text" id="portal-user" autocomplete="username" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100" placeholder="Username">
+                </div>
+                <div>
+                    <label for="portal-pass" class="mb-1.5 block text-xs font-bold text-gray-500">Master password</label>
+                    <input type="password" id="portal-pass" autocomplete="current-password" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100" placeholder="Password">
+                </div>
+                <p id="portal-error" class="hidden text-xs font-semibold text-red-600">Those admin details are not recognised.</p>
+                <button type="submit" class="w-full rounded-xl bg-gray-900 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-600">Open Dashboard</button>
+            </form>
+        </div>
+    </div>
+
     <footer class="bg-gray-950 text-white px-6 lg:px-10 py-10">
         <div class="max-w-[1720px] mx-auto flex flex-col md:flex-row gap-6 md:items-center md:justify-between">
             <div><img src="logo.png" alt="SethiWay" class="h-8 w-auto opacity-90"><p class="text-xs text-gray-500 mt-3">Finance · Maths · Engineering</p></div>
@@ -285,6 +305,48 @@
     </footer>
 
 <script>
+    const adminModal = document.getElementById('login-modal');
+    const adminLoginForm = document.getElementById('admin-login-form');
+    const adminUser = document.getElementById('portal-user');
+    const adminPass = document.getElementById('portal-pass');
+    const adminError = document.getElementById('portal-error');
+
+    function openAdminModal() {
+        adminModal.classList.remove('hidden');
+        adminModal.classList.add('flex');
+        adminError.classList.add('hidden');
+        setTimeout(() => adminUser.focus(), 0);
+    }
+
+    function closeAdminModal() {
+        adminModal.classList.add('hidden');
+        adminModal.classList.remove('flex');
+        adminError.classList.add('hidden');
+    }
+
+    adminModal.addEventListener('click', event => {
+        if (event.target === adminModal) closeAdminModal();
+    });
+
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !adminModal.classList.contains('hidden')) closeAdminModal();
+    });
+
+    adminLoginForm.addEventListener('submit', event => {
+        event.preventDefault();
+        const user = adminUser.value.trim().toLowerCase();
+        const password = adminPass.value;
+
+        if (user !== 'admin' || !password) {
+            adminError.classList.remove('hidden');
+            return;
+        }
+
+        adminError.classList.add('hidden');
+        localStorage.setItem('sethiway_vault_key', password);
+        window.location.href = 'admin.html';
+    });
+
     const launcherForm = document.getElementById('stock-launcher');
     const launcherTicker = document.getElementById('launcher-ticker');
     const launcherError = document.getElementById('launcher-error');

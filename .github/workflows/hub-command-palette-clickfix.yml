@@ -1,0 +1,43 @@
+name: Hub command palette click fix
+
+on:
+  push:
+    branches: [hub-command-palette]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hub-command-palette
+      - name: Apply click fix
+        run: python .github/scripts/hub_command_palette_clickfix.py
+      - name: Validate homepage
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          text = Path('index.html').read_text()
+          assert 'SethiPortfolio is now live' not in text
+          assert "button.addEventListener('click', () => openCommand(index));" in text
+          assert "mouseenter', () => { commandSelection = index; renderCommandPaletteResults();" not in text
+          assert '—' not in text
+          scripts = re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', text, flags=re.S)
+          Path('/tmp/index-inline.js').write_text('\n'.join(scripts))
+          PY
+          node --check /tmp/index-inline.js
+      - name: Commit click fix
+        run: |
+          if git diff --quiet; then
+            echo 'Patch already applied.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Fix command palette mouse clicks and remove live badge'
+          git push origin HEAD:hub-command-palette

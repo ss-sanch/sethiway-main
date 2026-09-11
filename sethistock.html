@@ -1030,9 +1030,12 @@
             tableBody.innerHTML = '';
             
             try {
-                const promises = peers.map(p => fetch(`${API_URL}/api/stock/${p}?is_peer=true`).then(res => res.json()).catch(() => null));
-                let results = await Promise.all(promises);
-                results = results.filter(r => r !== null);
+                const peerQuery = encodeURIComponent(peers.join(','));
+                const peerResponse = await fetch(`${API_URL}/api/peers?tickers=${peerQuery}`);
+                if (!peerResponse.ok) throw new Error('Failed to fetch competitors.');
+                const peerPayload = await peerResponse.json();
+                let results = Array.isArray(peerPayload.results) ? peerPayload.results : [];
+                results = results.filter(r => r && r.ticker && r.stats);
                 
                 results.unshift({ ticker: state.ticker, current_price: state.price, stats: state.stats });
 

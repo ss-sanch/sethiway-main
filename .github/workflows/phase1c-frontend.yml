@@ -107,7 +107,7 @@ jobs:
           assert '/api/quote/${requestedTicker}' in text
           assert 'const fullDataPromise' in text
           assert "Price loaded — building full analysis..." in text
-          assert text.count('await fetchChart();') == 0
+          assert 'await chartPromise;' in text
           start = text.index('<script>\n        const API_URL') + len('<script>')
           end = text.index('</script>', start)
           Path('/tmp/sethistock-main.js').write_text(text[start:end], encoding='utf-8')

@@ -844,39 +844,37 @@
                     if (!res.ok) throw new Error(payload.detail || 'Failed to load stock analysis.');
                     return payload;
                 });
-                const quoteDataPromise = fetch(`${API_URL}/api/quote/${requestedTicker}`)
+                let fullAnalysisReady = false;
+                const quoteHydrationPromise = fetch(`${API_URL}/api/quote/${requestedTicker}`)
                     .then(async (res) => res.ok ? await res.json() : null)
+                    .then((quoteData) => {
+                        if (!quoteData || fullAnalysisReady) return;
+
+                        state.ticker = String(quoteData.ticker || requestedTicker).toUpperCase();
+                        state.price = Number(quoteData.current_price || 0);
+                        document.getElementById('ticker-input').value = state.ticker;
+                        document.getElementById('display-ticker').innerText = state.ticker;
+                        document.getElementById('display-price').innerText = `$${state.price.toFixed(2)}`;
+
+                        const quoteChange = Number(quoteData.change || 0);
+                        const quotePct = Number(quoteData.pct_change || 0);
+                        const changeEl = document.getElementById('display-change');
+                        const pctEl = document.getElementById('display-pct');
+                        changeEl.innerText = quoteChange > 0 ? `+${quoteChange.toFixed(2)}` : quoteChange.toFixed(2);
+                        pctEl.innerText = quoteChange > 0 ? `+${quotePct.toFixed(2)}%` : `${quotePct.toFixed(2)}%`;
+                        changeEl.className = quoteChange >= 0 ? "text-xl font-semibold text-green-600" : "text-xl font-semibold text-red-600";
+                        pctEl.className = quoteChange >= 0 ? "px-3 py-1 text-sm font-bold text-white rounded-full bg-green-500" : "px-3 py-1 text-sm font-bold text-white rounded-full bg-red-500";
+                        injectText('stat-mkt', quoteData.market_cap || 'N/A');
+
+                        progress = Math.max(progress, 35);
+                        if (progBar) progBar.style.width = `${progress}%`;
+                        if (loadingBubbleText) loadingBubbleText.innerText = 'Price loaded — building full analysis...';
+                        updateWatchlistBtn();
+                    })
                     .catch(() => null);
 
-                const quoteData = await Promise.race([
-                    quoteDataPromise,
-                    new Promise(resolve => setTimeout(() => resolve(null), 6000))
-                ]);
-
-                if (quoteData) {
-                    state.ticker = String(quoteData.ticker || requestedTicker).toUpperCase();
-                    state.price = Number(quoteData.current_price || 0);
-                    document.getElementById('ticker-input').value = state.ticker;
-                    document.getElementById('display-ticker').innerText = state.ticker;
-                    document.getElementById('display-price').innerText = `$${state.price.toFixed(2)}`;
-
-                    const quoteChange = Number(quoteData.change || 0);
-                    const quotePct = Number(quoteData.pct_change || 0);
-                    const changeEl = document.getElementById('display-change');
-                    const pctEl = document.getElementById('display-pct');
-                    changeEl.innerText = quoteChange > 0 ? `+${quoteChange.toFixed(2)}` : quoteChange.toFixed(2);
-                    pctEl.innerText = quoteChange > 0 ? `+${quotePct.toFixed(2)}%` : `${quotePct.toFixed(2)}%`;
-                    changeEl.className = quoteChange >= 0 ? "text-xl font-semibold text-green-600" : "text-xl font-semibold text-red-600";
-                    pctEl.className = quoteChange >= 0 ? "px-3 py-1 text-sm font-bold text-white rounded-full bg-green-500" : "px-3 py-1 text-sm font-bold text-white rounded-full bg-red-500";
-                    injectText('stat-mkt', quoteData.market_cap || 'N/A');
-
-                    progress = Math.max(progress, 35);
-                    if (progBar) progBar.style.width = `${progress}%`;
-                    if (loadingBubbleText) loadingBubbleText.innerText = 'Price loaded — building full analysis...';
-                    updateWatchlistBtn();
-                }
-
                 const data = await fullDataPromise;
+                fullAnalysisReady = true;
 
                 // Smart Search: Update input to show the actual verified ticker found
                 state.ticker = String(data.ticker || state.ticker).toUpperCase();

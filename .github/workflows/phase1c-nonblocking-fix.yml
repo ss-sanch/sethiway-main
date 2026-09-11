@@ -1,0 +1,115 @@
+name: Phase 1C Nonblocking Fix
+
+on:
+  push:
+    branches:
+      - phase1c-progressive-loading
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase1c-progressive-loading
+      - name: Make quote hydration nonblocking
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('sethistock.html')
+          text = path.read_text(encoding='utf-8')
+          old = '''                const quoteDataPromise = fetch(`${API_URL}/api/quote/${requestedTicker}`)
+                    .then(async (res) => res.ok ? await res.json() : null)
+                    .catch(() => null);
+
+                const quoteData = await Promise.race([
+                    quoteDataPromise,
+                    new Promise(resolve => setTimeout(() => resolve(null), 6000))
+                ]);
+
+                if (quoteData) {
+                    state.ticker = String(quoteData.ticker || requestedTicker).toUpperCase();
+                    state.price = Number(quoteData.current_price || 0);
+                    document.getElementById('ticker-input').value = state.ticker;
+                    document.getElementById('display-ticker').innerText = state.ticker;
+                    document.getElementById('display-price').innerText = `$${state.price.toFixed(2)}`;
+
+                    const quoteChange = Number(quoteData.change || 0);
+                    const quotePct = Number(quoteData.pct_change || 0);
+                    const changeEl = document.getElementById('display-change');
+                    const pctEl = document.getElementById('display-pct');
+                    changeEl.innerText = quoteChange > 0 ? `+${quoteChange.toFixed(2)}` : quoteChange.toFixed(2);
+                    pctEl.innerText = quoteChange > 0 ? `+${quotePct.toFixed(2)}%` : `${quotePct.toFixed(2)}%`;
+                    changeEl.className = quoteChange >= 0 ? "text-xl font-semibold text-green-600" : "text-xl font-semibold text-red-600";
+                    pctEl.className = quoteChange >= 0 ? "px-3 py-1 text-sm font-bold text-white rounded-full bg-green-500" : "px-3 py-1 text-sm font-bold text-white rounded-full bg-red-500";
+                    injectText('stat-mkt', quoteData.market_cap || 'N/A');
+
+                    progress = Math.max(progress, 35);
+                    if (progBar) progBar.style.width = `${progress}%`;
+                    if (loadingBubbleText) loadingBubbleText.innerText = 'Price loaded — building full analysis...';
+                    updateWatchlistBtn();
+                }
+
+                const data = await fullDataPromise;
+'''
+          new = '''                let fullAnalysisReady = false;
+                const quoteHydrationPromise = fetch(`${API_URL}/api/quote/${requestedTicker}`)
+                    .then(async (res) => res.ok ? await res.json() : null)
+                    .then((quoteData) => {
+                        if (!quoteData || fullAnalysisReady) return;
+
+                        state.ticker = String(quoteData.ticker || requestedTicker).toUpperCase();
+                        state.price = Number(quoteData.current_price || 0);
+                        document.getElementById('ticker-input').value = state.ticker;
+                        document.getElementById('display-ticker').innerText = state.ticker;
+                        document.getElementById('display-price').innerText = `$${state.price.toFixed(2)}`;
+
+                        const quoteChange = Number(quoteData.change || 0);
+                        const quotePct = Number(quoteData.pct_change || 0);
+                        const changeEl = document.getElementById('display-change');
+                        const pctEl = document.getElementById('display-pct');
+                        changeEl.innerText = quoteChange > 0 ? `+${quoteChange.toFixed(2)}` : quoteChange.toFixed(2);
+                        pctEl.innerText = quoteChange > 0 ? `+${quotePct.toFixed(2)}%` : `${quotePct.toFixed(2)}%`;
+                        changeEl.className = quoteChange >= 0 ? "text-xl font-semibold text-green-600" : "text-xl font-semibold text-red-600";
+                        pctEl.className = quoteChange >= 0 ? "px-3 py-1 text-sm font-bold text-white rounded-full bg-green-500" : "px-3 py-1 text-sm font-bold text-white rounded-full bg-red-500";
+                        injectText('stat-mkt', quoteData.market_cap || 'N/A');
+
+                        progress = Math.max(progress, 35);
+                        if (progBar) progBar.style.width = `${progress}%`;
+                        if (loadingBubbleText) loadingBubbleText.innerText = 'Price loaded — building full analysis...';
+                        updateWatchlistBtn();
+                    })
+                    .catch(() => null);
+
+                const data = await fullDataPromise;
+                fullAnalysisReady = true;
+'''
+          if old not in text:
+              raise SystemExit('Blocking quote hydration block not found.')
+          text = text.replace(old, new, 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+      - name: Validate script
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('sethistock.html').read_text(encoding='utf-8')
+          assert 'const quoteHydrationPromise' in text
+          assert 'fullAnalysisReady = true;' in text
+          assert 'Promise.race([' not in text[text.index('const requestedTicker'):text.index('// Smart Search: Update input')]
+          start = text.index('<script>\n        const API_URL') + len('<script>')
+          end = text.index('</script>', start)
+          Path('/tmp/sethistock-main.js').write_text(text[start:end], encoding='utf-8')
+          PY
+          node --check /tmp/sethistock-main.js
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sethistock.html
+          git commit -m "Keep progressive quote hydration nonblocking"
+          git push

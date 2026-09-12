@@ -1,0 +1,45 @@
+name: Weekly Chart Session Gap Fix
+
+on:
+  push:
+    branches:
+      - fix-weekly-chart-session-gaps
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix-weekly-chart-session-gaps
+      - name: Apply weekly chart patch
+        run: python .weekly_chart_patch.py
+      - name: Validate inline JavaScript
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path('sethistock.html').read_text()
+          required = [
+              "const isWeeklyIntraday = state.period === '5d' && state.interval === '15m'",
+              'connectgaps: false',
+              "{ bounds: ['sat', 'mon'] }",
+              "{ pattern: 'hour', bounds: [16, 9.5] }",
+          ]
+          for token in required:
+              assert token in html, token
+          blocks = re.findall(r'<script(?![^>]*\\bsrc=)[^>]*>(.*?)</script>', html, flags=re.S|re.I)
+          Path('/tmp/sethistock-inline.js').write_text('\n'.join(blocks))
+          print('WEEKLY_CHART_STATIC_OK')
+          PY
+          node --check /tmp/sethistock-inline.js
+      - name: Commit weekly chart fix
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add sethistock.html
+          git commit -m "Remove overnight gaps from weekly stock chart"
+          git push

@@ -1,0 +1,61 @@
+name: Phase 2E DOM Optimisation
+
+on:
+  push:
+    branches: [phase2e-historical-financial-charts]
+
+permissions:
+  contents: write
+
+jobs:
+  optimise:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase2e-historical-financial-charts
+
+      - name: Apply stable chart DOM optimisation
+        run: python .phase2e_dom_patch.py
+
+      - name: Validate optimised module
+        run: |
+          node --check sethistock-financial-history.js
+          python - <<'PY'
+          from pathlib import Path
+          js = Path('sethistock-financial-history.js').read_text(encoding='utf-8')
+          assert "container.dataset?.phase2eReady !== '1'" in js
+          assert "container.dataset.phase2eReady = '1'" in js
+          assert 'fin-period-${card.id}' in js
+          assert 'fin-growth-${card.id}-${horizon}' in js
+          assert "? 'Point-in-time'" in js
+          assert 'Plotly.react' in js
+          assert js.count('container.innerHTML = html') == 1
+          print('PHASE2E_DOM_STATIC_OK')
+          PY
+
+      - name: Smoke optimised module boot
+        run: |
+          node - <<'NODE'
+          global.window = global;
+          global.state = { ticker: '', financialPeriod: 'annual' };
+          global.API_URL = 'https://example.invalid';
+          global.fetchJsonWithRetry = async () => { throw new Error('not called'); };
+          global.Plotly = { react() {} };
+          global.document = {
+            querySelectorAll() { return []; },
+            getElementById() { return null; }
+          };
+          require('./sethistock-financial-history.js');
+          if (!global.SethiStockFinancialHistory) throw new Error('module did not boot');
+          console.log('PHASE2E_DOM_BOOT_OK');
+          NODE
+
+      - name: Commit optimisation
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add sethistock-financial-history.js
+          git commit -m "Optimise Phase 2E financial period switching" || true
+          git pull --rebase origin phase2e-historical-financial-charts
+          git push

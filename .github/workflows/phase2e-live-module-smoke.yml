@@ -1,0 +1,75 @@
+name: Phase 2E Live Module Smoke
+
+on:
+  push:
+    branches: [phase2e-historical-financial-charts]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase2e-historical-financial-charts
+
+      - name: Exercise frontend module against production Phase 2D API
+        run: |
+          node - <<'NODE'
+          global.window = global;
+          global.state = { ticker: 'AAPL', financialPeriod: 'annual' };
+          global.API_URL = 'https://sethistock-api.onrender.com';
+          global.fetchJsonWithRetry = async (url, options = {}, retries = 1) => {
+            let last;
+            for (let attempt = 0; attempt <= retries; attempt++) {
+              try {
+                const response = await fetch(url, options);
+                const payload = await response.json();
+                if (!response.ok) {
+                  const error = new Error(payload?.detail || `HTTP ${response.status}`);
+                  error.status = response.status;
+                  throw error;
+                }
+                return payload;
+              } catch (error) {
+                if (error?.name === 'AbortError') throw error;
+                last = error;
+                if (error?.status && error.status < 500) throw error;
+                if (attempt < retries) await new Promise(resolve => setTimeout(resolve, 600));
+              }
+            }
+            throw last;
+          };
+          let plotCalls = 0;
+          global.Plotly = { react() { plotCalls += 1; } };
+          const buttons = ['annual', 'quarterly', 'ttm'].map(period => ({
+            dataset: { financialPeriod: period },
+            classList: { toggle() {} },
+            addEventListener() {}
+          }));
+          global.document = {
+            querySelectorAll(selector) { return selector === '.financial-period-btn' ? buttons : []; },
+            getElementById() { return null; }
+          };
+
+          require('./sethistock-financial-history.js');
+
+          (async () => {
+            await global.SethiStockFinancialHistory.load('annual');
+            if (global.SethiStockFinancialHistory.source !== 'sec') throw new Error('Annual did not hydrate from SEC');
+            const annual = global.SethiStockFinancialHistory.periodCount;
+            if (annual < 15) throw new Error(`Annual history too short: ${annual}`);
+
+            await global.SethiStockFinancialHistory.load('quarterly');
+            const quarterly = global.SethiStockFinancialHistory.periodCount;
+            if (quarterly < 60) throw new Error(`Quarterly history too short: ${quarterly}`);
+
+            await global.SethiStockFinancialHistory.load('ttm');
+            const ttm = global.SethiStockFinancialHistory.periodCount;
+            if (ttm < 50) throw new Error(`TTM history too short: ${ttm}`);
+            if (global.SethiStockFinancialHistory.period !== 'ttm') throw new Error('Final period did not switch to TTM');
+            if (plotCalls < 30) throw new Error(`Expected financial charts to render; Plotly.react calls=${plotCalls}`);
+
+            console.log(JSON.stringify({ annual, quarterly, ttm, plotCalls }));
+            console.log('PHASE2E_LIVE_MODULE_OK');
+          })().catch(error => { console.error(error); process.exit(1); });
+          NODE

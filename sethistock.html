@@ -689,6 +689,97 @@
         const API_URL = "https://sethistock-api.onrender.com";
         let state = { ticker: "", period: "1y", interval: "1d", type: "line", fcf: 0, shares: 0, price: 0, stats: null, chartData: null };
         let watchlist = JSON.parse(localStorage.getItem('sethiWatchlist')) || [];
+        let chartRequestId = 0;
+        let chartAbortController = null;
+        const chartMemoryCache = new Map();
+        const CHART_MEMORY_TTL_MS = 5 * 60 * 1000;
+        const CHART_MEMORY_MAX = 48;
+
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        async function fetchJsonWithRetry(url, options = {}, retries = 1) {
+            let lastError = null;
+            for (let attempt = 0; attempt <= retries; attempt++) {
+                try {
+                    const res = await fetch(url, options);
+                    let payload = null;
+                    try { payload = await res.json(); } catch (_) {}
+                    if (!res.ok) {
+                        const err = new Error(payload?.detail || `Request failed (${res.status})`);
+                        err.status = res.status;
+                        if (res.status < 500 || attempt === retries) throw err;
+                        lastError = err;
+                    } else {
+                        return payload;
+                    }
+                } catch (err) {
+                    if (err?.name === 'AbortError') throw err;
+                    lastError = err;
+                    const retryableHttp = !err?.status || err.status >= 500;
+                    if (!retryableHttp || attempt === retries) throw err;
+                }
+                await sleep(600 * (attempt + 1));
+            }
+            throw lastError || new Error('Request failed');
+        }
+
+        function normaliseChartData(data) {
+            const empty = { dates: [], opens: [], highs: [], lows: [], closes: [] };
+            if (!data || typeof data !== 'object') return empty;
+            const dates = Array.isArray(data.dates) ? data.dates : [];
+            const opens = Array.isArray(data.opens) ? data.opens : [];
+            const highs = Array.isArray(data.highs) ? data.highs : [];
+            const lows = Array.isArray(data.lows) ? data.lows : [];
+            const closes = Array.isArray(data.closes) ? data.closes : [];
+            const size = Math.min(dates.length, opens.length, highs.length, lows.length, closes.length);
+            const clean = { dates: [], opens: [], highs: [], lows: [], closes: [] };
+            for (let i = 0; i < size; i++) {
+                const close = Number(closes[i]);
+                if (!dates[i] || !Number.isFinite(close) || close <= 0) continue;
+                const open = Number(opens[i]);
+                const high = Number(highs[i]);
+                const low = Number(lows[i]);
+                clean.dates.push(dates[i]);
+                clean.opens.push(Number.isFinite(open) && open > 0 ? open : close);
+                clean.highs.push(Number.isFinite(high) && high > 0 ? high : close);
+                clean.lows.push(Number.isFinite(low) && low > 0 ? low : close);
+                clean.closes.push(close);
+            }
+            return clean;
+        }
+
+        function rememberChart(key, data) {
+            chartMemoryCache.delete(key);
+            chartMemoryCache.set(key, { data, savedAt: Date.now() });
+            while (chartMemoryCache.size > CHART_MEMORY_MAX) {
+                chartMemoryCache.delete(chartMemoryCache.keys().next().value);
+            }
+        }
+
+        function renderPeriodReturn() {
+            const pill = document.getElementById('period-pct-pill');
+            const closes = state.chartData?.closes || [];
+            if (closes.length < 2) {
+                pill.classList.add('hidden');
+                return;
+            }
+            const first = Number(closes[0]);
+            const last = Number(closes[closes.length - 1]);
+            if (!Number.isFinite(first) || !Number.isFinite(last) || first <= 0) {
+                pill.classList.add('hidden');
+                return;
+            }
+            const pct = ((last - first) / first) * 100;
+            if (!Number.isFinite(pct)) {
+                pill.classList.add('hidden');
+                return;
+            }
+            pill.innerText = (pct > 0 ? '+' : '') + pct.toFixed(2) + '%';
+            pill.className = pct >= 0
+                ? "px-3 py-1 text-sm font-bold text-white rounded-full bg-green-500 shadow-sm transition-colors duration-300"
+                : "px-3 py-1 text-sm font-bold text-white rounded-full bg-red-500 shadow-sm transition-colors duration-300";
+            pill.classList.remove('hidden');
+        }
 
         const _originalGetElementById = document.getElementById;
         document.getElementById = function(id) {
@@ -839,14 +930,9 @@
                 // Stage 1 starts immediately: chart + lightweight quote.
                 // The full analysis continues in parallel and hydrates the heavier sections when ready.
                 const chartPromise = fetchChart().catch(() => null);
-                const fullDataPromise = fetch(`${API_URL}/api/stock/${requestedTicker}`).then(async (res) => {
-                    const payload = await res.json();
-                    if (!res.ok) throw new Error(payload.detail || 'Failed to load stock analysis.');
-                    return payload;
-                });
+                const fullDataPromise = fetchJsonWithRetry(`${API_URL}/api/stock/${encodeURIComponent(requestedTicker)}`, {}, 1);
                 let fullAnalysisReady = false;
-                const quoteHydrationPromise = fetch(`${API_URL}/api/quote/${requestedTicker}`)
-                    .then(async (res) => res.ok ? await res.json() : null)
+                const quoteHydrationPromise = fetchJsonWithRetry(`${API_URL}/api/quote/${encodeURIComponent(requestedTicker)}`, {}, 1)
                     .then((quoteData) => {
                         if (!quoteData || fullAnalysisReady) return;
 
@@ -1049,12 +1135,17 @@
 
             } catch (err) {
                 clearInterval(loadingInterval);
+                dash.classList.remove('opacity-50');
+                dash.classList.add('opacity-100');
                 if(loadingBubbleText) loadingBubbleText.innerText = "Data Sync Failed.";
                 setTimeout(() => {
                     if (progContainer) progContainer.classList.add('opacity-0');
                     if (loadingBubble) loadingBubble.classList.add('hidden');
                 }, 1500);
-                document.getElementById('error-message').innerText = err.message;
+                const message = err?.message === 'Failed to fetch'
+                    ? 'Detailed analysis could not reach the data server. Please retry.'
+                    : (err?.message || 'Detailed analysis temporarily unavailable.');
+                document.getElementById('error-message').innerText = message;
                 document.getElementById('error-message').classList.remove('hidden');
             } finally {
                 btn.innerHTML = 'Analyse'; btn.disabled = false;
@@ -1070,9 +1161,7 @@
             
             try {
                 const peerQuery = encodeURIComponent(peers.join(','));
-                const peerResponse = await fetch(`${API_URL}/api/peers?tickers=${peerQuery}`);
-                if (!peerResponse.ok) throw new Error('Failed to fetch competitors.');
-                const peerPayload = await peerResponse.json();
+                const peerPayload = await fetchJsonWithRetry(`${API_URL}/api/peers?tickers=${peerQuery}`, {}, 1);
                 let results = Array.isArray(peerPayload.results) ? peerPayload.results : [];
                 results = results.filter(r => r && r.ticker && r.stats);
                 
@@ -1259,11 +1348,12 @@
         }
 
         document.querySelectorAll('.tf-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
+            btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
-                state.period = e.target.dataset.period; state.interval = e.target.dataset.interval;
-                await fetchChart();
+                state.period = e.target.dataset.period;
+                state.interval = e.target.dataset.interval;
+                fetchChart().catch(() => null);
             });
         });
         document.querySelectorAll('.type-btn').forEach(btn => {
@@ -1276,27 +1366,52 @@
         });
 
         async function fetchChart() {
+            const ticker = String(state.ticker || '').trim().toUpperCase();
+            const period = state.period;
+            const interval = state.interval;
+            if (!ticker) return null;
+
+            const key = `${ticker}|${period}|${interval}`;
+            const requestId = ++chartRequestId;
+            if (chartAbortController) chartAbortController.abort();
+            chartAbortController = new AbortController();
+
+            const cached = chartMemoryCache.get(key);
+            if (cached) {
+                state.chartData = cached.data;
+                renderPeriodReturn();
+                drawPriceChart();
+                if (Date.now() - cached.savedAt < CHART_MEMORY_TTL_MS) {
+                    chartAbortController = null;
+                    return cached.data;
+                }
+            }
+
             try {
-                const res = await fetch(`${API_URL}/api/chart/${state.ticker}?period=${state.period}&interval=${state.interval}`);
-                state.chartData = await res.json();
-                
-                if (state.chartData && state.chartData.closes.length > 0) {
-                    const first = state.chartData.closes[0];
-                    const last = state.chartData.closes[state.chartData.closes.length - 1];
-                    const pct = ((last - first) / first) * 100;
-                    
-                    const pill = document.getElementById('period-pct-pill');
-                    pill.innerText = (pct > 0 ? '+' : '') + pct.toFixed(2) + '%';
-                    pill.className = pct >= 0 
-                        ? "px-3 py-1 text-sm font-bold text-white rounded-full bg-green-500 shadow-sm transition-colors duration-300" 
-                        : "px-3 py-1 text-sm font-bold text-white rounded-full bg-red-500 shadow-sm transition-colors duration-300";
-                    pill.classList.remove('hidden');
-                } else {
-                    document.getElementById('period-pct-pill').classList.add('hidden');
+                const raw = await fetchJsonWithRetry(
+                    `${API_URL}/api/chart/${encodeURIComponent(ticker)}?period=${encodeURIComponent(period)}&interval=${encodeURIComponent(interval)}`,
+                    { signal: chartAbortController.signal },
+                    1
+                );
+                if (requestId !== chartRequestId) return null;
+
+                const clean = normaliseChartData(raw);
+                if (!clean.closes.length) {
+                    if (!cached) document.getElementById('period-pct-pill').classList.add('hidden');
+                    return cached?.data || clean;
                 }
 
+                rememberChart(key, clean);
+                state.chartData = clean;
+                renderPeriodReturn();
                 drawPriceChart();
-            } catch (err) { console.error("Chart Error", err); }
+                return clean;
+            } catch (err) {
+                if (err?.name !== 'AbortError') console.warn('Chart request failed:', err);
+                return cached?.data || null;
+            } finally {
+                if (requestId === chartRequestId) chartAbortController = null;
+            }
         }
 
         function drawPriceChart() {
@@ -1308,7 +1423,7 @@
                 trace = { x: state.chartData.dates, y: state.chartData.closes, type: 'scatter', mode: 'lines', line: {color: '#2563eb', width: 2.5} };
             }
             const layout = { margin: {t: 10, b: 30, l: 40, r: 10}, xaxis: {showgrid: false, rangeslider: {visible: false}}, yaxis: {showgrid: true, gridcolor: '#f1f5f9'}, plot_bgcolor: 'transparent', paper_bgcolor: 'transparent', autosize: true };
-            Plotly.newPlot('price-chart', [trace], layout, {displayModeBar: false, responsive: true});
+            Plotly.react('price-chart', [trace], layout, {displayModeBar: false, responsive: true});
         }
 
         // UPDATED: Removed Graham parameter and styling updated to Light Mode

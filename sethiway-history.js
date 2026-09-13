@@ -74,7 +74,9 @@
             driverScript.src = 'sethistock-company-drivers.js?v=3e1';
             driverScript.dataset.sethistockCompanyDrivers = '1';
             driverScript.addEventListener('load', () => {
-                const ticker = (new URLSearchParams(window.location.search).get('ticker') || '').trim().toUpperCase();
+                const paramsTicker = (new URLSearchParams(window.location.search).get('ticker') || '').trim().toUpperCase();
+                const stateTicker = typeof state === 'object' ? String(state?.ticker || '').trim().toUpperCase() : '';
+                const ticker = paramsTicker || stateTicker;
                 if (!/^[A-Z0-9.^-]{1,20}$/.test(ticker)) return;
 
                 let attempts = 0;

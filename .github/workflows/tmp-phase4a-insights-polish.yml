@@ -44,87 +44,39 @@ jobs:
           text, count = score_pattern.subn(score_replacement, text, count=1)
           assert count == 1, f'Sethi Score button: expected 1 match, found {count}'
 
-          replace_once('''            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col relative h-full">''', '''            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col relative self-start h-fit">''', 'Insights card height')
-          replace_once('''                <div class="flex-grow flex flex-col justify-between space-y-4">''', '''                <div class="flex flex-col space-y-5">''', 'Insights spacing')
+          replace_once('bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col relative h-full', 'bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col relative self-start h-fit', 'Insights card height')
+          replace_once('flex-grow flex flex-col justify-between space-y-4', 'flex flex-col space-y-5', 'Insights spacing')
 
-          replace_once('''                  <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Beta</span><span id="stat-beta" class="text-sm font-black text-gray-900">--</span></div>
-                  <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-red-500">Short Interest</span><span id="stat-short" class="text-sm font-black text-red-600">--</span></div>
-                  <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Dividend Yield</span><span id="stat-div" class="text-sm font-black text-gray-900">--</span></div>
-                  <div class="flex justify-between items-center py-1"><span id="stat-balance-label" class="text-sm font-bold text-gray-500">Net Debt/EBITDA</span><span id="stat-balance" class="text-sm font-black text-gray-900">--</span></div>''', '''                  <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Beta</span><span id="stat-beta" class="text-sm font-black text-gray-900">--</span></div>
-                  <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Ann. Volatility</span><span id="stat-vol" class="text-sm font-black text-gray-900">--</span></div>
-                  <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-red-500">Short Interest</span><span id="stat-short" class="text-sm font-black text-red-600">--</span></div>
-                  <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Dividend Yield</span><span id="stat-div" class="text-sm font-black text-gray-900">--</span></div>
-                  <div class="col-span-2 flex justify-between items-center py-1"><span id="stat-balance-label" class="text-sm font-bold text-gray-500">Net Debt/EBITDA</span><span id="stat-balance" class="text-sm font-black text-gray-900">--</span></div>''', 'Annualised volatility row')
+          beta_row = '<div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Beta</span><span id="stat-beta" class="text-sm font-black text-gray-900">--</span></div>'
+          ann_vol_row = '<div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Ann. Volatility</span><span id="stat-vol" class="text-sm font-black text-gray-900">--</span></div>'
+          replace_once(beta_row, beta_row + '\n                  ' + ann_vol_row, 'Annualised volatility row')
+          replace_once('<div class="flex justify-between items-center py-1"><span id="stat-balance-label" class="text-sm font-bold text-gray-500">Net Debt/EBITDA</span><span id="stat-balance" class="text-sm font-black text-gray-900">--</span></div>', '<div class="col-span-2 flex justify-between items-center py-1"><span id="stat-balance-label" class="text-sm font-bold text-gray-500">Net Debt/EBITDA</span><span id="stat-balance" class="text-sm font-black text-gray-900">--</span></div>', 'Balance row span')
 
-          replace_once('''                  <div class="py-1 min-w-0"><div class="flex justify-between items-center gap-2"><span class="text-sm font-bold text-purple-600">Next Earnings</span><span id="stat-earn" class="text-sm font-black text-gray-900 text-right">--</span></div><p id="stat-earn-countdown" class="text-[10px] font-bold text-gray-400 text-right mt-0.5"></p></div>
-                  <div class="py-1 min-w-0"><div class="flex justify-between items-center gap-2"><span class="text-sm font-bold text-purple-600">Ex-Dividend</span><span id="stat-exdiv" class="text-sm font-black text-gray-900 text-right">--</span></div><p id="stat-exdiv-countdown" class="text-[10px] font-bold text-gray-400 text-right mt-0.5"></p></div>''', '''                  <div class="py-1 min-w-0"><div class="flex flex-wrap justify-between items-center gap-x-2 gap-y-1"><span class="text-sm font-bold text-purple-600">Next Earnings</span><span class="ml-auto inline-flex items-center gap-1.5"><span id="stat-earn" class="text-sm font-black text-gray-900 text-right">--</span><span id="stat-earn-countdown" class="hidden px-1.5 py-0.5 rounded-full bg-purple-50 text-[9px] font-black text-purple-700 whitespace-nowrap"></span></span></div></div>
-                  <div class="py-1 min-w-0"><div class="flex flex-wrap justify-between items-center gap-x-2 gap-y-1"><span class="text-sm font-bold text-purple-600">Ex-Dividend</span><span class="ml-auto inline-flex items-center gap-1.5"><span id="stat-exdiv" class="text-sm font-black text-gray-900 text-right">--</span><span id="stat-exdiv-countdown" class="hidden px-1.5 py-0.5 rounded-full bg-purple-50 text-[9px] font-black text-purple-700 whitespace-nowrap"></span></span></div></div>''', 'Catalyst timing chips')
+          replace_once('<span id="stat-earn" class="text-sm font-black text-gray-900 text-right">--</span></div><p id="stat-earn-countdown" class="text-[10px] font-bold text-gray-400 text-right mt-0.5"></p>', '<span class="inline-flex items-center gap-1.5"><span id="stat-earn" class="text-sm font-black text-gray-900 text-right">--</span><span id="stat-earn-countdown" class="hidden px-1.5 py-0.5 rounded-full bg-purple-50 text-[9px] font-black text-purple-700 whitespace-nowrap"></span></span></div>', 'Earnings timing chip')
+          replace_once('<span id="stat-exdiv" class="text-sm font-black text-gray-900 text-right">--</span></div><p id="stat-exdiv-countdown" class="text-[10px] font-bold text-gray-400 text-right mt-0.5"></p>', '<span class="inline-flex items-center gap-1.5"><span id="stat-exdiv" class="text-sm font-black text-gray-900 text-right">--</span><span id="stat-exdiv-countdown" class="hidden px-1.5 py-0.5 rounded-full bg-purple-50 text-[9px] font-black text-purple-700 whitespace-nowrap"></span></span></div>', 'Ex-dividend timing chip')
 
-          replace_once('''                document.getElementById('display-ticker').innerText = data.ticker;
-                document.getElementById('display-price').innerText = `$${data.current_price.toFixed(2)}`;
-                
-                const changeEl = document.getElementById('display-change');
-                const pctEl = document.getElementById('display-pct');
-                changeEl.innerText = data.change > 0 ? `+${data.change.toFixed(2)}` : data.change.toFixed(2);''', '''                document.getElementById('display-ticker').innerText = data.ticker;
-                document.getElementById('display-price').innerText = `$${data.current_price.toFixed(2)}`;
-                
-                const changeEl = document.getElementById('display-change');
-                const pctEl = document.getElementById('display-pct');
-                const displayedPriceText = document.getElementById('display-price').innerText;
+          old_change = "                changeEl.innerText = data.change > 0 ? `+${data.change.toFixed(2)}` : data.change.toFixed(2);"
+          new_change = '''                const displayedPriceText = document.getElementById('display-price').innerText;
                 const quoteCurrencySymbol = (displayedPriceText.match(/^[^\\d+\\-.,\\s]+/) || ['$'])[0];
                 const absDailyChange = Math.abs(Number(data.change) || 0).toFixed(2);
-                changeEl.innerText = data.change > 0 ? `+${quoteCurrencySymbol}${absDailyChange}` : (data.change < 0 ? `-${quoteCurrencySymbol}${absDailyChange}` : `${quoteCurrencySymbol}${absDailyChange}`);''', 'Daily price change currency')
+                changeEl.innerText = data.change > 0 ? `+${quoteCurrencySymbol}${absDailyChange}` : (data.change < 0 ? `-${quoteCurrencySymbol}${absDailyChange}` : `${quoteCurrencySymbol}${absDailyChange}`);'''
+          replace_once(old_change, new_change, 'Daily price change currency')
 
-          replace_once('''          injectText('stat-beta', data.stats.beta || 'N/A');
-          injectText('stat-short', data.stats.short_interest || 'N/A');
-          injectText('stat-div', data.stats.div_yield || 'N/A');
+          beta_mapping = "          injectText('stat-beta', data.stats.beta || 'N/A');"
+          replace_once(beta_mapping, beta_mapping + "\n          const annualisedVolatility = asFiniteNumber(data.risk_profile?.annualized_volatility);\n          injectText('stat-vol', Number.isFinite(annualisedVolatility) ? `${annualisedVolatility.toFixed(1)}%` : 'N/A');", 'Annualised volatility mapping')
 
-          injectText('stat-earn', data.stats.next_earnings || 'N/A');''', '''          injectText('stat-beta', data.stats.beta || 'N/A');
-          const annualisedVolatility = asFiniteNumber(data.risk_profile?.annualized_volatility);
-          injectText('stat-vol', Number.isFinite(annualisedVolatility) ? `${annualisedVolatility.toFixed(1)}%` : 'N/A');
-          injectText('stat-short', data.stats.short_interest || 'N/A');
-          injectText('stat-div', data.stats.div_yield || 'N/A');
-
-          injectText('stat-earn', data.stats.next_earnings || 'N/A');''', 'Annualised volatility mapping')
-
-          replace_once('''              const parsed = Date.parse(textValue.replace(/\\b(BMO|AMC)\\b/gi, '').trim());
-              if (!Number.isFinite(parsed)) { el.innerText = ''; return; }
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              const target = new Date(parsed);
-              target.setHours(0, 0, 0, 0);
-              const days = Math.ceil((target - today) / 86400000);
-              el.innerText = days > 0 ? `in ${days} day${days === 1 ? '' : 's'}` : days === 0 ? 'today' : '';''', '''              const parsed = Date.parse(textValue.replace(/\\b(BMO|AMC)\\b/gi, '').trim());
-              if (!Number.isFinite(parsed)) { el.innerText = ''; el.classList.add('hidden'); return; }
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              const target = new Date(parsed);
-              target.setHours(0, 0, 0, 0);
-              const days = Math.round((target - today) / 86400000);
-              if (days > 0) el.innerText = `in ${days}d`;
-              else if (days === 0) el.innerText = 'today';
-              else el.innerText = `${Math.abs(days)}d ago`;
-              el.classList.remove('hidden');''', 'Catalyst countdown mapping')
+          replace_once("              if (!Number.isFinite(parsed)) { el.innerText = ''; return; }", "              if (!Number.isFinite(parsed)) { el.innerText = ''; el.classList.add('hidden'); return; }", 'Countdown parse fallback')
+          replace_once('              const days = Math.ceil((target - today) / 86400000);', '              const days = Math.round((target - today) / 86400000);', 'Countdown day calculation')
+          replace_once("              el.innerText = days > 0 ? `in ${days} day${days === 1 ? '' : 's'}` : days === 0 ? 'today' : '';", "              if (days > 0) el.innerText = `in ${days}d`;\n              else if (days === 0) el.innerText = 'today';\n              else el.innerText = `${Math.abs(days)}d ago`;\n              el.classList.remove('hidden');", 'Countdown output')
 
           old_stat_boxes = 'const statBoxes = ["current-price", "pe-ratio", "market-cap", "fcf-yield", "sethi-score", "dcf-target", "gordon-growth", "graham-number", "beta", "dividend-yield", "ev-ebitda", "profit-margin", "roe", "stat-pe-pair", "stat-eps-pair", "stat-rev-growth", "stat-net-margin", "stat-balance"];'
           new_stat_boxes = 'const statBoxes = ["current-price", "pe-ratio", "market-cap", "fcf-yield", "sethi-score", "dcf-target", "gordon-growth", "graham-number", "beta", "dividend-yield", "ev-ebitda", "profit-margin", "roe", "stat-pe-pair", "stat-eps-pair", "stat-rev-growth", "stat-net-margin", "stat-vol", "stat-balance"];'
           replace_once(old_stat_boxes, new_stat_boxes, 'Skeleton IDs')
 
-          replace_once('''                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-200 pb-2 mt-6 mb-3">Risk & Yield</h4>
-                    <ul class="space-y-3">
-                        <li><strong class="text-blue-600">Beta:</strong> A measure of volatility. A Beta > 1 means the stock is more volatile than the S&P 500; < 1 means it is less volatile.</li>
-                        <li><strong class="text-red-500">Short Interest:</strong> The percentage of available shares that are being shorted by hedge funds betting the price will fall.</li>
-                        <li><strong class="text-blue-600">Dividend Yield:</strong> How much the company pays out in dividends each year relative to its share price.</li>
-                        <li><strong class="text-green-600">FCF Yield:</strong> Free Cash Flow Yield. High numbers indicate the company is generating massive cash relative to its valuation.</li>
-                    </ul>''', '''                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-200 pb-2 mt-6 mb-3">Risk & Capital</h4>
-                    <ul class="space-y-3">
-                        <li><strong class="text-blue-600">Beta:</strong> Sensitivity to broad market moves; above 1 means the stock has historically moved more than the market.</li>
-                        <li><strong class="text-blue-600">Annualised Volatility:</strong> Annualised standard deviation of recent daily returns, showing the stock's realised price variability.</li>
-                        <li><strong class="text-red-500">Short Interest:</strong> The percentage of available shares currently sold short.</li>
-                        <li><strong class="text-blue-600">Dividend Yield:</strong> Annual dividend income relative to the current share price.</li>
-                        <li><strong class="text-blue-600">Net Debt/EBITDA or Net Cash:</strong> Balance-sheet leverage when debt exceeds cash; otherwise the net cash position is shown directly.</li>
-                    </ul>''', 'Risk glossary')
-
+          replace_once('>Risk & Yield</h4>', '>Risk & Capital</h4>', 'Risk glossary heading')
+          beta_glossary = '<li><strong class="text-blue-600">Beta:</strong> A measure of volatility. A Beta > 1 means the stock is more volatile than the S&P 500; < 1 means it is less volatile.</li>'
+          replace_once(beta_glossary, '<li><strong class="text-blue-600">Beta:</strong> Sensitivity to broad market moves; above 1 means the stock has historically moved more than the market.</li>\n                        <li><strong class="text-blue-600">Annualised Volatility:</strong> Annualised standard deviation of recent daily returns, showing the stock\'s realised price variability.</li>', 'Risk glossary beta')
+          replace_once('<li><strong class="text-green-600">FCF Yield:</strong> Free Cash Flow Yield. High numbers indicate the company is generating massive cash relative to its valuation.</li>', '<li><strong class="text-blue-600">Net Debt/EBITDA or Net Cash:</strong> Balance-sheet leverage when debt exceeds cash; otherwise the net cash position is shown directly.</li>', 'Risk glossary balance metric')
           text = text.replace('<li><strong class="text-blue-600">% From 200MA:</strong>', '<li><strong class="text-blue-600">vs 200D MA:</strong>', 1)
           text = text.replace('<li><strong class="text-blue-600">% From 52W High:</strong>', '<li><strong class="text-blue-600">vs 52W High:</strong>', 1)
           text = text.replace('The estimated date the company will report quarterly financials, driving major price volatility.', 'The estimated reporting date, with a relative timing chip showing how far away it is or how long ago the supplied date passed.', 1)
@@ -136,10 +88,7 @@ jobs:
           from pathlib import Path
           import re
           html = Path('sethistock.html').read_text()
-          checks = [
-              'View breakdown', 'self-start h-fit', 'Ann. Volatility', 'stat-vol',
-              'quoteCurrencySymbol', 'absDailyChange', 'd ago', 'Risk & Capital'
-          ]
+          checks = ['View breakdown', 'self-start h-fit', 'Ann. Volatility', 'stat-vol', 'quoteCurrencySymbol', 'absDailyChange', 'd ago', 'Risk & Capital']
           for check in checks:
               assert check in html, check
           blocks = re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', html, flags=re.S)

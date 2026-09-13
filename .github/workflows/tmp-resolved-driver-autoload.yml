@@ -1,0 +1,27 @@
+name: Temporary resolved Driver autoload validation
+
+on:
+  push:
+    branches: [phase3e-resolved-driver-autoload]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate resolved ticker Driver sync
+        run: |
+          node --check sethistock-ui-stability.js
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('sethistock-ui-stability.js').read_text()
+          assert 'function analysisReady()' in text
+          assert 'const resolvedTicker = currentStateTicker();' in text
+          assert "ticker === 'GOOG' ? 'GOOGL' : ticker" in text
+          assert 'SethiStockLoadCompanyDriversModule' in text
+          assert 'currentStateTicker() !== rawTicker' in text
+          print('RESOLVED_DRIVER_AUTOLOAD_OK')
+          PY

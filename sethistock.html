@@ -10,7 +10,7 @@
     <style>
         html { scroll-behavior: smooth; scroll-padding-top: 8rem; }
         #dashboard, #key-metrics, #comparisons, #research-labs, #valuation, #extra { scroll-margin-top: 8rem; }
-        .tf-btn.active, .type-btn.active, .financial-period-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
+        .tf-btn.active, .type-btn.active, .financial-period-btn.active, .financial-window-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
         .modal-active { overflow: hidden; }
         @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
     </style>
@@ -208,10 +208,19 @@
                     <p class="text-sm text-gray-500 mt-1">Long-run fundamentals from company filings, with consistent Annual, Quarterly and trailing-twelve-month views.</p>
                 </div>
                 <div class="flex flex-col items-start lg:items-end">
-                    <div id="financial-period-controls" class="flex space-x-1 bg-gray-100 p-1 rounded-lg border border-gray-200" aria-label="Financial history period">
-                        <button type="button" class="financial-period-btn active px-4 py-1.5 text-xs sm:text-sm font-bold rounded-md text-gray-600 transition" data-financial-period="annual">Annual</button>
-                        <button type="button" class="financial-period-btn px-4 py-1.5 text-xs sm:text-sm font-bold rounded-md text-gray-600 transition" data-financial-period="quarterly">Quarterly</button>
-                        <button type="button" class="financial-period-btn px-4 py-1.5 text-xs sm:text-sm font-bold rounded-md text-gray-600 transition" data-financial-period="ttm">TTM</button>
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                        <div id="financial-period-controls" class="flex space-x-1 bg-gray-100 p-1 rounded-lg border border-gray-200" aria-label="Financial history period">
+                            <button type="button" class="financial-period-btn active px-4 py-1.5 text-xs sm:text-sm font-bold rounded-md text-gray-600 transition" data-financial-period="annual">Annual</button>
+                            <button type="button" class="financial-period-btn px-4 py-1.5 text-xs sm:text-sm font-bold rounded-md text-gray-600 transition" data-financial-period="quarterly">Quarterly</button>
+                            <button type="button" class="financial-period-btn px-4 py-1.5 text-xs sm:text-sm font-bold rounded-md text-gray-600 transition" data-financial-period="ttm">TTM</button>
+                        </div>
+                        <div id="financial-window-controls" class="flex space-x-1 bg-gray-100 p-1 rounded-lg border border-gray-200" aria-label="Financial history window">
+                            <button type="button" class="financial-window-btn px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-financial-window="1">1Y</button>
+                            <button type="button" class="financial-window-btn px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-financial-window="3">3Y</button>
+                            <button type="button" class="financial-window-btn px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-financial-window="5">5Y</button>
+                            <button type="button" class="financial-window-btn px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-financial-window="10">10Y</button>
+                            <button type="button" class="financial-window-btn active px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-financial-window="max">MAX</button>
+                        </div>
                     </div>
                     <p id="financial-history-status" class="text-[11px] font-bold uppercase tracking-widest mt-2 text-right text-gray-400">Search a stock to load filing history</p>
                 </div>

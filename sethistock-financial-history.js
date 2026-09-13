@@ -29,6 +29,9 @@
     let fallbackView = null;
     let displayedView = null;
     let desiredPeriod = 'annual';
+    let desiredWindow = 'max';
+    let expandedChartId = null;
+    let prefetchGeneration = 0;
     let requestId = 0;
     let requestController = null;
     const financialMemoryCache = new Map();
@@ -265,10 +268,10 @@
 
     function getGrowthStats(view, key) {
         const points = validMetricPoints(view, key);
-        if (points.length < 2) return { '1Y': '-', '2Y': '-', '3Y': '-', 'MAX': '-' };
+        if (points.length < 2) return { '1Y': '-', '3Y': '-', '5Y': '-', 'MAX': '-' };
         const latest = points[points.length - 1];
         const result = {};
-        [1, 2, 3].forEach(years => {
+        [1, 3, 5].forEach(years => {
             const past = nearestHistoricalPoint(points, latest, years);
             result[`${years}Y`] = past ? cagrBetween(past, latest) : '-';
         });
@@ -279,6 +282,62 @@
     function growthColour(value) {
         if (!value || value === 'N/A' || value === '-') return 'text-gray-400';
         return value.startsWith('-') ? 'text-red-500' : 'text-green-500';
+    }
+
+
+    function syncWindowControls(windowValue) {
+        document.querySelectorAll('.financial-window-btn').forEach(button => {
+            button.classList.toggle('active', String(button.dataset.financialWindow) === String(windowValue));
+        });
+    }
+
+    function filterPointsToWindow(points, windowValue = desiredWindow) {
+        if (!Array.isArray(points) || !points.length || windowValue === 'max') return points || [];
+        const years = Number(windowValue);
+        if (!Number.isFinite(years) || years <= 0) return points;
+        const latestDate = new Date(points[points.length - 1]?.end);
+        if (Number.isNaN(latestDate.getTime())) return points;
+        const cutoff = new Date(latestDate);
+        cutoff.setUTCFullYear(cutoff.getUTCFullYear() - years);
+        return points.filter(point => {
+            const date = new Date(point?.end);
+            return !Number.isNaN(date.getTime()) && date >= cutoff;
+        });
+    }
+
+    function toggleExpandedChart(chartId) {
+        const card = document.querySelector(`[data-financial-card="${chartId}"]`);
+        if (!card) return;
+        const currentlyExpanded = expandedChartId === chartId;
+        document.querySelectorAll('.financial-card').forEach(node => {
+            node.classList.remove('fixed', 'inset-4', 'md:inset-10', 'z-[160]', 'shadow-2xl', 'overflow-hidden');
+            const chartNode = node.querySelector('[id^="ind-"]');
+            if (chartNode) chartNode.style.height = '';
+        });
+        document.getElementById('financial-chart-backdrop')?.remove();
+        expandedChartId = currentlyExpanded ? null : chartId;
+        document.body.classList.toggle('modal-active', Boolean(expandedChartId));
+        if (!expandedChartId) {
+            renderFinancialCharts(displayedView);
+            return;
+        }
+        const backdrop = document.createElement('button');
+        backdrop.id = 'financial-chart-backdrop';
+        backdrop.type = 'button';
+        backdrop.className = 'fixed inset-0 z-[150] bg-gray-900/55 backdrop-blur-sm';
+        backdrop.setAttribute('aria-label', 'Close expanded chart');
+        backdrop.addEventListener('click', () => toggleExpandedChart(chartId));
+        document.body.appendChild(backdrop);
+        card.classList.add('fixed', 'inset-4', 'md:inset-10', 'z-[160]', 'shadow-2xl', 'overflow-hidden');
+        const chart = document.getElementById(chartId);
+        if (chart) chart.style.height = 'calc(100vh - 210px)';
+        requestAnimationFrame(() => Plotly.Plots.resize(chartId));
+    }
+
+    function bindExpandButtons() {
+        document.querySelectorAll('.financial-expand-btn').forEach(button => {
+            button.addEventListener('click', () => toggleExpandedChart(button.dataset.chartId));
+        });
     }
 
     function renderFinancialCards(view) {
@@ -303,22 +362,28 @@
             let html = '';
             cards.forEach(card => {
                 html += `
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col min-h-[350px]">
-                        <div class="flex items-center justify-between gap-3 mb-2">
+                    <div class="financial-card bg-white px-5 pt-5 pb-4 rounded-2xl shadow-sm border border-gray-200 flex flex-col min-h-[330px] relative" data-financial-card="${card.id}">
+                        <div class="flex items-center justify-between gap-3 mb-1">
                             <h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest">${card.title}</h4>
-                            <span id="fin-period-${card.id}" class="px-2 py-1 rounded-md bg-gray-50 border border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest">${periodLabel}</span>
+                            <div class="flex items-center gap-2">
+                                <span id="fin-period-${card.id}" class="px-2 py-1 rounded-md bg-gray-50 border border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest">${periodLabel}</span>
+                                <button type="button" class="financial-expand-btn inline-flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition" data-chart-id="${card.id}" aria-label="Expand ${card.title} chart" title="Expand chart">
+                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M16 21h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                                </button>
+                            </div>
                         </div>
-                        <div id="${card.id}" class="h-56 w-full mt-auto mb-2"></div>
-                        <div class="grid grid-cols-4 gap-2 mt-4 pt-4 border-t border-gray-100">
+                        <div id="${card.id}" class="h-52 w-full mt-1"></div>
+                        <div class="grid grid-cols-4 gap-2 mt-2 pt-3 border-t border-gray-100">
                             <div class="text-center"><p class="text-[9px] text-gray-400 font-bold uppercase">1Y CAGR</p><p id="fin-growth-${card.id}-1Y" class="font-semibold text-xs text-gray-400">-</p></div>
-                            <div class="text-center"><p class="text-[9px] text-gray-400 font-bold uppercase">2Y CAGR</p><p id="fin-growth-${card.id}-2Y" class="font-semibold text-xs text-gray-400">-</p></div>
                             <div class="text-center"><p class="text-[9px] text-gray-400 font-bold uppercase">3Y CAGR</p><p id="fin-growth-${card.id}-3Y" class="font-semibold text-xs text-gray-400">-</p></div>
+                            <div class="text-center"><p class="text-[9px] text-gray-400 font-bold uppercase">5Y CAGR</p><p id="fin-growth-${card.id}-5Y" class="font-semibold text-xs text-gray-400">-</p></div>
                             <div class="text-center"><p class="text-[9px] text-gray-400 font-bold uppercase">MAX</p><p id="fin-growth-${card.id}-MAX" class="font-semibold text-xs text-gray-400">-</p></div>
                         </div>
                     </div>`;
             });
             container.innerHTML = html;
             if (container.dataset) container.dataset.phase2eReady = '1';
+            bindExpandButtons();
         }
 
         cards.forEach(card => {
@@ -329,7 +394,7 @@
                     ? 'Point-in-time'
                     : periodLabel;
             }
-            ['1Y', '2Y', '3Y', 'MAX'].forEach(horizon => {
+            ['1Y', '3Y', '5Y', 'MAX'].forEach(horizon => {
                 const value = growth[horizon];
                 const element = document.getElementById(`fin-growth-${card.id}-${horizon}`);
                 if (!element) return;
@@ -346,7 +411,7 @@
 
     function chartLayout(view, showLegend = false) {
         return {
-            margin: { t: 12, b: showLegend ? 45 : 34, l: 48, r: 10 },
+            margin: { t: 8, b: showLegend ? 42 : 30, l: 54, r: 16 },
             plot_bgcolor: 'transparent',
             paper_bgcolor: 'transparent',
             showlegend: showLegend,
@@ -373,7 +438,7 @@
     }
 
     function traceForMetric(view, key, name, colour, options = {}) {
-        const points = validMetricPoints(view, key);
+        const points = filterPointsToWindow(validMetricPoints(view, key));
         if (!points.length) return null;
         const annualBars = view.period === 'annual' && options.forceLine !== true;
         const trace = {
@@ -387,6 +452,9 @@
         if (annualBars) {
             trace.type = 'bar';
             trace.marker = { color: colour, line: { width: 0 } };
+            trace.textposition = 'outside';
+            trace.textfont = { color: '#334155', size: 10 };
+            trace.cliponaxis = false;
         } else {
             trace.type = 'scatter';
             trace.mode = view.period === 'quarterly' ? 'lines+markers' : 'lines';
@@ -464,9 +532,36 @@
         state.financialPeriod = desiredPeriod;
         syncPeriodControls(desiredPeriod);
         renderFinancialCards(view);
+        syncWindowControls(desiredWindow);
         renderFinancialCharts(view);
         setQualityAlert(view);
         setStatus(statusOverride || historyDescriptor(view), statusTone);
+    }
+
+    async function fetchFinancialHistoryIntoCache(ticker, period, generation = prefetchGeneration) {
+        const key = `${ticker}|${period}`;
+        const cached = financialMemoryCache.get(key);
+        if (cached && Date.now() - cached.savedAt < FINANCIAL_CACHE_TTL_MS) return cached.view;
+        try {
+            const query = new URLSearchParams({ period, metrics: SEC_METRICS.join(','), limit: '200' });
+            const payload = await fetchJsonWithRetry(`${API_URL}/api/sec/${encodeURIComponent(ticker)}/fundamentals/series?${query.toString()}`, {}, 1);
+            if (generation !== prefetchGeneration || ticker !== String(state.ticker || '').trim().toUpperCase()) return null;
+            const view = transformSecPayload(payload);
+            if (!view.metricPoints.revenue?.length) return null;
+            rememberFinancialView(key, view);
+            return view;
+        } catch (error) {
+            console.debug(`Phase 4A ${period} prefetch skipped for ${ticker}:`, error);
+            return null;
+        }
+    }
+
+    function prefetchOtherPeriods(ticker, loadedPeriod) {
+        const generation = prefetchGeneration;
+        const periods = ['annual', 'quarterly', 'ttm'].filter(period => period !== loadedPeriod);
+        const run = () => periods.reduce((promise, period) => promise.then(() => fetchFinancialHistoryIntoCache(ticker, period, generation)), Promise.resolve());
+        if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 1200 });
+        else setTimeout(run, 250);
     }
 
     async function loadFinancialHistory(period = desiredPeriod) {
@@ -505,6 +600,7 @@
             const view = transformSecPayload(payload);
             if (!view.metricPoints.revenue?.length) throw new Error('Revenue history unavailable.');
             rememberFinancialView(key, view);
+            prefetchOtherPeriods(ticker, period);
             if (ticker === String(state.ticker || '').trim().toUpperCase() && desiredPeriod === period) {
                 renderView(view);
             }
@@ -531,6 +627,11 @@
         if (requestController) requestController.abort();
         requestController = null;
         requestId += 1;
+        prefetchGeneration += 1;
+        desiredWindow = 'max';
+        expandedChartId = null;
+        document.body.classList.remove('modal-active');
+        document.getElementById('financial-chart-backdrop')?.remove();
         financialTicker = ticker;
         fallbackView = buildLegacyView(fin);
         displayedView = fallbackView;
@@ -568,6 +669,20 @@
             if (!period || period === desiredPeriod && displayedView?.period === period) return;
             loadFinancialHistory(period).catch(() => null);
         });
+    });
+
+    document.querySelectorAll('.financial-window-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const nextWindow = button.dataset.financialWindow || 'max';
+            if (String(nextWindow) === String(desiredWindow)) return;
+            desiredWindow = nextWindow;
+            syncWindowControls(desiredWindow);
+            if (displayedView) renderFinancialCharts(displayedView);
+        });
+    });
+
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && expandedChartId) toggleExpandedChart(expandedChartId);
     });
 
     // Expose a tiny debugging surface for production smoke tests without coupling the

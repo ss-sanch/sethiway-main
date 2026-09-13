@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/tmp-sethistock-latency.yml'
+      - 'sethistock-ui-stability.js'
+      - 'sethiway-history.js'
   workflow_dispatch:
 
 permissions:
@@ -16,6 +18,27 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+      - name: Validate stability JavaScript
+        run: |
+          node --check sethistock-ui-stability.js
+          node --check sethiway-history.js
+          python - <<'PY'
+          from pathlib import Path
+          stability = Path('sethistock-ui-stability.js').read_text()
+          history = Path('sethiway-history.js').read_text()
+          required = [
+              'DRIVER_CHART_HEIGHT = 180',
+              'Waiting for ${escapeHtml(symbol',
+              'financial-history-status',
+              'sethi-inline-spinner',
+              'drivers.load(ticker)',
+              'STOCK_CACHE_TTL_MS',
+          ]
+          missing = [item for item in required if item not in stability]
+          assert not missing, missing
+          assert 'sethistock-ui-stability.js?v=1' in history
+          print('SETHISTOCK_UI_STABILITY_STATIC_OK')
+          PY
       - name: Time representative stock analyses
         shell: bash
         run: |

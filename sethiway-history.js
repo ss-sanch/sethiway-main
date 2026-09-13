@@ -75,9 +75,20 @@
             driverScript.dataset.sethistockCompanyDrivers = '1';
             driverScript.addEventListener('load', () => {
                 const ticker = (new URLSearchParams(window.location.search).get('ticker') || '').trim().toUpperCase();
-                if (/^[A-Z0-9.^-]{1,20}$/.test(ticker)) {
-                    window.SethiStockCompanyDrivers?.load(ticker)?.catch?.(() => null);
-                }
+                if (!/^[A-Z0-9.^-]{1,20}$/.test(ticker)) return;
+
+                let attempts = 0;
+                const loadWhenReady = () => {
+                    attempts += 1;
+                    const dashboard = document.querySelector('#dashboard');
+                    const button = document.querySelector('#search-btn');
+                    if (dashboard?.classList.contains('opacity-100') && !button?.disabled) {
+                        window.SethiStockCompanyDrivers?.load(ticker)?.catch?.(() => null);
+                    } else if (attempts < 100) {
+                        setTimeout(loadWhenReady, 250);
+                    }
+                };
+                loadWhenReady();
             });
             document.body.appendChild(driverScript);
         }

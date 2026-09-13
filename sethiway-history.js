@@ -62,6 +62,13 @@
     window.addEventListener('popstate', saveDestination);
 
     if (page === 'sethistock.html') {
+        if (!document.querySelector('script[data-sethistock-ui-stability]')) {
+            const stabilityScript = document.createElement('script');
+            stabilityScript.src = 'sethistock-ui-stability.js?v=1';
+            stabilityScript.dataset.sethistockUiStability = '1';
+            document.body.appendChild(stabilityScript);
+        }
+
         // A single upstream Yahoo/yfinance stall must never leave SethiStock in an
         // endless "Analysing..." state. Only the heavy full-analysis route gets a
         // deadline; lightweight quote/chart/driver requests keep their own logic.

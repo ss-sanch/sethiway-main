@@ -6,7 +6,7 @@
     'use strict';
 
     const DRIVER_API = typeof API_URL === 'string' ? API_URL : 'https://sethistock-api.onrender.com';
-    const PERIODS = ['quarterly', 'annual', 'reported'];
+    const PERIODS = ['quarterly', 'annual'];
     const MEMORY_TTL_MS = 30 * 60 * 1000;
     const MEMORY_MAX = 120;
     const MAX_PARALLEL = 3;
@@ -19,6 +19,7 @@
     let latestRegistry = null;
     let latestCoverage = null;
     let prefetchGeneration = 0;
+    let lifecycleSequence = 0;
     const historyCache = new Map();
     const metaCache = new Map();
 
@@ -234,7 +235,6 @@
                     <div id="driver-period-controls" class="flex space-x-1 bg-gray-100 p-1 rounded-lg border border-gray-200" aria-label="Company driver period">
                         <button type="button" class="driver-period-btn active px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-bold rounded-md text-gray-600 transition" data-driver-period="quarterly">Quarterly</button>
                         <button type="button" class="driver-period-btn px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-bold rounded-md text-gray-600 transition" data-driver-period="annual">Annual</button>
-                        <button type="button" class="driver-period-btn px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-bold rounded-md text-gray-600 transition" data-driver-period="reported">Reported</button>
                     </div>
                     <p id="driver-status" class="text-[11px] font-bold uppercase tracking-widest text-gray-400">Search a supported stock to load operating drivers</p>
                 </div>
@@ -579,8 +579,6 @@
         const run = async () => {
             if (generation !== prefetchGeneration || activeTicker !== ticker) return;
             await prefetchPeriod(ticker, registry, coverage, 'annual', generation);
-            if (generation !== prefetchGeneration || activeTicker !== ticker) return;
-            await prefetchPeriod(ticker, registry, coverage, 'reported', generation);
         };
         if (typeof requestIdleCallback === 'function') requestIdleCallback(() => run().catch(() => null), { timeout: 1200 });
         else setTimeout(() => run().catch(() => null), 300);
@@ -652,7 +650,7 @@
             latestCoverage = coverage;
             setTheme(registry);
             await renderDrivers(symbol, registry, coverage, activePeriod);
-            // Quarterly is the visible default. Hydrate Annual (then Reported) quietly
+            // Quarterly is the visible default. Hydrate Annual quietly
             // once the first render is complete so tab switches reuse memory/Supabase.
             if (activePeriod === 'quarterly') {
                 scheduleAdjacentPeriodPrefetch(symbol, registry, coverage, thisPrefetchGeneration);
@@ -675,41 +673,32 @@
         return fromState || fromDisplay;
     }
 
-    function waitForMainAnalysis(requestedValue) {
-        ensureUI();
-        const requested = String(requestedValue || '').trim().toUpperCase();
-        setStatus(`Waiting for ${requested || 'stock'} analysis…`, 'live');
-        let attempts = 0;
-        const timer = setInterval(() => {
-            attempts += 1;
-            const dashboard = qs('#dashboard');
-            const button = qs('#search-btn');
-            const ticker = resolvedTicker();
-            if (dashboard?.classList.contains('opacity-100') && !button?.disabled && ticker) {
-                clearInterval(timer);
-                if (ticker !== activeTicker || !latestRegistry) loadCompanyDrivers(ticker).catch(() => null);
-            } else if (attempts >= 100) {
-                clearInterval(timer);
-                setStatus('Waiting for a successful stock analysis', 'neutral');
-            }
-        }, 250);
-    }
-
     function boot() {
         ensureUI();
-        const form = qs('#search-form');
-        const input = qs('#ticker-input');
-        if (form && form.dataset.companyDriversBound !== '1') {
-            form.dataset.companyDriversBound = '1';
-            form.addEventListener('submit', () => {
-                waitForMainAnalysis(input?.value || 'stock');
+        if (!window.__sethiStockCompanyDriversLifecycleBound) {
+            window.__sethiStockCompanyDriversLifecycleBound = true;
+            window.addEventListener('sethistock:analysis-start', event => {
+                const sequence = Number(event?.detail?.sequence || 0);
+                if (sequence) lifecycleSequence = Math.max(lifecycleSequence, sequence);
+            });
+            window.addEventListener('sethistock:analysis-ready', event => {
+                const sequence = Number(event?.detail?.sequence || 0);
+                if (sequence && sequence < lifecycleSequence) return;
+                if (sequence) lifecycleSequence = sequence;
+                const ticker = event?.detail?.ticker || resolvedTicker();
+                if (ticker) loadCompanyDrivers(ticker).catch(() => null);
             });
         }
 
-        const existing = resolvedTicker();
-        const dashboard = qs('#dashboard');
-        if (existing && dashboard && !dashboard.classList.contains('hidden')) {
-            waitForMainAnalysis(existing);
+        // If this module finished loading just after the analysis-ready event fired,
+        // adopt the latest successful analysis immediately instead of polling UI state.
+        const lastReady = window.__sethiStockLastAnalysisReady;
+        if (lastReady?.ticker) {
+            const sequence = Number(lastReady.sequence || 0);
+            if (!sequence || sequence >= lifecycleSequence) {
+                if (sequence) lifecycleSequence = sequence;
+                queueMicrotask(() => loadCompanyDrivers(lastReady.ticker).catch(() => null));
+            }
         }
     }
 

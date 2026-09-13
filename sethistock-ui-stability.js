@@ -8,7 +8,7 @@
     const DRIVER_SUPPORTED = new Set(['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NVDA', 'TSLA', 'NFLX', 'JPM', 'V']);
     const stockResponseCache = new Map();
     let expectedTicker = '';
-    let analysisWaitToken = 0;
+    let latestAnalysisSequence = 0;
 
     const normaliseTicker = value => String(value || '').trim().toUpperCase();
     const canonicalDriverTicker = value => {
@@ -149,64 +149,27 @@
         return Boolean(currentStateTicker()) && !button?.disabled && dashboard?.classList.contains('opacity-100');
     }
 
-    function synchroniseDrivers(resolvedTicker, token) {
-        const rawTicker = normaliseTicker(resolvedTicker);
-        const driverTicker = canonicalDriverTicker(rawTicker);
-        if (!DRIVER_SUPPORTED.has(driverTicker)) return;
-
-        const apply = drivers => {
-            // GOOG and GOOGL are one Company Driver identity. The core stock analysis
-            // may resolve from GOOG to GOOGL while this async module is loading, so
-            // compare canonical Driver tickers rather than the raw symbols.
-            if (!drivers || token !== analysisWaitToken || !analysisReady() || canonicalDriverTicker(currentStateTicker()) !== driverTicker) return;
-            const statusText = document.getElementById('driver-status')?.textContent || '';
-            if (drivers.ticker !== driverTicker || /waiting|temporarily unavailable/i.test(statusText)) {
-                drivers.load(driverTicker).catch(() => null);
-            }
-        };
-
-        if (window.SethiStockCompanyDrivers) {
-            apply(window.SethiStockCompanyDrivers);
-            return;
-        }
-        if (typeof window.SethiStockLoadCompanyDriversModule === 'function') {
-            window.SethiStockLoadCompanyDriversModule(false).then(apply).catch(() => null);
-        }
-    }
-
-    function waitForCurrentAnalysis(requestedValue) {
-        const token = ++analysisWaitToken;
-        let attempts = 0;
-        const poll = () => {
-            if (token !== analysisWaitToken) return;
-            attempts += 1;
-            if (analysisReady()) {
-                const resolvedTicker = currentStateTicker();
-                expectedTicker = resolvedTicker;
-                if (DRIVER_SUPPORTED.has(canonicalDriverTicker(resolvedTicker))) {
-                    resetDriverSurface(resolvedTicker);
-                    synchroniseDrivers(resolvedTicker, token);
-                }
-                return;
-            }
-            if (attempts < 240) setTimeout(poll, 250);
-        };
-        poll();
-    }
 
     function bindTickerTransitionGuard() {
-        const form = document.getElementById('search-form');
-        const input = document.getElementById('ticker-input');
-        if (!form || form.dataset.stabilityTickerGuard === '1') return;
-        form.dataset.stabilityTickerGuard = '1';
+        if (window.__sethiStockDriverLifecycleGuardBound) return;
+        window.__sethiStockDriverLifecycleGuardBound = true;
 
-        form.addEventListener('submit', () => {
-            const requested = normaliseTicker(input?.value);
+        window.addEventListener('sethistock:analysis-start', event => {
+            const sequence = Number(event?.detail?.sequence || 0);
+            if (sequence) latestAnalysisSequence = sequence;
+            const requested = normaliseTicker(event?.detail?.ticker);
             if (!requested) return;
             expectedTicker = requested;
             resetDriverSurface(requested);
-            waitForCurrentAnalysis(requested);
-        }, true);
+        });
+
+        window.addEventListener('sethistock:analysis-ready', event => {
+            const sequence = Number(event?.detail?.sequence || 0);
+            if (sequence && latestAnalysisSequence && sequence !== latestAnalysisSequence) return;
+            if (sequence) latestAnalysisSequence = sequence;
+            const resolved = normaliseTicker(event?.detail?.ticker);
+            if (resolved) expectedTicker = resolved;
+        });
 
         document.addEventListener('click', event => {
             const link = event.target.closest?.('a[href="#company-drivers"]');

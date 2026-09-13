@@ -901,7 +901,11 @@
 
         document.getElementById('search-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const analysisSequence = (Number(window.__sethiStockAnalysisSequence) || 0) + 1;
+            window.__sethiStockAnalysisSequence = analysisSequence;
             state.ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+            window.__sethiStockLastAnalysisReady = null;
+            window.dispatchEvent(new CustomEvent('sethistock:analysis-start', { detail: { ticker: state.ticker, sequence: analysisSequence } }));
             
             const btn = document.getElementById('search-btn');
             const dash = document.getElementById('dashboard');
@@ -954,7 +958,7 @@
                 let fullAnalysisReady = false;
                 const quoteHydrationPromise = fetchJsonWithRetry(`${API_URL}/api/quote/${encodeURIComponent(requestedTicker)}`, {}, 1)
                     .then((quoteData) => {
-                        if (!quoteData || fullAnalysisReady) return;
+                        if (!quoteData || fullAnalysisReady || analysisSequence !== window.__sethiStockAnalysisSequence) return;
 
                         state.ticker = String(quoteData.ticker || requestedTicker).toUpperCase();
                         state.price = Number(quoteData.current_price || 0);
@@ -980,6 +984,7 @@
                     .catch(() => null);
 
                 const data = await fullDataPromise;
+                if (analysisSequence !== window.__sethiStockAnalysisSequence) return;
                 fullAnalysisReady = true;
 
                 // Smart Search: Update input to show the actual verified ticker found
@@ -1092,6 +1097,8 @@
             
                 state.fcf = data.fcf; state.shares = data.shares; state.price = data.current_price; 
                 state.stats = data.stats;
+                window.__sethiStockLastAnalysisReady = { ticker: state.ticker, sequence: analysisSequence };
+                window.dispatchEvent(new CustomEvent('sethistock:analysis-ready', { detail: { ticker: state.ticker, sequence: analysisSequence } }));
                 
                 calibrateMacroBridge();
                 calculateDCF();
@@ -1168,7 +1175,9 @@
                 document.getElementById('error-message').innerText = message;
                 document.getElementById('error-message').classList.remove('hidden');
             } finally {
-                btn.innerHTML = 'Analyse'; btn.disabled = false;
+                if (analysisSequence === window.__sethiStockAnalysisSequence) {
+                    btn.innerHTML = 'Analyse'; btn.disabled = false;
+                }
             }
         });
 

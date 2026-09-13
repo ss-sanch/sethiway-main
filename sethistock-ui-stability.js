@@ -155,7 +155,10 @@
         if (!DRIVER_SUPPORTED.has(driverTicker)) return;
 
         const apply = drivers => {
-            if (!drivers || token !== analysisWaitToken || !analysisReady() || currentStateTicker() !== rawTicker) return;
+            // GOOG and GOOGL are one Company Driver identity. The core stock analysis
+            // may resolve from GOOG to GOOGL while this async module is loading, so
+            // compare canonical Driver tickers rather than the raw symbols.
+            if (!drivers || token !== analysisWaitToken || !analysisReady() || canonicalDriverTicker(currentStateTicker()) !== driverTicker) return;
             const statusText = document.getElementById('driver-status')?.textContent || '';
             if (drivers.ticker !== driverTicker || /waiting|temporarily unavailable/i.test(statusText)) {
                 drivers.load(driverTicker).catch(() => null);

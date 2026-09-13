@@ -64,7 +64,7 @@
     if (page === 'sethistock.html') {
         if (!document.querySelector('script[data-sethistock-ui-stability]')) {
             const stabilityScript = document.createElement('script');
-            stabilityScript.src = 'sethistock-ui-stability.js?v=2';
+            stabilityScript.src = 'sethistock-ui-stability.js?v=3';
             stabilityScript.dataset.sethistockUiStability = '1';
             document.body.appendChild(stabilityScript);
         }
@@ -152,7 +152,7 @@
                 }
 
                 const driverScript = document.createElement('script');
-                driverScript.src = 'sethistock-company-drivers.js?v=3e3';
+                driverScript.src = 'sethistock-company-drivers.js?v=3e4';
                 driverScript.dataset.sethistockCompanyDrivers = '1';
                 driverScript.addEventListener('load', () => {
                     resolve(window.SethiStockCompanyDrivers);

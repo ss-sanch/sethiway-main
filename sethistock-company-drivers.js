@@ -10,6 +10,7 @@
     const MEMORY_TTL_MS = 30 * 60 * 1000;
     const MEMORY_MAX = 120;
     const MAX_PARALLEL = 3;
+    const PREFETCH_PARALLEL = 2;
 
     let activeTicker = '';
     let activePeriod = 'quarterly';
@@ -17,6 +18,7 @@
     let controller = null;
     let latestRegistry = null;
     let latestCoverage = null;
+    let prefetchGeneration = 0;
     const historyCache = new Map();
     const metaCache = new Map();
 
@@ -557,6 +559,33 @@
         return payload;
     }
 
+    async function prefetchPeriod(ticker, registry, coverage, period, generation) {
+        const coverageMap = new Map((coverage?.metrics || []).map(row => [row.key, row]));
+        const verifiedMetrics = (registry?.metrics || []).filter(metric => coverageMap.get(metric.key)?.verified === true);
+        if (!verifiedMetrics.length) return;
+
+        await mapConcurrent(verifiedMetrics, PREFETCH_PARALLEL, async metric => {
+            if (generation !== prefetchGeneration || activeTicker !== ticker) return null;
+            try {
+                return await getHistory(ticker, metric.key, period);
+            } catch (_) {
+                // Background hydration must never interrupt the visible Quarterly UI.
+                return null;
+            }
+        });
+    }
+
+    function scheduleAdjacentPeriodPrefetch(ticker, registry, coverage, generation) {
+        const run = async () => {
+            if (generation !== prefetchGeneration || activeTicker !== ticker) return;
+            await prefetchPeriod(ticker, registry, coverage, 'annual', generation);
+            if (generation !== prefetchGeneration || activeTicker !== ticker) return;
+            await prefetchPeriod(ticker, registry, coverage, 'reported', generation);
+        };
+        if (typeof requestIdleCallback === 'function') requestIdleCallback(() => run().catch(() => null), { timeout: 1200 });
+        else setTimeout(() => run().catch(() => null), 300);
+    }
+
     async function renderDrivers(ticker, registry, coverage, period = activePeriod) {
         const thisRequest = ++requestId;
         if (controller) controller.abort();
@@ -606,6 +635,7 @@
         const symbol = String(ticker || '').trim().toUpperCase();
         if (!symbol) return;
         activeTicker = symbol;
+        const thisPrefetchGeneration = ++prefetchGeneration;
         latestRegistry = null;
         latestCoverage = null;
         setTheme(null);
@@ -621,6 +651,11 @@
             latestCoverage = coverage;
             setTheme(registry);
             await renderDrivers(symbol, registry, coverage, activePeriod);
+            // Quarterly is the visible default. Hydrate Annual (then Reported) quietly
+            // once the first render is complete so tab switches reuse memory/Supabase.
+            if (activePeriod === 'quarterly') {
+                scheduleAdjacentPeriodPrefetch(symbol, registry, coverage, thisPrefetchGeneration);
+            }
         } catch (error) {
             if (error?.name === 'AbortError' || localRequest !== requestId) return;
             if (error?.status === 404) {

@@ -5,11 +5,16 @@
 
     const STOCK_CACHE_TTL_MS = 2 * 60 * 1000;
     const DRIVER_CHART_HEIGHT = 180;
+    const DRIVER_SUPPORTED = new Set(['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NVDA', 'TSLA', 'NFLX', 'JPM', 'V']);
     const stockResponseCache = new Map();
     let expectedTicker = '';
     let analysisWaitToken = 0;
 
     const normaliseTicker = value => String(value || '').trim().toUpperCase();
+    const canonicalDriverTicker = value => {
+        const ticker = normaliseTicker(value);
+        return ticker === 'GOOG' ? 'GOOGL' : ticker;
+    };
     const validTicker = value => /^[A-Z0-9.^-]{1,20}$/.test(normaliseTicker(value));
 
     function ensureStyles() {
@@ -97,7 +102,7 @@
         const section = document.getElementById('company-drivers');
         if (!section) return;
         const symbol = normaliseTicker(ticker);
-        section.dataset.expectedTicker = symbol;
+        section.dataset.expectedTicker = canonicalDriverTicker(symbol);
 
         const grid = document.getElementById('driver-chart-grid');
         purgeDriverPlots(grid);
@@ -123,7 +128,7 @@
                     <span class="sethi-inline-spinner" aria-hidden="true"></span>
                     <p class="text-sm font-bold">Waiting for ${escapeHtml(symbol || 'stock')} analysis…</p>
                 </div>
-                <p class="text-xs text-gray-400 mt-2">Driver cards will refresh only after this ticker finishes loading.</p>`;
+                <p class="text-xs text-gray-400 mt-2">Cached Driver cards will synchronise automatically after this ticker finishes loading.</p>`;
         }
 
         const status = document.getElementById('driver-status');
@@ -145,6 +150,27 @@
         return currentStateTicker() === ticker && !button?.disabled && dashboard?.classList.contains('opacity-100');
     }
 
+    function synchroniseDrivers(rawTicker, token) {
+        const driverTicker = canonicalDriverTicker(rawTicker);
+        if (!DRIVER_SUPPORTED.has(driverTicker)) return;
+
+        const apply = drivers => {
+            if (!drivers || token !== analysisWaitToken || !analysisReadyFor(rawTicker)) return;
+            const statusText = document.getElementById('driver-status')?.textContent || '';
+            if (drivers.ticker !== driverTicker || /waiting|temporarily unavailable/i.test(statusText)) {
+                drivers.load(driverTicker).catch(() => null);
+            }
+        };
+
+        if (window.SethiStockCompanyDrivers) {
+            apply(window.SethiStockCompanyDrivers);
+            return;
+        }
+        if (typeof window.SethiStockLoadCompanyDriversModule === 'function') {
+            window.SethiStockLoadCompanyDriversModule(false).then(apply).catch(() => null);
+        }
+    }
+
     function waitForCurrentAnalysis(ticker) {
         const token = ++analysisWaitToken;
         let attempts = 0;
@@ -152,11 +178,7 @@
             if (token !== analysisWaitToken) return;
             attempts += 1;
             if (analysisReadyFor(ticker)) {
-                const drivers = window.SethiStockCompanyDrivers;
-                const statusText = document.getElementById('driver-status')?.textContent || '';
-                if (drivers && (drivers.ticker !== ticker || /waiting|temporarily unavailable/i.test(statusText))) {
-                    drivers.load(ticker).catch(() => null);
-                }
+                synchroniseDrivers(ticker, token);
                 return;
             }
             if (attempts < 240) setTimeout(poll, 250);
@@ -183,11 +205,12 @@
             if (!link) return;
             setTimeout(() => {
                 const ticker = currentStateTicker();
+                const driverTicker = canonicalDriverTicker(ticker);
                 const drivers = window.SethiStockCompanyDrivers;
                 const statusText = document.getElementById('driver-status')?.textContent || '';
-                if (ticker && drivers && (drivers.ticker !== ticker || /waiting|temporarily unavailable/i.test(statusText))) {
+                if (ticker && DRIVER_SUPPORTED.has(driverTicker) && drivers && (drivers.ticker !== driverTicker || /waiting|temporarily unavailable/i.test(statusText))) {
                     resetDriverSurface(ticker);
-                    drivers.load(ticker).catch(() => null);
+                    drivers.load(driverTicker).catch(() => null);
                 }
             }, 0);
         });
@@ -199,11 +222,12 @@
             const drivers = window.SethiStockCompanyDrivers;
             const section = document.getElementById('company-drivers');
             if (!drivers || !section) return;
-            if (drivers.ticker && drivers.ticker !== expectedTicker) {
+            const expectedDriverTicker = canonicalDriverTicker(expectedTicker);
+            if (drivers.ticker && drivers.ticker !== expectedDriverTicker) {
                 const grid = document.getElementById('driver-chart-grid');
                 if (grid && !grid.classList.contains('hidden')) resetDriverSurface(expectedTicker);
             }
-            if (analysisReadyFor(expectedTicker) && drivers.ticker === expectedTicker) {
+            if (analysisReadyFor(expectedTicker) && drivers.ticker === expectedDriverTicker) {
                 expectedTicker = '';
             }
         }, 300);

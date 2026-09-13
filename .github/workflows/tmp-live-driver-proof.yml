@@ -1,0 +1,34 @@
+name: Temporary live Company Driver deployment proof
+
+on:
+  push:
+    branches: [proof-goog-driver-live]
+
+permissions:
+  contents: read
+
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Wait for SethiWay deployment and validate new Driver assets
+        run: |
+          set -euo pipefail
+          deadline=$((SECONDS+480))
+          while (( SECONDS < deadline )); do
+            curl -fsSL --max-time 30 'https://sethiway.com/sethiway-history.js' -o /tmp/history.js || true
+            curl -fsSL --max-time 30 'https://sethiway.com/sethistock-ui-stability.js?v=3' -o /tmp/stability.js || true
+            curl -fsSL --max-time 30 'https://sethiway.com/sethistock-company-drivers.js?v=3e4' -o /tmp/drivers.js || true
+            if grep -q 'sethistock-ui-stability.js?v=3' /tmp/history.js 2>/dev/null \
+              && grep -q 'sethistock-company-drivers.js?v=3e4' /tmp/history.js 2>/dev/null \
+              && grep -q 'canonicalDriverTicker(currentStateTicker()) !== driverTicker' /tmp/stability.js 2>/dev/null \
+              && grep -q 'scheduleAdjacentPeriodPrefetch' /tmp/drivers.js 2>/dev/null; then
+              echo 'LIVE_GOOG_DRIVER_FIX_DEPLOYED'
+              exit 0
+            fi
+            echo 'Waiting for GitHub Pages deployment...'
+            sleep 15
+          done
+          echo 'New Driver assets did not appear before timeout'
+          exit 1

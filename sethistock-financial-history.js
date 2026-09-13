@@ -314,7 +314,8 @@
             const chartNode = node.querySelector('[id^="ind-"]');
             if (chartNode) chartNode.style.height = '';
         });
-        document.getElementById('financial-chart-backdrop')?.remove();
+        const existingBackdrop = document.getElementById('financial-chart-backdrop');
+        if (existingBackdrop && existingBackdrop.parentNode) existingBackdrop.parentNode.removeChild(existingBackdrop);
         expandedChartId = currentlyExpanded ? null : chartId;
         document.body.classList.toggle('modal-active', Boolean(expandedChartId));
         if (!expandedChartId) {
@@ -631,7 +632,8 @@
         desiredWindow = 'max';
         expandedChartId = null;
         document.body.classList.remove('modal-active');
-        document.getElementById('financial-chart-backdrop')?.remove();
+        const existingBackdrop = document.getElementById('financial-chart-backdrop');
+        if (existingBackdrop && existingBackdrop.parentNode) existingBackdrop.parentNode.removeChild(existingBackdrop);
         financialTicker = ticker;
         fallbackView = buildLegacyView(fin);
         displayedView = fallbackView;

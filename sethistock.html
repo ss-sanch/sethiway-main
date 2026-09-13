@@ -141,7 +141,7 @@
             </div>
 
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col relative self-start h-fit">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col relative h-full">
                 <h3 class="text-xl font-black text-gray-900 mb-6 flex items-center justify-between">
                     Insights & Stats
                     <button onclick="toggleModal('stats-modal')" class="text-gray-400 hover:text-blue-600 transition z-10 cursor-pointer">
@@ -149,7 +149,7 @@
                     </button>
                 </h3>
                 
-                <div class="flex flex-col space-y-5">
+                <div class="flex-grow flex flex-col justify-between space-y-4">
           <div>
               <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-2.5">Valuation & Quality</h4>
               <div class="grid grid-cols-2 gap-x-7 gap-y-2 px-1">
@@ -179,9 +179,10 @@
               <div class="grid grid-cols-2 gap-x-7 gap-y-2 px-1">
                   <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Beta</span><span id="stat-beta" class="text-sm font-black text-gray-900">--</span></div>
                   <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Ann. Volatility</span><span id="stat-vol" class="text-sm font-black text-gray-900">--</span></div>
+                  <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Daily VaR (95%)</span><span id="stat-var" class="text-sm font-black text-gray-900">--</span></div>
                   <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-red-500">Short Interest</span><span id="stat-short" class="text-sm font-black text-red-600">--</span></div>
                   <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Dividend Yield</span><span id="stat-div" class="text-sm font-black text-gray-900">--</span></div>
-                  <div class="col-span-2 flex justify-between items-center py-1"><span id="stat-balance-label" class="text-sm font-bold text-gray-500">Net Debt/EBITDA</span><span id="stat-balance" class="text-sm font-black text-gray-900">--</span></div>
+                  <div class="flex justify-between items-center py-1"><span id="stat-balance-label" class="text-sm font-bold text-gray-500">Net Debt/EBITDA</span><span id="stat-balance" class="text-sm font-black text-gray-900">--</span></div>
               </div>
           </div>
 
@@ -632,6 +633,7 @@
                     <ul class="space-y-3">
                         <li><strong class="text-blue-600">Beta:</strong> Sensitivity to broad market moves; above 1 means the stock has historically moved more than the market.</li>
                         <li><strong class="text-blue-600">Annualised Volatility:</strong> Annualised standard deviation of recent daily returns, showing the stock's realised price variability.</li>
+              <li><strong class="text-blue-600">Daily VaR (95%):</strong> One-day loss threshold expected to be exceeded on roughly 5% of trading days under the model's historical assumptions.</li>
                         <li><strong class="text-red-500">Short Interest:</strong> The percentage of available shares that are being shorted by hedge funds betting the price will fall.</li>
                         <li><strong class="text-blue-600">Dividend Yield:</strong> How much the company pays out in dividends each year relative to its share price.</li>
                         <li><strong class="text-blue-600">Net Debt/EBITDA or Net Cash:</strong> Balance-sheet leverage when debt exceeds cash; otherwise the net cash position is shown directly.</li>
@@ -923,7 +925,7 @@
 
             // --- NEW: SKELETON LOADER INJECTION ---
             const loaderHTML = `<div class="animate-pulse h-6 bg-gray-700 rounded w-3/4 mx-auto"></div>`;
-            const statBoxes = ["current-price", "pe-ratio", "market-cap", "fcf-yield", "sethi-score", "dcf-target", "gordon-growth", "graham-number", "beta", "dividend-yield", "ev-ebitda", "profit-margin", "roe", "stat-pe-pair", "stat-eps-pair", "stat-rev-growth", "stat-net-margin", "stat-vol", "stat-balance"];
+            const statBoxes = ["current-price", "pe-ratio", "market-cap", "fcf-yield", "sethi-score", "dcf-target", "gordon-growth", "graham-number", "beta", "dividend-yield", "ev-ebitda", "profit-margin", "roe", "stat-pe-pair", "stat-eps-pair", "stat-rev-growth", "stat-net-margin", "stat-vol", "stat-var", "stat-balance"];
             statBoxes.forEach(id => {
                 const element = _originalGetElementById.call(document, id); 
                 if (element) element.innerHTML = loaderHTML;
@@ -1095,6 +1097,8 @@
           injectText('stat-beta', data.stats.beta || 'N/A');
           const annualisedVolatility = asFiniteNumber(data.risk_profile?.annualized_volatility);
           injectText('stat-vol', Number.isFinite(annualisedVolatility) ? `${annualisedVolatility.toFixed(1)}%` : 'N/A');
+          const dailyVar95 = asFiniteNumber(data.risk_profile?.daily_var_95);
+          injectText('stat-var', Number.isFinite(dailyVar95) ? `${dailyVar95.toFixed(2)}%` : 'N/A');
           injectText('stat-short', data.stats.short_interest || 'N/A');
           injectText('stat-div', data.stats.div_yield || 'N/A');
 

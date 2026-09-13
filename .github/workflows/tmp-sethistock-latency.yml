@@ -1,0 +1,32 @@
+name: Temporary SethiStock latency check
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/tmp-sethistock-latency.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  latency:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Time representative stock analyses
+        shell: bash
+        run: |
+          set +e
+          API='https://sethistock-api.onrender.com'
+          for pass in 1 2; do
+            echo "===== PASS $pass ====="
+            for ticker in AAPL MSFT META NVDA PLTR V; do
+              curl -L -sS -o /dev/null --connect-timeout 10 --max-time 35 \
+                -w "$ticker http=%{http_code} start=%{time_starttransfer}s total=%{time_total}s\n" \
+                "$API/api/stock/$ticker" &
+            done
+            wait
+          done

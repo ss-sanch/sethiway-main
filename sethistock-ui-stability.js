@@ -15,7 +15,6 @@
         const ticker = normaliseTicker(value);
         return ticker === 'GOOG' ? 'GOOGL' : ticker;
     };
-    const validTicker = value => /^[A-Z0-9.^-]{1,20}$/.test(normaliseTicker(value));
 
     function ensureStyles() {
         if (document.getElementById('sethistock-stability-styles')) return;
@@ -144,18 +143,19 @@
         return fromState || fromDisplay;
     }
 
-    function analysisReadyFor(ticker) {
+    function analysisReady() {
         const button = document.getElementById('search-btn');
         const dashboard = document.getElementById('dashboard');
-        return currentStateTicker() === ticker && !button?.disabled && dashboard?.classList.contains('opacity-100');
+        return Boolean(currentStateTicker()) && !button?.disabled && dashboard?.classList.contains('opacity-100');
     }
 
-    function synchroniseDrivers(rawTicker, token) {
+    function synchroniseDrivers(resolvedTicker, token) {
+        const rawTicker = normaliseTicker(resolvedTicker);
         const driverTicker = canonicalDriverTicker(rawTicker);
         if (!DRIVER_SUPPORTED.has(driverTicker)) return;
 
         const apply = drivers => {
-            if (!drivers || token !== analysisWaitToken || !analysisReadyFor(rawTicker)) return;
+            if (!drivers || token !== analysisWaitToken || !analysisReady() || currentStateTicker() !== rawTicker) return;
             const statusText = document.getElementById('driver-status')?.textContent || '';
             if (drivers.ticker !== driverTicker || /waiting|temporarily unavailable/i.test(statusText)) {
                 drivers.load(driverTicker).catch(() => null);
@@ -171,14 +171,19 @@
         }
     }
 
-    function waitForCurrentAnalysis(ticker) {
+    function waitForCurrentAnalysis(requestedValue) {
         const token = ++analysisWaitToken;
         let attempts = 0;
         const poll = () => {
             if (token !== analysisWaitToken) return;
             attempts += 1;
-            if (analysisReadyFor(ticker)) {
-                synchroniseDrivers(ticker, token);
+            if (analysisReady()) {
+                const resolvedTicker = currentStateTicker();
+                expectedTicker = resolvedTicker;
+                if (DRIVER_SUPPORTED.has(canonicalDriverTicker(resolvedTicker))) {
+                    resetDriverSurface(resolvedTicker);
+                    synchroniseDrivers(resolvedTicker, token);
+                }
                 return;
             }
             if (attempts < 240) setTimeout(poll, 250);
@@ -193,11 +198,11 @@
         form.dataset.stabilityTickerGuard = '1';
 
         form.addEventListener('submit', () => {
-            const ticker = normaliseTicker(input?.value);
-            if (!validTicker(ticker)) return;
-            expectedTicker = ticker;
-            resetDriverSurface(ticker);
-            waitForCurrentAnalysis(ticker);
+            const requested = normaliseTicker(input?.value);
+            if (!requested) return;
+            expectedTicker = requested;
+            resetDriverSurface(requested);
+            waitForCurrentAnalysis(requested);
         }, true);
 
         document.addEventListener('click', event => {
@@ -216,18 +221,20 @@
         });
 
         // If an old async Driver request tries to repaint while a new stock is loading,
-        // keep the stale surface hidden until the Driver module adopts the expected ticker.
+        // keep the stale surface hidden until the Driver module adopts the resolved ticker.
         const guard = setInterval(() => {
             if (!expectedTicker) return;
             const drivers = window.SethiStockCompanyDrivers;
             const section = document.getElementById('company-drivers');
             if (!drivers || !section) return;
-            const expectedDriverTicker = canonicalDriverTicker(expectedTicker);
-            if (drivers.ticker && drivers.ticker !== expectedDriverTicker) {
+
+            const guardTicker = analysisReady() ? currentStateTicker() : expectedTicker;
+            const expectedDriverTicker = canonicalDriverTicker(guardTicker);
+            if (DRIVER_SUPPORTED.has(expectedDriverTicker) && drivers.ticker && drivers.ticker !== expectedDriverTicker) {
                 const grid = document.getElementById('driver-chart-grid');
-                if (grid && !grid.classList.contains('hidden')) resetDriverSurface(expectedTicker);
+                if (grid && !grid.classList.contains('hidden')) resetDriverSurface(guardTicker);
             }
-            if (analysisReadyFor(expectedTicker) && drivers.ticker === expectedDriverTicker) {
+            if (analysisReady() && drivers.ticker === canonicalDriverTicker(currentStateTicker())) {
                 expectedTicker = '';
             }
         }, 300);

@@ -1,0 +1,57 @@
+name: Temporary Phase 4A Insights live proof
+
+on:
+  push:
+    branches: [proof-phase4a-insights-live]
+
+permissions:
+  contents: read
+
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify deployed Insights panel and AAPL data
+        run: |
+          python - <<'PY'
+          import json, time, urllib.request
+
+          page_url='https://sethiway.com/sethistock.html'
+          html=''
+          for attempt in range(18):
+              req=urllib.request.Request(page_url,headers={'User-Agent':'SethiStock Phase4A proof'})
+              with urllib.request.urlopen(req,timeout=30) as r:
+                  html=r.read().decode('utf-8','replace')
+              if all(x in html for x in ('Valuation & Quality','stat-pe-pair','Revenue Growth','Risk & Capital','stat-balance')):
+                  break
+              time.sleep(10)
+          else:
+              raise AssertionError('New Insights & Stats markup not deployed yet')
+          print('PHASE4A_UI_DEPLOYED_OK')
+
+          api='https://sethistock-api.onrender.com/api/stock/AAPL'
+          req=urllib.request.Request(api,headers={'User-Agent':'SethiStock Phase4A proof'})
+          with urllib.request.urlopen(req,timeout=90) as r:
+              data=json.load(r)
+          stats=data.get('stats') or {}
+          financials=data.get('financials') or {}
+          ttm_pe=float(stats['pe'])
+          ttm_eps=float(stats['eps'])
+          ntm_eps=float(stats['forward_eps'])
+          price=float(data['current_price'])
+          ntm_pe=price/ntm_eps
+          rev=[float(x) for x in (financials.get('revenue') or []) if float(x)>0]
+          rev_growth=((rev[-1]/rev[-2])-1)*100
+          net_margin=float((data.get('dupont_analysis') or {})['net_profit_margin'])
+          debt=float((financials.get('debt') or [0])[-1])
+          cash=float((financials.get('cash') or [0])[-1])
+          print('AAPL_INSIGHTS_VALUES='+json.dumps({
+              'ttm_pe':round(ttm_pe,2),'ntm_pe':round(ntm_pe,2),
+              'ttm_eps':round(ttm_eps,2),'ntm_eps':round(ntm_eps,2),
+              'revenue_growth_pct':round(rev_growth,1),
+              'net_margin_pct':round(net_margin,1),
+              'net_debt':round(debt-cash,2)
+          },separators=(',',':')))
+          assert ntm_pe>0 and len(rev)>=2
+          print('PHASE4A_AAPL_DATA_OK')
+          PY

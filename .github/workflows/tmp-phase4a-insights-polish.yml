@@ -30,15 +30,7 @@ jobs:
               assert count == 1, f'{label}: expected 1 match, found {count}'
               text = text.replace(old, new, 1)
 
-          replace_once('''                        <div class="flex flex-col items-center justify-center p-3 bg-gray-50 rounded-xl border border-gray-200 hidden md:flex">
-                            <div class="flex items-center space-x-1">
-                                <span class="text-[10px] text-gray-400 font-bold tracking-widest uppercase">Sethi Score</span>
-                                <button onclick="toggleModal('score-modal')" class="text-gray-400 hover:text-blue-600 transition-colors" title="Learn about the Sethi Score">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                </button>
-                            </div>
-                            <span id="sethi-score" class="text-3xl font-black mt-1">0/100</span>
-                        </div>''', '''                        <button type="button" onclick="toggleModal('score-modal')" aria-label="Open Sethi Score breakdown" title="View Sethi Score breakdown" class="group flex flex-col items-center justify-center p-3 bg-gray-50 rounded-xl border border-gray-200 hidden md:flex cursor-pointer transition-all hover:bg-blue-50/70 hover:border-blue-300 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200">
+          score_replacement = '''<button type="button" onclick="toggleModal('score-modal')" aria-label="Open Sethi Score breakdown" title="View Sethi Score breakdown" class="group flex flex-col items-center justify-center p-3 bg-gray-50 rounded-xl border border-gray-200 hidden md:flex cursor-pointer transition-all hover:bg-blue-50/70 hover:border-blue-300 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200">
                             <div class="flex items-center space-x-1">
                                 <span class="text-[10px] text-gray-400 group-hover:text-blue-600 font-bold tracking-widest uppercase transition-colors">Sethi Score</span>
                                 <span class="text-gray-400 group-hover:text-blue-600 transition-colors" aria-hidden="true">
@@ -47,7 +39,10 @@ jobs:
                             </div>
                             <span id="sethi-score" class="text-3xl font-black mt-1">0/100</span>
                             <span class="mt-0.5 text-[9px] font-black uppercase tracking-widest text-blue-600 opacity-75 group-hover:opacity-100 transition-opacity">View breakdown</span>
-                        </button>''', 'Sethi Score button')
+                        </button>'''
+          score_pattern = re.compile(r'<div class="flex flex-col items-center justify-center p-3 bg-gray-50 rounded-xl border border-gray-200 hidden md:flex">.*?<span id="sethi-score" class="text-3xl font-black mt-1">0/100</span>\s*</div>', re.S)
+          text, count = score_pattern.subn(score_replacement, text, count=1)
+          assert count == 1, f'Sethi Score button: expected 1 match, found {count}'
 
           replace_once('''            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col relative h-full">''', '''            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col relative self-start h-fit">''', 'Insights card height')
           replace_once('''                <div class="flex-grow flex flex-col justify-between space-y-4">''', '''                <div class="flex flex-col space-y-5">''', 'Insights spacing')

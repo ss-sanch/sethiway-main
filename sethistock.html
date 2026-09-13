@@ -144,7 +144,7 @@
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col relative h-full">
                 <h3 class="text-xl font-black text-gray-900 mb-6 flex items-center justify-between">
                     Insights & Stats
-                    <button onclick="toggleModal('stats-modal')" class="text-gray-400 hover:text-blue-600 transition z-10 cursor-pointer">
+                    <button onclick="toggleModal('stats-modal')" aria-label="Explain Insights and Stats" title="Explain Insights & Stats" class="text-gray-400 hover:text-blue-600 transition z-10 cursor-pointer">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </button>
                 </h3>
@@ -610,59 +610,70 @@
     </div>
 
     <div id="stats-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-3xl w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 overflow-y-auto max-h-[90vh]">
-            <div class="flex justify-between items-center mb-6 border-b pb-4">
-                <h2 class="text-2xl font-black text-gray-900">Quantitative Terminal Glossary</h2>
-                <button onclick="toggleModal('stats-modal')" class="text-gray-400 hover:text-red-500 text-3xl leading-none">&times;</button>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-gray-700 leading-relaxed">
+        <div class="bg-white rounded-2xl shadow-2xl p8 max-w-4xl w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-start gap-6 mb-6 border-b pb-4">
                 <div>
-                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-200 pb-2 mb-3">Valuation & Quality</h4>
-                    <ul class="space-y-3">
-                        <li><strong class="text-blue-600">Market Cap:</strong> The total market value of the company's outstanding shares.</li>
-                        <li><strong class="text-blue-600">EV/EBITDA:</strong> Compares a company's total value (including debt) to its raw cash earnings. The gold standard of valuation.</li>
-                        <li><strong class="text-blue-600">P/E (TTM | NTM):</strong> Trailing versus forward earnings valuation, showing how expected earnings change the multiple.</li>
-                        <li><strong class="text-blue-600">Revenue Growth & Net Margin:</strong> Shows top-line momentum alongside the share of revenue retained as profit.</li>
-                        <li><strong class="text-blue-600">ROE & FCF Yield:</strong> Capital efficiency paired with cash generation relative to market value.</li>
-                        <li><strong class="text-blue-600">EPS (TTM):</strong> Earnings Per Share. The portion of a company's profit allocated to each outstanding share over the last 12 months.</li>
-                        <li><strong class="text-blue-600">Forward EPS:</strong> Wall Street analysts' consensus estimate of what the company's Earnings Per Share will be over the next 12 months.</li>
-                    </ul>
-
-                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-200 pb-2 mt-6 mb-3">Risk & Capital</h4>
-                    <ul class="space-y-3">
-                        <li><strong class="text-blue-600">Beta:</strong> Sensitivity to broad market moves; above 1 means the stock has historically moved more than the market.</li>
-                        <li><strong class="text-blue-600">Annualised Volatility:</strong> Annualised standard deviation of recent daily returns, showing the stock's realised price variability.</li>
-              <li><strong class="text-blue-600">Daily VaR (95%):</strong> One-day loss threshold expected to be exceeded on roughly 5% of trading days under the model's historical assumptions.</li>
-                        <li><strong class="text-red-500">Short Interest:</strong> The percentage of available shares that are being shorted by hedge funds betting the price will fall.</li>
-                        <li><strong class="text-blue-600">Dividend Yield:</strong> How much the company pays out in dividends each year relative to its share price.</li>
-                        <li><strong class="text-blue-600">Net Debt/EBITDA or Net Cash:</strong> Balance-sheet leverage when debt exceeds cash; otherwise the net cash position is shown directly.</li>
-                    </ul>
+                    <h2 class="text-2xl font-black text-gray-900">Insights & Stats Guide</h2>
+                    <p class="text-sm text-gray-500 mt-1">A quick guide to the valuation, momentum, risk and catalyst metrics in the company snapshot.</p>
                 </div>
-                
-                <div>
-                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-200 pb-2 mb-3">Technicals & Momentum</h4>
-                    <ul class="space-y-3">
-                        <li><strong class="text-blue-600">14d RSI:</strong> Relative Strength Index. A momentum oscillator ranging from 0-100. >70 is historically "Overbought", <30 is "Oversold".</li>
-                        <li><strong class="text-blue-600">Stochastic:</strong> Compares a particular closing price to a range of its prices over a period of time to predict trend reversals.</li>
-                        <li><strong class="text-blue-600">vs 200D MA:</strong> How far the current price has strayed from its 200-day Simple Moving Average (the baseline trend of the stock).</li>
-                        <li><strong class="text-blue-600">vs 52W High:</strong> Shows immediate upside required to break out into new yearly highs.</li>
-                    </ul>
-
-                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-200 pb-2 mt-6 mb-3">Catalysts</h4>
-                    <ul class="space-y-3">
-                        <li><strong class="text-purple-600">Next Earnings:</strong> The estimated reporting date, with a relative timing chip showing how far away it is or how long ago the supplied date passed.</li>
-                        <li><strong class="text-purple-600">Ex-Dividend:</strong> You must own the stock before this date to receive the upcoming dividend payout.</li>
-                    </ul>
-                </div>
+                <button onclick="toggleModal('stats-modal')" aria-label="Close Insights and Stats guide" class="text-gray-400 hover:text-red-500 text-3xl leading-none">&times;</button>
             </div>
 
-            <div class="mt-8 pt-4 text-center border-t border-gray-100">
-                <button onclick="toggleModal('stats-modal')" class="bg-gray-900 text-white font-bold py-2 px-8 rounded-lg hover:bg-gray-700 transition">Understood</button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-700 leading-relaxed">
+                <section class="rounded-xl border border-gray-200 p-5">
+                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Valuation & Quality</h4>
+                    <ul class="space-y-3">
+                        <li><strong class="text-blue-600">Market Cap:</strong> Total equity market value of the company.</li>
+                        <li><strong class="text-blue-600">EV/EBITDA:</strong> Enterprise value relative to EBITDA, allowing valuation comparisons with less distortion from capital structure.</li>
+                        <li><strong class="text-blue-600">P/E (TTM | NTM):</strong> Share price relative to trailing earnings versus expected next-twelve-month earnings.</li>
+                        <li><strong class="text-blue-600">EPS (TTM | NTM):</strong> Earnings per share generated over the last twelve months versus the forward consensus estimate.</li>
+                        <li><strong class="text-blue-600">Revenue Growth:</strong> Latest annual revenue growth versus the preceding annual period.</li>
+                        <li><strong class="text-blue-600">Net Margin:</strong> Percentage of revenue retained as net profit.</li>
+                        <li><strong class="text-blue-600">ROE:</strong> Net income generated relative to shareholder equity.</li>
+                        <li><strong class="text-blue-600">FCF Yield:</strong> Free cash flow relative to market value; a higher figure means more cash generation for each unit of equity value.</li>
+                    </ul>
+                </section>
+
+                <section class="rounded-xl border border-gray-200 p-5">
+                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Technicals & Momentum</h4>
+                    <ul class="space-y-3">
+                        <li><strong class="text-blue-600">14d RSI:</strong> Relative Strength Index over 14 periods; readings above 70 are commonly viewed as overbought and below 30 as oversold.</li>
+                        <li><strong class="text-blue-600">Stochastic:</strong> Compares the latest close with the recent trading range to indicate momentum and potential turning points.</li>
+                        <li><strong class="text-blue-600">vs 200D MA:</strong> Percentage distance between the current share price and its 200-day moving average.</li>
+                        <li><strong class="text-blue-600">vs 52W High:</strong> Percentage distance from the highest share price recorded over the last 52 weeks.</li>
+                    </ul>
+                </section>
+
+                <section class="rounded-xl border border-gray-200 p-5">
+                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Risk & Capital</h4>
+                    <ul class="space-y-3">
+                        <li><strong class="text-blue-600">Beta:</strong> Historical sensitivity to broad market moves; above 1 indicates greater market sensitivity.</li>
+                        <li><strong class="text-blue-600">Annualised Volatility:</strong> Annualised standard deviation of recent daily returns, measuring realised price variability.</li>
+                        <li><strong class="text-blue-600">Daily VaR (95%):</strong> Estimated one-day loss threshold expected to be exceeded on roughly 5% of trading days under the model assumptions.</li>
+                        <li><strong class="text-red-500">Short Interest:</strong> Percentage of available shares currently sold short.</li>
+                        <li><strong class="text-blue-600">Dividend Yield:</strong> Annual dividend income relative to the current share price.</li>
+                        <li><strong class="text-blue-600">Net Debt/EBITDA / Net Cash:</strong> Shows leverage relative to EBITDA when debt exceeds cash; otherwise the company's net cash position is displayed.</li>
+                    </ul>
+                </section>
+
+                <section class="rounded-xl border border-gray-200 p-5">
+                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Catalysts</h4>
+                    <ul class="space-y-3">
+                        <li><strong class="text-purple-600">Next Earnings</strong>: Estimated next earnings-release date. BMO means before market open; AMC means after market close.</li>
+                        <li><strong class="text-purple-600">Ex-Dividend:</strong> Date from which new buyers are no longer entitled to the upcoming dividend.</li>
+                        <li><strong class="text-purple-600">Timing Chip:</strong> Shows the number of days until the supplied catalyst date, or how many days ago it passed.</li>
+                    </ul>
+                    <div class="mt-5 rounded-lg bg-amber-50 border border-amber-100 px-4 py-3 text-xs text-amber-800">
+                        Catalyst dates can come from third-party market data and may occasionally be stale. A past-date chip makes that visible rather than hiding it.
+                    </div>
+                </section>
+            </div>
+
+            <div class="mt-7 pt-4 text-center border-t border-gray-100">
+                <button onclick="toggleModal('stats-modal')" class="bg-gray-900 text-white font-bold py-2 px-8 rounded-lg hover:bg-gray-700 transition">Close Guide</button>
             </div>
         </div>
     </div>
-    
 
     <div id="football-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
         <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 overflow-y-auto max-h-[90vh]">

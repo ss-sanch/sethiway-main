@@ -99,15 +99,16 @@
                         <p class="text-sm font-bold text-gray-400 uppercase tracking-widest mt-1">Live Market Data</p>
                     </div>
                     <div class="text-right mt-6 md:mt-0 flex items-center space-x-6">
-                        <div class="flex flex-col items-center justify-center p-3 bg-gray-50 rounded-xl border border-gray-200 hidden md:flex">
-                            <div class="flex items-center space-x-1">
-                                <span class="text-[10px] text-gray-400 font-bold tracking-widest uppercase">Sethi Score</span>
-                                <button onclick="toggleModal('score-modal')" class="text-gray-400 hover:text-blue-600 transition-colors" title="Learn about the Sethi Score">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                </button>
-                            </div>
-                            <span id="sethi-score" class="text-3xl font-black mt-1">0/100</span>
-                        </div>
+                        <button type="button" onclick="toggleModal('score-modal')" aria-label="Open Sethi Score breakdown" title="View Sethi Score breakdown" class="group flex flex-col items-center justify-center p-3 bg-gray-50 rounded-xl border border-gray-200 hidden md:flex cursor-pointer transition-all hover:bg-blue-50/70 hover:border-blue-300 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200">
+                  <div class="flex items-center space-x-1">
+                      <span class="text-[10px] text-gray-400 group-hover:text-blue-600 font-bold tracking-widest uppercase transition-colors">Sethi Score</span>
+                      <span class="text-gray-400 group-hover:text-blue-600 transition-colors" aria-hidden="true">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 18l6-6-6-6" /></svg>
+                      </span>
+                  </div>
+                  <span id="sethi-score" class="text-3xl font-black mt-1">0/100</span>
+                  <span class="mt-0.5 text-[9px] font-black uppercase tracking-widest text-blue-600 opacity-75 group-hover:opacity-100 transition-opacity">View breakdown</span>
+              </button>
                         <div>
                             <h1 id="display-price" class="text-6xl font-light mb-2">$0.00</h1>
                             <div class="flex items-center justify-end space-x-3">
@@ -140,7 +141,7 @@
             </div>
 
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col relative h-full">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col relative self-start h-fit">
                 <h3 class="text-xl font-black text-gray-900 mb-6 flex items-center justify-between">
                     Insights & Stats
                     <button onclick="toggleModal('stats-modal')" class="text-gray-400 hover:text-blue-600 transition z-10 cursor-pointer">
@@ -148,7 +149,7 @@
                     </button>
                 </h3>
                 
-                <div class="flex-grow flex flex-col justify-between space-y-4">
+                <div class="flex flex-col space-y-5">
           <div>
               <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-2.5">Valuation & Quality</h4>
               <div class="grid grid-cols-2 gap-x-7 gap-y-2 px-1">
@@ -177,17 +178,18 @@
               <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-2.5">Risk & Capital</h4>
               <div class="grid grid-cols-2 gap-x-7 gap-y-2 px-1">
                   <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Beta</span><span id="stat-beta" class="text-sm font-black text-gray-900">--</span></div>
+                  <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Ann. Volatility</span><span id="stat-vol" class="text-sm font-black text-gray-900">--</span></div>
                   <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-red-500">Short Interest</span><span id="stat-short" class="text-sm font-black text-red-600">--</span></div>
                   <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Dividend Yield</span><span id="stat-div" class="text-sm font-black text-gray-900">--</span></div>
-                  <div class="flex justify-between items-center py-1"><span id="stat-balance-label" class="text-sm font-bold text-gray-500">Net Debt/EBITDA</span><span id="stat-balance" class="text-sm font-black text-gray-900">--</span></div>
+                  <div class="col-span-2 flex justify-between items-center py-1"><span id="stat-balance-label" class="text-sm font-bold text-gray-500">Net Debt/EBITDA</span><span id="stat-balance" class="text-sm font-black text-gray-900">--</span></div>
               </div>
           </div>
 
           <div>
               <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-2.5">Catalysts</h4>
               <div class="grid grid-cols-2 gap-x-7 gap-y-2 px-1">
-                  <div class="py-1 min-w-0"><div class="flex justify-between items-center gap-2"><span class="text-sm font-bold text-purple-600">Next Earnings</span><span id="stat-earn" class="text-sm font-black text-gray-900 text-right">--</span></div><p id="stat-earn-countdown" class="text-[10px] font-bold text-gray-400 text-right mt-0.5"></p></div>
-                  <div class="py-1 min-w-0"><div class="flex justify-between items-center gap-2"><span class="text-sm font-bold text-purple-600">Ex-Dividend</span><span id="stat-exdiv" class="text-sm font-black text-gray-900 text-right">--</span></div><p id="stat-exdiv-countdown" class="text-[10px] font-bold text-gray-400 text-right mt-0.5"></p></div>
+                  <div class="py-1 min-w-0"><div class="flex justify-between items-center gap-2"><span class="text-sm font-bold text-purple-600">Next Earnings</span><span class="inline-flex items-center gap-1.5"><span id="stat-earn" class="text-sm font-black text-gray-900 text-right">--</span><span id="stat-earn-countdown" class="hidden px-1.5 py-0.5 rounded-full bg-purple-50 text-[9px] font-black text-purple-700 whitespace-nowrap"></span></span></div></div>
+                  <div class="py-1 min-w-0"><div class="flex justify-between items-center gap-2"><span class="text-sm font-bold text-purple-600">Ex-Dividend</span><span class="inline-flex items-center gap-1.5"><span id="stat-exdiv" class="text-sm font-black text-gray-900 text-right">--</span><span id="stat-exdiv-countdown" class="hidden px-1.5 py-0.5 rounded-full bg-purple-50 text-[9px] font-black text-purple-700 whitespace-nowrap"></span></span></div></div>
               </div>
           </div>
       </div>
@@ -626,12 +628,13 @@
                         <li><strong class="text-blue-600">Forward EPS:</strong> Wall Street analysts' consensus estimate of what the company's Earnings Per Share will be over the next 12 months.</li>
                     </ul>
 
-                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-200 pb-2 mt-6 mb-3">Risk & Yield</h4>
+                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-200 pb-2 mt-6 mb-3">Risk & Capital</h4>
                     <ul class="space-y-3">
-                        <li><strong class="text-blue-600">Beta:</strong> A measure of volatility. A Beta > 1 means the stock is more volatile than the S&P 500; < 1 means it is less volatile.</li>
+                        <li><strong class="text-blue-600">Beta:</strong> Sensitivity to broad market moves; above 1 means the stock has historically moved more than the market.</li>
+                        <li><strong class="text-blue-600">Annualised Volatility:</strong> Annualised standard deviation of recent daily returns, showing the stock's realised price variability.</li>
                         <li><strong class="text-red-500">Short Interest:</strong> The percentage of available shares that are being shorted by hedge funds betting the price will fall.</li>
                         <li><strong class="text-blue-600">Dividend Yield:</strong> How much the company pays out in dividends each year relative to its share price.</li>
-                        <li><strong class="text-green-600">FCF Yield:</strong> Free Cash Flow Yield. High numbers indicate the company is generating massive cash relative to its valuation.</li>
+                        <li><strong class="text-blue-600">Net Debt/EBITDA or Net Cash:</strong> Balance-sheet leverage when debt exceeds cash; otherwise the net cash position is shown directly.</li>
                     </ul>
                 </div>
                 
@@ -640,13 +643,13 @@
                     <ul class="space-y-3">
                         <li><strong class="text-blue-600">14d RSI:</strong> Relative Strength Index. A momentum oscillator ranging from 0-100. >70 is historically "Overbought", <30 is "Oversold".</li>
                         <li><strong class="text-blue-600">Stochastic:</strong> Compares a particular closing price to a range of its prices over a period of time to predict trend reversals.</li>
-                        <li><strong class="text-blue-600">% From 200MA:</strong> How far the current price has strayed from its 200-day Simple Moving Average (the baseline trend of the stock).</li>
-                        <li><strong class="text-blue-600">% From 52W High:</strong> Shows immediate upside required to break out into new yearly highs.</li>
+                        <li><strong class="text-blue-600">vs 200D MA:</strong> How far the current price has strayed from its 200-day Simple Moving Average (the baseline trend of the stock).</li>
+                        <li><strong class="text-blue-600">vs 52W High:</strong> Shows immediate upside required to break out into new yearly highs.</li>
                     </ul>
 
                     <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-200 pb-2 mt-6 mb-3">Catalysts</h4>
                     <ul class="space-y-3">
-                        <li><strong class="text-purple-600">Next Earnings:</strong> The estimated date the company will report quarterly financials, driving major price volatility.</li>
+                        <li><strong class="text-purple-600">Next Earnings:</strong> The estimated reporting date, with a relative timing chip showing how far away it is or how long ago the supplied date passed.</li>
                         <li><strong class="text-purple-600">Ex-Dividend:</strong> You must own the stock before this date to receive the upcoming dividend payout.</li>
                     </ul>
                 </div>
@@ -920,7 +923,7 @@
 
             // --- NEW: SKELETON LOADER INJECTION ---
             const loaderHTML = `<div class="animate-pulse h-6 bg-gray-700 rounded w-3/4 mx-auto"></div>`;
-            const statBoxes = ["current-price", "pe-ratio", "market-cap", "fcf-yield", "sethi-score", "dcf-target", "gordon-growth", "graham-number", "beta", "dividend-yield", "ev-ebitda", "profit-margin", "roe", "stat-pe-pair", "stat-eps-pair", "stat-rev-growth", "stat-net-margin", "stat-balance"];
+            const statBoxes = ["current-price", "pe-ratio", "market-cap", "fcf-yield", "sethi-score", "dcf-target", "gordon-growth", "graham-number", "beta", "dividend-yield", "ev-ebitda", "profit-margin", "roe", "stat-pe-pair", "stat-eps-pair", "stat-rev-growth", "stat-net-margin", "stat-vol", "stat-balance"];
             statBoxes.forEach(id => {
                 const element = _originalGetElementById.call(document, id); 
                 if (element) element.innerHTML = loaderHTML;
@@ -997,7 +1000,10 @@
                 
                 const changeEl = document.getElementById('display-change');
                 const pctEl = document.getElementById('display-pct');
-                changeEl.innerText = data.change > 0 ? `+${data.change.toFixed(2)}` : data.change.toFixed(2);
+                const displayedPriceText = document.getElementById('display-price').innerText;
+      const quoteCurrencySymbol = (displayedPriceText.match(/^[^\d+\-.,\s]+/) || ['$'])[0];
+      const absDailyChange = Math.abs(Number(data.change) || 0).toFixed(2);
+      changeEl.innerText = data.change > 0 ? `+${quoteCurrencySymbol}${absDailyChange}` : (data.change < 0 ? `-${quoteCurrencySymbol}${absDailyChange}` : `${quoteCurrencySymbol}${absDailyChange}`);
                 pctEl.innerText = data.change > 0 ? `+${data.pct_change.toFixed(2)}%` : `${data.pct_change.toFixed(2)}%`;
                 changeEl.className = data.change >= 0 ? "text-xl font-semibold text-green-600" : "text-xl font-semibold text-red-600";
                 pctEl.className = data.change >= 0 ? "px-3 py-1 text-sm font-bold text-white rounded-full bg-green-500" : "px-3 py-1 text-sm font-bold text-white rounded-full bg-red-500";
@@ -1087,6 +1093,8 @@
           injectText('stat-52w', data.stats.dist_52w_high || 'N/A');
 
           injectText('stat-beta', data.stats.beta || 'N/A');
+          const annualisedVolatility = asFiniteNumber(data.risk_profile?.annualized_volatility);
+          injectText('stat-vol', Number.isFinite(annualisedVolatility) ? `${annualisedVolatility.toFixed(1)}%` : 'N/A');
           injectText('stat-short', data.stats.short_interest || 'N/A');
           injectText('stat-div', data.stats.div_yield || 'N/A');
 
@@ -1097,13 +1105,16 @@
               if (!el) return;
               const textValue = String(rawValue || '').trim();
               const parsed = Date.parse(textValue.replace(/\b(BMO|AMC)\b/gi, '').trim());
-              if (!Number.isFinite(parsed)) { el.innerText = ''; return; }
+              if (!Number.isFinite(parsed)) { el.innerText = ''; el.classList.add('hidden'); return; }
               const today = new Date();
               today.setHours(0, 0, 0, 0);
               const target = new Date(parsed);
               target.setHours(0, 0, 0, 0);
-              const days = Math.ceil((target - today) / 86400000);
-              el.innerText = days > 0 ? `in ${days} day${days === 1 ? '' : 's'}` : days === 0 ? 'today' : '';
+              const days = Math.round((target - today) / 86400000);
+              if (days > 0) el.innerText = `in ${days}d`;
+              else if (days === 0) el.innerText = 'today';
+              else el.innerText = `${Math.abs(days)}d ago`;
+              el.classList.remove('hidden');
           };
           setCatalystCountdown('stat-earn-countdown', data.stats.next_earnings);
           setCatalystCountdown('stat-exdiv-countdown', data.stats.next_dividend);

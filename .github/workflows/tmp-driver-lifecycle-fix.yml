@@ -1,0 +1,119 @@
+name: Temporary Company Driver lifecycle patch
+
+on:
+  push:
+    branches: [fix-driver-lifecycle-remove-reported]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix-driver-lifecycle-remove-reported
+          fetch-depth: 0
+      - name: Replace polling with explicit analysis lifecycle
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          # 1) Main SethiStock analysis owns one explicit lifecycle + sequence.
+          path = Path('sethistock.html')
+          text = path.read_text()
+          old = """        document.getElementById('search-form').addEventListener('submit', async (e) => {\n            e.preventDefault();\n            state.ticker = document.getElementById('ticker-input').value.trim().toUpperCase();\n"""
+          new = """        document.getElementById('search-form').addEventListener('submit', async (e) => {\n            e.preventDefault();\n            const analysisSequence = (Number(window.__sethiStockAnalysisSequence) || 0) + 1;\n            window.__sethiStockAnalysisSequence = analysisSequence;\n            state.ticker = document.getElementById('ticker-input').value.trim().toUpperCase();\n            window.__sethiStockLastAnalysisReady = null;\n            window.dispatchEvent(new CustomEvent('sethistock:analysis-start', { detail: { ticker: state.ticker, sequence: analysisSequence } }));\n"""
+          assert text.count(old) == 1, text.count(old)
+          text = text.replace(old, new)
+
+          old = """                    .then((quoteData) => {\n                        if (!quoteData || fullAnalysisReady) return;\n"""
+          new = """                    .then((quoteData) => {\n                        if (!quoteData || fullAnalysisReady || analysisSequence !== window.__sethiStockAnalysisSequence) return;\n"""
+          assert text.count(old) == 1, text.count(old)
+          text = text.replace(old, new)
+
+          old = """                const data = await fullDataPromise;\n                fullAnalysisReady = true;\n"""
+          new = """                const data = await fullDataPromise;\n                if (analysisSequence !== window.__sethiStockAnalysisSequence) return;\n                fullAnalysisReady = true;\n"""
+          assert text.count(old) == 1, text.count(old)
+          text = text.replace(old, new)
+
+          old = """                state.fcf = data.fcf; state.shares = data.shares; state.price = data.current_price; \n                state.stats = data.stats;\n                \n                calibrateMacroBridge();\n"""
+          new = """                state.fcf = data.fcf; state.shares = data.shares; state.price = data.current_price; \n                state.stats = data.stats;\n                window.__sethiStockLastAnalysisReady = { ticker: state.ticker, sequence: analysisSequence };\n                window.dispatchEvent(new CustomEvent('sethistock:analysis-ready', { detail: { ticker: state.ticker, sequence: analysisSequence } }));\n                \n                calibrateMacroBridge();\n"""
+          assert text.count(old) == 1, text.count(old)
+          text = text.replace(old, new)
+
+          old = """            } finally {\n                btn.innerHTML = 'Analyse'; btn.disabled = false;\n            }\n"""
+          new = """            } finally {\n                if (analysisSequence === window.__sethiStockAnalysisSequence) {\n                    btn.innerHTML = 'Analyse'; btn.disabled = false;\n                }\n            }\n"""
+          assert text.count(old) == 1, text.count(old)
+          text = text.replace(old, new)
+          path.write_text(text)
+
+          # 2) Company Drivers listens to lifecycle events; no polling; only Q + Annual visible.
+          path = Path('sethistock-company-drivers.js')
+          text = path.read_text()
+          text = text.replace("const PERIODS = ['quarterly', 'annual', 'reported'];", "const PERIODS = ['quarterly', 'annual'];")
+          text = text.replace("    let prefetchGeneration = 0;\n", "    let prefetchGeneration = 0;\n    let lifecycleSequence = 0;\n")
+          reported_button = "                        <button type=\"button\" class=\"driver-period-btn px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-bold rounded-md text-gray-600 transition\" data-driver-period=\"reported\">Reported</button>\n"
+          assert reported_button in text
+          text = text.replace(reported_button, '')
+          old = """        const run = async () => {\n            if (generation !== prefetchGeneration || activeTicker !== ticker) return;\n            await prefetchPeriod(ticker, registry, coverage, 'annual', generation);\n            if (generation !== prefetchGeneration || activeTicker !== ticker) return;\n            await prefetchPeriod(ticker, registry, coverage, 'reported', generation);\n        };\n"""
+          new = """        const run = async () => {\n            if (generation !== prefetchGeneration || activeTicker !== ticker) return;\n            await prefetchPeriod(ticker, registry, coverage, 'annual', generation);\n        };\n"""
+          assert text.count(old) == 1, text.count(old)
+          text = text.replace(old, new)
+          text = text.replace("// Quarterly is the visible default. Hydrate Annual (then Reported) quietly\n", "// Quarterly is the visible default. Hydrate Annual quietly\n")
+
+          pattern = re.compile(r"\n    function waitForMainAnalysis\(requestedValue\) \{.*?\n    \}\n\n    function boot\(\) \{.*?\n    \}\n\n    window\.SethiStockCompanyDrivers", re.S)
+          replacement = r'''\n    function boot() {\n        ensureUI();\n        if (!window.__sethiStockCompanyDriversLifecycleBound) {\n            window.__sethiStockCompanyDriversLifecycleBound = true;\n            window.addEventListener('sethistock:analysis-start', event => {\n                const sequence = Number(event?.detail?.sequence || 0);\n                if (sequence) lifecycleSequence = Math.max(lifecycleSequence, sequence);\n            });\n            window.addEventListener('sethistock:analysis-ready', event => {\n                const sequence = Number(event?.detail?.sequence || 0);\n                if (sequence && sequence < lifecycleSequence) return;\n                if (sequence) lifecycleSequence = sequence;\n                const ticker = event?.detail?.ticker || resolvedTicker();\n                if (ticker) loadCompanyDrivers(ticker).catch(() => null);\n            });\n        }\n\n        // If this module finished loading just after the analysis-ready event fired,\n        // adopt the latest successful analysis immediately instead of polling UI state.\n        const lastReady = window.__sethiStockLastAnalysisReady;\n        if (lastReady?.ticker) {\n            const sequence = Number(lastReady.sequence || 0);\n            if (!sequence || sequence >= lifecycleSequence) {\n                if (sequence) lifecycleSequence = sequence;\n                queueMicrotask(() => loadCompanyDrivers(lastReady.ticker).catch(() => null));\n            }\n        }\n    }\n\n    window.SethiStockCompanyDrivers'''
+          text, count = pattern.subn(replacement, text, count=1)
+          assert count == 1, count
+          path.write_text(text)
+
+          # 3) Stability layer only resets stale surfaces; it no longer decides analysis completion.
+          path = Path('sethistock-ui-stability.js')
+          text = path.read_text()
+          text = text.replace("    let analysisWaitToken = 0;\n", "    let latestAnalysisSequence = 0;\n")
+          pattern = re.compile(r"\n    function synchroniseDrivers\(resolvedTicker, token\) \{.*?\n    \}\n\n    function waitForCurrentAnalysis\(requestedValue\) \{.*?\n    \}\n", re.S)
+          text, count = pattern.subn('\n', text, count=1)
+          assert count == 1, count
+
+          old = """    function bindTickerTransitionGuard() {\n        const form = document.getElementById('search-form');\n        const input = document.getElementById('ticker-input');\n        if (!form || form.dataset.stabilityTickerGuard === '1') return;\n        form.dataset.stabilityTickerGuard = '1';\n\n        form.addEventListener('submit', () => {\n            const requested = normaliseTicker(input?.value);\n            if (!requested) return;\n            expectedTicker = requested;\n            resetDriverSurface(requested);\n            waitForCurrentAnalysis(requested);\n        }, true);\n\n"""
+          new = """    function bindTickerTransitionGuard() {\n        if (window.__sethiStockDriverLifecycleGuardBound) return;\n        window.__sethiStockDriverLifecycleGuardBound = true;\n\n        window.addEventListener('sethistock:analysis-start', event => {\n            const sequence = Number(event?.detail?.sequence || 0);\n            if (sequence) latestAnalysisSequence = sequence;\n            const requested = normaliseTicker(event?.detail?.ticker);\n            if (!requested) return;\n            expectedTicker = requested;\n            resetDriverSurface(requested);\n        });\n\n        window.addEventListener('sethistock:analysis-ready', event => {\n            const sequence = Number(event?.detail?.sequence || 0);\n            if (sequence && latestAnalysisSequence && sequence !== latestAnalysisSequence) return;\n            if (sequence) latestAnalysisSequence = sequence;\n            const resolved = normaliseTicker(event?.detail?.ticker);\n            if (resolved) expectedTicker = resolved;\n        });\n\n"""
+          assert text.count(old) == 1, text.count(old)
+          text = text.replace(old, new)
+          path.write_text(text)
+
+          # 4) Force browsers to pick up the lifecycle rewrite.
+          path = Path('sethiway-history.js')
+          text = path.read_text()
+          assert "sethistock-ui-stability.js?v=3" in text
+          assert "sethistock-company-drivers.js?v=3e5" in text
+          text = text.replace("sethistock-ui-stability.js?v=3", "sethistock-ui-stability.js?v=4")
+          text = text.replace("sethistock-company-drivers.js?v=3e5", "sethistock-company-drivers.js?v=3e6")
+          path.write_text(text)
+          PY
+          node --check sethistock-company-drivers.js
+          node --check sethistock-ui-stability.js
+          node --check sethiway-history.js
+          python - <<'PY'
+          from pathlib import Path
+          html=Path('sethistock.html').read_text()
+          assert "sethistock:analysis-start" in html
+          assert "sethistock:analysis-ready" in html
+          drivers=Path('sethistock-company-drivers.js').read_text()
+          assert 'data-driver-period="reported"' not in drivers
+          assert 'waitForMainAnalysis' not in drivers
+          assert "prefetchPeriod(ticker, registry, coverage, 'reported'" not in drivers
+          stability=Path('sethistock-ui-stability.js').read_text()
+          assert 'waitForCurrentAnalysis' not in stability
+          print('DRIVER_LIFECYCLE_STATIC_OK')
+          PY
+      - name: Commit lifecycle fix and remove runner
+        run: |
+          git config user.name 'ss-sanch'
+          git config user.email 'mlgsanch@gmail.com'
+          git rm .github/workflows/tmp-driver-lifecycle-fix.yml
+          git add sethistock.html sethistock-company-drivers.js sethistock-ui-stability.js sethiway-history.js
+          git commit -m 'Use explicit SethiStock lifecycle for Company Drivers'
+          git push origin HEAD:fix-driver-lifecycle-remove-reported

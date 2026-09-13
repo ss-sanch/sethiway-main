@@ -1,0 +1,38 @@
+name: Temporary live Driver lifecycle proof
+
+on:
+  push:
+    branches: [proof-driver-lifecycle-live]
+
+permissions:
+  contents: read
+
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate deployed Driver lifecycle assets
+        run: |
+          set -euo pipefail
+          deadline=$((SECONDS+480))
+          while (( SECONDS < deadline )); do
+            curl -fsSL --max-time 30 'https://sethiway.com/sethistock.html' -o /tmp/sethistock.html || true
+            curl -fsSL --max-time 30 'https://sethiway.com/sethiway-history.js?v=stock3e7' -o /tmp/history.js || true
+            curl -fsSL --max-time 30 'https://sethiway.com/sethistock-company-drivers.js?v=3e6' -o /tmp/drivers.js || true
+            curl -fsSL --max-time 30 'https://sethiway.com/sethistock-ui-stability.js?v=4' -o /tmp/stability.js || true
+            if grep -q 'sethiway-history.js?v=stock3e7' /tmp/sethistock.html 2>/dev/null \
+              && grep -q 'sethistock:analysis-start' /tmp/sethistock.html 2>/dev/null \
+              && grep -q 'sethistock:analysis-ready' /tmp/sethistock.html 2>/dev/null \
+              && grep -q 'sethistock-company-drivers.js?v=3e6' /tmp/history.js 2>/dev/null \
+              && grep -q "const PERIODS = \['quarterly', 'annual'\]" /tmp/drivers.js 2>/dev/null \
+              && ! grep -q 'data-driver-period="reported"' /tmp/drivers.js 2>/dev/null \
+              && ! grep -q 'waitForMainAnalysis' /tmp/drivers.js 2>/dev/null \
+              && ! grep -q 'waitForCurrentAnalysis' /tmp/stability.js 2>/dev/null; then
+              echo 'LIVE_DRIVER_LIFECYCLE_OK'
+              exit 0
+            fi
+            echo 'Waiting for GitHub Pages deployment...'
+            sleep 15
+          done
+          echo 'Driver lifecycle assets did not appear before timeout'
+          exit 1

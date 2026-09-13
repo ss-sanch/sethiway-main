@@ -64,7 +64,7 @@
     if (page === 'sethistock.html') {
         if (!document.querySelector('script[data-sethistock-ui-stability]')) {
             const stabilityScript = document.createElement('script');
-            stabilityScript.src = 'sethistock-ui-stability.js?v=3';
+            stabilityScript.src = 'sethistock-ui-stability.js?v=4';
             stabilityScript.dataset.sethistockUiStability = '1';
             document.body.appendChild(stabilityScript);
         }
@@ -152,7 +152,7 @@
                 }
 
                 const driverScript = document.createElement('script');
-                driverScript.src = 'sethistock-company-drivers.js?v=3e5';
+                driverScript.src = 'sethistock-company-drivers.js?v=3e6';
                 driverScript.dataset.sethistockCompanyDrivers = '1';
                 driverScript.addEventListener('load', () => {
                     resolve(window.SethiStockCompanyDrivers);
@@ -169,6 +169,16 @@
         // Exposed for the stability layer so a completed analysis can explicitly
         // synchronise the current ticker even if the module was still loading.
         window.SethiStockLoadCompanyDriversModule = loadCompanyDriversModule;
+
+        // A smart-search/company-name query may only resolve to a supported ticker
+        // after the main analysis. Ensure the Driver module is present for that
+        // resolved ticker even if the raw input was not itself a ticker symbol.
+        window.addEventListener('sethistock:analysis-ready', event => {
+            const resolvedTicker = normaliseDriverTicker(event?.detail?.ticker);
+            if (SUPPORTED_DRIVER_TICKERS.has(resolvedTicker)) {
+                loadCompanyDriversModule(false).catch(() => null);
+            }
+        });
 
         const searchForm = document.querySelector('#search-form');
         const tickerInput = document.querySelector('#ticker-input');

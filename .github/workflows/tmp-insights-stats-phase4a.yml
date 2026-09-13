@@ -1,0 +1,252 @@
+name: Temporary Insights & Stats Phase 4A patch
+
+on:
+  push:
+    branches: [phase4a-insights-stats]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase4a-insights-stats
+          fetch-depth: 0
+      - name: Upgrade Insights and Stats panel
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('sethistock.html')
+          text = p.read_text()
+
+          old = '''                <div class="flex-grow flex flex-col justify-between space-y-6">
+                    
+                    <div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Value & Profitability</h4>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 px-1">
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Mkt Cap</span><span id="stat-mkt" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">EV/EBITDA</span><span id="stat-ev" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">P/E (TTM)</span><span id="stat-pe" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-blue-600">ROE</span><span id="roe" class="text-sm font-black text-blue-700">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">EPS (TTM)</span><span id="stat-eps" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">EPS (NTM)</span><span id="stat-feps" class="text-sm font-black text-gray-900">--</span></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Technicals & Momentum</h4>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 px-1">
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">14d RSI</span><span id="stat-rsi" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Stochastic</span><span id="stat-stoch" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">% From 200MA</span><span id="stat-sma" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">% From 52W High</span><span id="stat-52w" class="text-sm font-black text-gray-900">--</span></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Risk & Yield</h4>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 px-1">
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Beta</span><span id="stat-beta" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-red-500">Short Int.</span><span id="stat-short" class="text-sm font-black text-red-600">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Div Yield</span><span id="stat-div" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-green-600">FCF Yield</span><span id="stat-fcf" class="text-sm font-black text-green-700">--</span></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Catalysts</h4>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-3 px-1">
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-purple-600">Next Earnings</span><span id="stat-earn" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-purple-600">Ex-Dividend</span><span id="stat-exdiv" class="text-sm font-black text-gray-900">--</span></div>
+                        </div>
+                    </div>
+
+                </div>'''
+
+          new = '''                <div class="flex-grow flex flex-col justify-between space-y-4">
+                    <div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-2.5">Valuation & Quality</h4>
+                        <div class="grid grid-cols-2 gap-x-7 gap-y-2 px-1">
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Mkt Cap</span><span id="stat-mkt" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">EV/EBITDA</span><span id="stat-ev" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center gap-3 py-1"><span class="text-sm font-bold text-gray-500 whitespace-nowrap">P/E <span class="text-[10px] text-gray-400">TTM | NTM</span></span><span id="stat-pe-pair" class="text-sm font-black text-gray-900 whitespace-nowrap">--</span></div>
+                            <div class="flex justify-between items-center gap-3 py-1"><span class="text-sm font-bold text-gray-500 whitespace-nowrap">EPS <span class="text-[10px] text-gray-400">TTM | NTM</span></span><span id="stat-eps-pair" class="text-sm font-black text-gray-900 whitespace-nowrap">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Revenue Growth</span><span id="stat-rev-growth" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Net Margin</span><span id="stat-net-margin" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-blue-600">ROE</span><span id="roe" class="text-sm font-black text-blue-700">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-green-600">FCF Yield</span><span id="stat-fcf" class="text-sm font-black text-green-700">--</span></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-2.5">Technicals & Momentum</h4>
+                        <div class="grid grid-cols-2 gap-x-7 gap-y-2 px-1">
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">14d RSI</span><span id="stat-rsi" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Stochastic</span><span id="stat-stoch" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">vs 200D MA</span><span id="stat-sma" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">vs 52W High</span><span id="stat-52w" class="text-sm font-black text-gray-900">--</span></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-2.5">Risk & Capital</h4>
+                        <div class="grid grid-cols-2 gap-x-7 gap-y-2 px-1">
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Beta</span><span id="stat-beta" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-red-500">Short Interest</span><span id="stat-short" class="text-sm font-black text-red-600">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Dividend Yield</span><span id="stat-div" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span id="stat-balance-label" class="text-sm font-bold text-gray-500">Net Debt/EBITDA</span><span id="stat-balance" class="text-sm font-black text-gray-900">--</span></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-2.5">Catalysts</h4>
+                        <div class="grid grid-cols-2 gap-x-7 gap-y-2 px-1">
+                            <div class="py-1 min-w-0"><div class="flex justify-between items-center gap-2"><span class="text-sm font-bold text-purple-600">Next Earnings</span><span id="stat-earn" class="text-sm font-black text-gray-900 text-right">--</span></div><p id="stat-earn-countdown" class="text-[10px] font-bold text-gray-400 text-right mt-0.5">--</p></div>
+                            <div class="py-1 min-w-0"><div class="flex justify-between items-center gap-2"><span class="text-sm font-bold text-purple-600">Ex-Dividend</span><span id="stat-exdiv" class="text-sm font-black text-gray-900 text-right">--</span></div><p id="stat-exdiv-countdown" class="text-[10px] font-bold text-gray-400 text-right mt-0.5">--</p></div>
+                        </div>
+                    </div>
+                </div>'''
+
+          assert text.count(old) == 1, f'Insights block matches: {text.count(old)}'
+          text = text.replace(old, new)
+
+          old_skeleton = 'const statBoxes = ["current-price", "pe-ratio", "market-cap", "fcf-yield", "sethi-score", "dcf-target", "gordon-growth", "graham-number", "beta", "dividend-yield", "ev-ebitda", "profit-margin", "roe"];'
+          new_skeleton = 'const statBoxes = ["current-price", "pe-ratio", "market-cap", "fcf-yield", "sethi-score", "dcf-target", "gordon-growth", "graham-number", "beta", "dividend-yield", "ev-ebitda", "profit-margin", "roe", "stat-pe-pair", "stat-eps-pair", "stat-rev-growth", "stat-net-margin", "stat-balance"];'
+          assert text.count(old_skeleton) == 1
+          text = text.replace(old_skeleton, new_skeleton)
+
+          old_map = '''                    injectText('stat-mkt', data.stats.mkt_cap || 'N/A');
+                    injectText('stat-ev', data.stats.ev_ebitda || 'N/A');
+                    injectText('stat-pe', data.stats.pe || 'N/A');
+                    injectText('roe', data.stats.roe || 'N/A');
+                    injectText('stat-eps', data.stats.eps !== 'N/A' ? '$' + data.stats.eps : 'N/A');
+                    injectText('stat-feps', data.stats.forward_eps !== 'N/A' ? '$' + data.stats.forward_eps : 'N/A');'''
+          new_map = '''                    injectText('stat-mkt', data.stats.mkt_cap || 'N/A');
+                    injectText('stat-ev', data.stats.ev_ebitda || 'N/A');
+                    injectText('roe', data.stats.roe || 'N/A');
+                    injectText('stat-fcf', data.stats.fcf_yield || 'N/A');
+
+                    const ttmPe = Number(data.stats.pe);
+                    const ttmEps = Number(data.stats.eps);
+                    const ntmEps = Number(data.stats.forward_eps);
+                    const ntmPe = Number.isFinite(ntmEps) && ntmEps > 0 && Number(data.current_price) > 0 ? Number(data.current_price) / ntmEps : NaN;
+                    injectText('stat-pe-pair', `${Number.isFinite(ttmPe) ? ttmPe.toFixed(2) : 'N/A'} | ${Number.isFinite(ntmPe) ? ntmPe.toFixed(2) : 'N/A'}`);
+                    injectText('stat-eps-pair', `${Number.isFinite(ttmEps) ? '$' + ttmEps.toFixed(2) : 'N/A'} | ${Number.isFinite(ntmEps) ? '$' + ntmEps.toFixed(2) : 'N/A'}`);
+
+                    const revenues = Array.isArray(data.financials?.revenue) ? data.financials.revenue.map(Number).filter(v => Number.isFinite(v) && v > 0) : [];
+                    const revenueGrowth = revenues.length >= 2 && revenues[revenues.length - 2] !== 0
+                        ? ((revenues[revenues.length - 1] / revenues[revenues.length - 2]) - 1) * 100
+                        : NaN;
+                    const revGrowthEl = document.getElementById('stat-rev-growth');
+                    if (revGrowthEl) {
+                        revGrowthEl.innerText = Number.isFinite(revenueGrowth) ? `${revenueGrowth >= 0 ? '+' : ''}${revenueGrowth.toFixed(1)}%` : 'N/A';
+                        revGrowthEl.className = `text-sm font-black ${Number.isFinite(revenueGrowth) ? (revenueGrowth >= 0 ? 'text-emerald-600' : 'text-red-600') : 'text-gray-400'}`;
+                    }
+
+                    const netMargin = Number(data.dupont_analysis?.net_profit_margin);
+                    const netMarginEl = document.getElementById('stat-net-margin');
+                    if (netMarginEl) {
+                        netMarginEl.innerText = Number.isFinite(netMargin) ? `${netMargin.toFixed(1)}%` : 'N/A';
+                        netMarginEl.className = `text-sm font-black ${Number.isFinite(netMargin) ? (netMargin >= 0 ? 'text-emerald-600' : 'text-red-600') : 'text-gray-400'}`;
+                    }
+
+                    const latestNumeric = values => {
+                        if (!Array.isArray(values)) return NaN;
+                        for (let i = values.length - 1; i >= 0; i--) {
+                            const value = Number(values[i]);
+                            if (Number.isFinite(value)) return value;
+                        }
+                        return NaN;
+                    };
+                    const debt = latestNumeric(data.financials?.debt);
+                    const cash = latestNumeric(data.financials?.cash);
+                    const sharesForCapital = Number(data.shares);
+                    const priceForCapital = Number(data.current_price);
+                    const evEbitda = Number(data.stats.ev_ebitda);
+                    const balanceLabel = document.getElementById('stat-balance-label');
+                    const balanceValue = document.getElementById('stat-balance');
+                    if (balanceLabel && balanceValue && Number.isFinite(debt) && Number.isFinite(cash)) {
+                        const netDebt = debt - cash;
+                        if (netDebt <= 0) {
+                            const netCash = Math.abs(netDebt);
+                            const formatBalanceCash = value => value >= 1e12 ? `$${(value / 1e12).toFixed(2)}T` : value >= 1e9 ? `$${(value / 1e9).toFixed(1)}B` : value >= 1e6 ? `$${(value / 1e6).toFixed(0)}M` : `$${Math.round(value).toLocaleString('en-GB')}`;
+                            balanceLabel.innerText = 'Net Cash';
+                            balanceValue.innerText = formatBalanceCash(netCash);
+                            balanceValue.className = 'text-sm font-black text-emerald-600';
+                        } else {
+                            const marketCapRaw = Number.isFinite(sharesForCapital) && Number.isFinite(priceForCapital) ? sharesForCapital * priceForCapital : NaN;
+                            const enterpriseValue = Number.isFinite(marketCapRaw) ? marketCapRaw + netDebt : NaN;
+                            const impliedEbitda = Number.isFinite(enterpriseValue) && Number.isFinite(evEbitda) && evEbitda > 0 ? enterpriseValue / evEbitda : NaN;
+                            balanceLabel.innerText = 'Net Debt/EBITDA';
+                            balanceValue.innerText = Number.isFinite(impliedEbitda) && impliedEbitda > 0 ? `${(netDebt / impliedEbitda).toFixed(1)}x` : 'N/A';
+                            balanceValue.className = 'text-sm font-black text-gray-900';
+                        }
+                    } else if (balanceLabel && balanceValue) {
+                        balanceLabel.innerText = 'Net Debt/EBITDA';
+                        balanceValue.innerText = 'N/A';
+                        balanceValue.className = 'text-sm font-black text-gray-400';
+                    }'''
+          assert text.count(old_map) == 1, f'Stats mapping matches: {text.count(old_map)}'
+          text = text.replace(old_map, new_map)
+
+          old_risk = '''                    injectText('stat-beta', data.stats.beta || 'N/A');
+                    injectText('stat-short', data.stats.short_interest || 'N/A');
+                    injectText('stat-div', data.stats.div_yield || 'N/A');
+                    injectText('stat-fcf', data.stats.fcf_yield || 'N/A');
+
+                    injectText('stat-earn', data.stats.next_earnings || 'N/A');
+                    injectText('stat-exdiv', data.stats.next_dividend || 'N/A');'''
+          new_risk = '''                    injectText('stat-beta', data.stats.beta || 'N/A');
+                    injectText('stat-short', data.stats.short_interest || 'N/A');
+                    injectText('stat-div', data.stats.div_yield || 'N/A');
+
+                    injectText('stat-earn', data.stats.next_earnings || 'N/A');
+                    injectText('stat-exdiv', data.stats.next_dividend || 'N/A');
+                    const setCatalystCountdown = (id, rawValue) => {
+                        const el = document.getElementById(id);
+                        if (!el) return;
+                        const textValue = String(rawValue || '').trim();
+                        const parsed = Date.parse(textValue.replace(/\\b(BMO|AMC)\\b/gi, '').trim());
+                        if (!Number.isFinite(parsed)) { el.innerText = ''; return; }
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const target = new Date(parsed);
+                        target.setHours(0, 0, 0, 0);
+                        const days = Math.ceil((target - today) / 86400000);
+                        el.innerText = days > 0 ? `in ${days} day${days === 1 ? '' : 's'}` : days === 0 ? 'today' : '';
+                    };
+                    setCatalystCountdown('stat-earn-countdown', data.stats.next_earnings);
+                    setCatalystCountdown('stat-exdiv-countdown', data.stats.next_dividend);'''
+          assert text.count(old_risk) == 1, f'Risk mapping matches: {text.count(old_risk)}'
+          text = text.replace(old_risk, new_risk)
+
+          text = text.replace('>Value & Profitability</h4>', '>Valuation & Quality</h4>', 1)
+          text = text.replace('<li><strong class="text-blue-600">P/E Ratio:</strong> Price-to-Earnings. How much investors are willing to pay per dollar of earnings.</li>', '<li><strong class="text-blue-600">P/E (TTM | NTM):</strong> Trailing versus forward earnings valuation, showing how expected earnings change the multiple.</li>')
+          text = text.replace('<li><strong class="text-blue-600">ROE (Return on Equity):</strong> Measures how efficiently the company turns shareholder cash into profits.</li>', '<li><strong class="text-blue-600">Revenue Growth & Net Margin:</strong> Shows top-line momentum alongside the share of revenue retained as profit.</li>\n                        <li><strong class="text-blue-600">ROE & FCF Yield:</strong> Capital efficiency paired with cash generation relative to market value.</li>')
+
+          p.write_text(text)
+          PY
+
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path('sethistock.html').read_text()
+          blocks = re.findall(r'<script(?:\\s[^>]*)?>(.*?)</script>', html, flags=re.S)
+          Path('/tmp/sethistock-inline.js').write_text('\\n'.join(blocks))
+          checks = ['Valuation & Quality','stat-pe-pair','stat-eps-pair','Revenue Growth','stat-net-margin','Risk & Capital','stat-balance','vs 200D MA','vs 52W High','stat-earn-countdown','stat-exdiv-countdown']
+          for check in checks:
+              assert check in html, check
+          print('PHASE4A_INSIGHTS_STATIC_OK')
+          PY
+          node --check /tmp/sethistock-inline.js
+      - name: Commit patch and remove runner
+        run: |
+          git config user.name 'ss-sanch'
+          git config user.email 'mlgsanch@gmail.com'
+          git rm .github/workflows/tmp-insights-stats-phase4a.yml
+          git add sethistock.html
+          git commit -m 'Phase 4A: upgrade Insights and Stats panel'
+          git push origin HEAD:phase4a-insights-stats

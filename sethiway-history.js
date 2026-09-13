@@ -15,6 +15,7 @@
         'inflation-rates': 'Inflation & Rates',
         'currencies': 'Currencies',
         'key-metrics': 'Key Metrics',
+        'company-drivers': 'Company Drivers',
         'research-labs': 'Research Labs',
         'valuation': 'Valuations',
         'comparisons': 'Comparisons',
@@ -59,4 +60,13 @@
     saveDestination();
     window.addEventListener('hashchange', saveDestination);
     window.addEventListener('popstate', saveDestination);
+
+    // SethiStock progressive feature modules load independently so they cannot
+    // block the core quote, chart or full-analysis request path.
+    if (page === 'sethistock.html' && !document.querySelector('script[data-sethistock-company-drivers]')) {
+        const driverScript = document.createElement('script');
+        driverScript.src = 'sethistock-company-drivers.js?v=3e1';
+        driverScript.dataset.sethistockCompanyDrivers = '1';
+        document.body.appendChild(driverScript);
+    }
 })();

@@ -63,10 +63,17 @@
 
     // SethiStock progressive feature modules load independently so they cannot
     // block the core quote, chart or full-analysis request path.
-    if (page === 'sethistock.html' && !document.querySelector('script[data-sethistock-company-drivers]')) {
-        const driverScript = document.createElement('script');
-        driverScript.src = 'sethistock-company-drivers.js?v=3e1';
-        driverScript.dataset.sethistockCompanyDrivers = '1';
-        document.body.appendChild(driverScript);
+    if (page === 'sethistock.html') {
+        document.querySelectorAll('nav a[href="#key-metrics"]').forEach(financialLink => {
+            if (financialLink.nextElementSibling?.getAttribute('href') === '#company-drivers') return;
+            financialLink.insertAdjacentHTML('afterend', '<a href="#company-drivers" class="hover:text-blue-600 transition">Drivers</a>');
+        });
+
+        if (!document.querySelector('script[data-sethistock-company-drivers]')) {
+            const driverScript = document.createElement('script');
+            driverScript.src = 'sethistock-company-drivers.js?v=3e1';
+            driverScript.dataset.sethistockCompanyDrivers = '1';
+            document.body.appendChild(driverScript);
+        }
     }
 })();

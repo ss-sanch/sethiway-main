@@ -632,8 +632,9 @@
 
     async function loadCompanyDrivers(ticker) {
         ensureUI();
-        const symbol = String(ticker || '').trim().toUpperCase();
-        if (!symbol) return;
+        const requestedSymbol = String(ticker || '').trim().toUpperCase();
+        if (!requestedSymbol) return;
+        const symbol = requestedSymbol === 'GOOG' ? 'GOOGL' : requestedSymbol;
         activeTicker = symbol;
         const thisPrefetchGeneration = ++prefetchGeneration;
         latestRegistry = null;

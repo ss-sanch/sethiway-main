@@ -152,7 +152,7 @@
                 }
 
                 const driverScript = document.createElement('script');
-                driverScript.src = 'sethistock-company-drivers.js?v=3e4';
+                driverScript.src = 'sethistock-company-drivers.js?v=3e5';
                 driverScript.dataset.sethistockCompanyDrivers = '1';
                 driverScript.addEventListener('load', () => {
                     resolve(window.SethiStockCompanyDrivers);

@@ -1,0 +1,32 @@
+name: Temporary Phase 3E autoload validation
+
+on:
+  push:
+    branches: [phase3e-auto-drivers]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate automatic Company Drivers wiring
+        run: |
+          node --check sethiway-history.js
+          node --check sethistock-ui-stability.js
+          python - <<'PY'
+          from pathlib import Path
+          history = Path('sethiway-history.js').read_text()
+          stability = Path('sethistock-ui-stability.js').read_text()
+          assert 'SUPPORTED_DRIVER_TICKERS' in history
+          assert "'GOOG', 'GOOGL'" in history
+          assert 'loadCompanyDriversModule(false)' in history
+          assert 'sethistock-company-drivers.js?v=3e3' in history
+          assert "ticker === 'GOOG' ? 'GOOGL' : ticker" in stability
+          assert 'SethiStockLoadCompanyDriversModule' in stability
+          assert 'DRIVER_SUPPORTED' in stability
+          print('PHASE3E_AUTOLOAD_STATIC_OK')
+          PY

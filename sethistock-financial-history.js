@@ -305,23 +305,39 @@
         });
     }
 
+    function clearExpandedCardStyles(card) {
+        if (!card) return;
+        card.style.position = '';
+        card.style.left = '';
+        card.style.top = '';
+        card.style.width = '';
+        card.style.maxWidth = '';
+        card.style.height = '';
+        card.style.transform = '';
+        card.style.zIndex = '';
+        card.style.boxShadow = '';
+        card.style.overflow = '';
+        const chartNode = card.querySelector('[id^="ind-"]');
+        if (chartNode) chartNode.style.height = '';
+    }
+
     function toggleExpandedChart(chartId) {
         const card = document.querySelector(`[data-financial-card="${chartId}"]`);
         if (!card) return;
         const currentlyExpanded = expandedChartId === chartId;
-        document.querySelectorAll('.financial-card').forEach(node => {
-            node.classList.remove('fixed', 'inset-4', 'md:inset-10', 'z-[160]', 'shadow-2xl', 'overflow-hidden');
-            const chartNode = node.querySelector('[id^="ind-"]');
-            if (chartNode) chartNode.style.height = '';
-        });
+
+        document.querySelectorAll('.financial-card').forEach(clearExpandedCardStyles);
         const existingBackdrop = document.getElementById('financial-chart-backdrop');
         if (existingBackdrop && existingBackdrop.parentNode) existingBackdrop.parentNode.removeChild(existingBackdrop);
+
         expandedChartId = currentlyExpanded ? null : chartId;
         document.body.classList.toggle('modal-active', Boolean(expandedChartId));
         if (!expandedChartId) {
             renderFinancialCharts(displayedView);
+            requestAnimationFrame(() => Plotly.Plots.resize(chartId));
             return;
         }
+
         const backdrop = document.createElement('button');
         backdrop.id = 'financial-chart-backdrop';
         backdrop.type = 'button';
@@ -329,10 +345,24 @@
         backdrop.setAttribute('aria-label', 'Close expanded chart');
         backdrop.addEventListener('click', () => toggleExpandedChart(chartId));
         document.body.appendChild(backdrop);
-        card.classList.add('fixed', 'inset-4', 'md:inset-10', 'z-[160]', 'shadow-2xl', 'overflow-hidden');
+
+        card.style.position = 'fixed';
+        card.style.left = '50%';
+        card.style.top = '8vh';
+        card.style.width = '92vw';
+        card.style.maxWidth = '1200px';
+        card.style.height = '84vh';
+        card.style.transform = 'translateX(-50%)';
+        card.style.zIndex = '160';
+        card.style.boxShadow = '0 30px 70px rgba(15, 23, 42, 0.28)';
+        card.style.overflow = 'hidden';
+
         const chart = document.getElementById(chartId);
-        if (chart) chart.style.height = 'calc(100vh - 210px)';
-        requestAnimationFrame(() => Plotly.Plots.resize(chartId));
+        if (chart) chart.style.height = 'calc(84vh - 118px)';
+        requestAnimationFrame(() => {
+            renderFinancialCharts(displayedView);
+            Plotly.Plots.resize(chartId);
+        });
     }
 
     function bindExpandButtons() {
@@ -363,7 +393,7 @@
             let html = '';
             cards.forEach(card => {
                 html += `
-                    <div class="financial-card bg-white px-5 pt-5 pb-4 rounded-2xl shadow-sm border border-gray-200 flex flex-col min-h-[330px] relative" data-financial-card="${card.id}">
+                    <div class="financial-card bg-white px-4 pt-4 pb-3 rounded-2xl shadow-sm border border-gray-200 flex flex-col h-[330px] relative" data-financial-card="${card.id}">
                         <div class="flex items-center justify-between gap-3 mb-1">
                             <h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest">${card.title}</h4>
                             <div class="flex items-center gap-2">
@@ -373,8 +403,8 @@
                                 </button>
                             </div>
                         </div>
-                        <div id="${card.id}" class="h-52 w-full mt-1"></div>
-                        <div class="grid grid-cols-4 gap-2 mt-2 pt-3 border-t border-gray-100">
+                        <div id="${card.id}" class="w-full flex-1 min-h-0 mt-0"></div>
+                        <div class="grid grid-cols-4 gap-2 mt-1 pt-2.5 border-t border-gray-100">
                             <div class="text-center"><p class="text-[9px] text-gray-400 font-bold uppercase">1Y CAGR</p><p id="fin-growth-${card.id}-1Y" class="font-semibold text-xs text-gray-400">-</p></div>
                             <div class="text-center"><p class="text-[9px] text-gray-400 font-bold uppercase">3Y CAGR</p><p id="fin-growth-${card.id}-3Y" class="font-semibold text-xs text-gray-400">-</p></div>
                             <div class="text-center"><p class="text-[9px] text-gray-400 font-bold uppercase">5Y CAGR</p><p id="fin-growth-${card.id}-5Y" class="font-semibold text-xs text-gray-400">-</p></div>
@@ -412,7 +442,7 @@
 
     function chartLayout(view, showLegend = false) {
         return {
-            margin: { t: 8, b: showLegend ? 42 : 30, l: 54, r: 16 },
+            margin: { t: 6, b: showLegend ? 40 : 28, l: 44, r: 6 },
             plot_bgcolor: 'transparent',
             paper_bgcolor: 'transparent',
             showlegend: showLegend,
@@ -632,6 +662,7 @@
         desiredWindow = 'max';
         expandedChartId = null;
         document.body.classList.remove('modal-active');
+        document.querySelectorAll('.financial-card').forEach(clearExpandedCardStyles);
         const existingBackdrop = document.getElementById('financial-chart-backdrop');
         if (existingBackdrop && existingBackdrop.parentNode) existingBackdrop.parentNode.removeChild(existingBackdrop);
         financialTicker = ticker;

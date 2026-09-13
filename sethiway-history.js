@@ -61,40 +61,115 @@
     window.addEventListener('hashchange', saveDestination);
     window.addEventListener('popstate', saveDestination);
 
-    // SethiStock progressive feature modules load independently so they cannot
-    // block the core quote, chart or full-analysis request path.
     if (page === 'sethistock.html') {
+        // A single upstream Yahoo/yfinance stall must never leave SethiStock in an
+        // endless "Analysing..." state. Only the heavy full-analysis route gets a
+        // deadline; lightweight quote/chart/driver requests keep their own logic.
+        if (!window.__sethiStockAnalysisDeadlineInstalled && typeof window.fetch === 'function') {
+            window.__sethiStockAnalysisDeadlineInstalled = true;
+            const nativeFetch = window.fetch.bind(window);
+            window.fetch = (input, init = {}) => {
+                const url = typeof input === 'string' ? input : String(input?.url || '');
+                if (!url.includes('/api/stock/')) return nativeFetch(input, init);
+
+                const controller = new AbortController();
+                const upstreamSignal = init?.signal;
+                if (upstreamSignal) {
+                    if (upstreamSignal.aborted) controller.abort();
+                    else upstreamSignal.addEventListener('abort', () => controller.abort(), { once: true });
+                }
+
+                return new Promise((resolve, reject) => {
+                    let settled = false;
+                    const timeout = setTimeout(() => {
+                        if (settled) return;
+                        settled = true;
+                        controller.abort();
+                        const error = new Error('Detailed analysis timed out after 50 seconds. Please retry; the data provider may be temporarily slow.');
+                        error.status = 408;
+                        reject(error);
+                    }, 50000);
+
+                    nativeFetch(input, { ...init, signal: controller.signal }).then(
+                        response => {
+                            if (settled) return;
+                            settled = true;
+                            clearTimeout(timeout);
+                            resolve(response);
+                        },
+                        error => {
+                            if (settled) return;
+                            settled = true;
+                            clearTimeout(timeout);
+                            reject(error);
+                        }
+                    );
+                });
+            };
+        }
+
         document.querySelectorAll('nav a[href="#key-metrics"]').forEach(financialLink => {
             if (financialLink.nextElementSibling?.getAttribute('href') === '#company-drivers') return;
             financialLink.insertAdjacentHTML('afterend', '<a href="#company-drivers" class="hover:text-blue-600 transition">Drivers</a>');
         });
 
-        if (!document.querySelector('script[data-sethistock-company-drivers]')) {
-            const driverScript = document.createElement('script');
-            driverScript.src = 'sethistock-company-drivers.js?v=3e1';
-            driverScript.dataset.sethistockCompanyDrivers = '1';
-            driverScript.addEventListener('load', () => {
-                const paramsTicker = (new URLSearchParams(window.location.search).get('ticker') || '').trim().toUpperCase();
-                const stateTicker = typeof state === 'object' ? String(state?.ticker || '').trim().toUpperCase() : '';
-                const ticker = paramsTicker || stateTicker;
-                if (!/^[A-Z0-9.^-]{1,20}$/.test(ticker)) return;
+        // Phase 3E is intentionally lazy. Filing-history extraction can be expensive
+        // on a cold cache, so do not launch it invisibly after every stock search.
+        // Load the module only when the user actually approaches or requests Drivers.
+        let driverModulePromise = null;
+        function loadCompanyDriversModule(scrollAfterLoad = false) {
+            if (window.SethiStockCompanyDrivers) {
+                if (scrollAfterLoad) document.querySelector('#company-drivers')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return Promise.resolve(window.SethiStockCompanyDrivers);
+            }
+            if (driverModulePromise) {
+                if (scrollAfterLoad) driverModulePromise.then(() => document.querySelector('#company-drivers')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+                return driverModulePromise;
+            }
 
-                let attempts = 0;
-                const loadWhenReady = () => {
-                    attempts += 1;
-                    const dashboard = document.querySelector('#dashboard');
-                    const button = document.querySelector('#search-btn');
-                    if (dashboard?.classList.contains('opacity-100') && !button?.disabled) {
-                        if (window.SethiStockCompanyDrivers?.ticker !== ticker) {
-                            window.SethiStockCompanyDrivers?.load(ticker)?.catch?.(() => null);
-                        }
-                    } else if (attempts < 100) {
-                        setTimeout(loadWhenReady, 250);
+            driverModulePromise = new Promise((resolve, reject) => {
+                const existing = document.querySelector('script[data-sethistock-company-drivers]');
+                if (existing) {
+                    existing.addEventListener('load', () => resolve(window.SethiStockCompanyDrivers), { once: true });
+                    existing.addEventListener('error', reject, { once: true });
+                    return;
+                }
+
+                const driverScript = document.createElement('script');
+                driverScript.src = 'sethistock-company-drivers.js?v=3e2';
+                driverScript.dataset.sethistockCompanyDrivers = '1';
+                driverScript.addEventListener('load', () => {
+                    resolve(window.SethiStockCompanyDrivers);
+                    if (scrollAfterLoad) {
+                        requestAnimationFrame(() => document.querySelector('#company-drivers')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
                     }
-                };
-                loadWhenReady();
+                }, { once: true });
+                driverScript.addEventListener('error', reject, { once: true });
+                document.body.appendChild(driverScript);
             });
-            document.body.appendChild(driverScript);
+            return driverModulePromise;
+        }
+
+        document.querySelectorAll('a[href="#company-drivers"]').forEach(link => {
+            link.addEventListener('click', event => {
+                if (document.querySelector('#company-drivers')) return;
+                event.preventDefault();
+                loadCompanyDriversModule(true).catch(() => null);
+            });
+        });
+
+        const comparisons = document.querySelector('#comparisons');
+        if ('IntersectionObserver' in window && comparisons) {
+            const observer = new IntersectionObserver(entries => {
+                if (!entries.some(entry => entry.isIntersecting)) return;
+                observer.disconnect();
+                loadCompanyDriversModule(false).catch(() => null);
+            }, { rootMargin: '900px 0px', threshold: 0.01 });
+            observer.observe(comparisons);
+        }
+
+        if (window.location.hash === '#company-drivers') {
+            loadCompanyDriversModule(true).catch(() => null);
         }
     }
 })();

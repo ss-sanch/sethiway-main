@@ -64,7 +64,7 @@
     if (page === 'sethistock.html') {
         if (!document.querySelector('script[data-sethistock-ui-stability]')) {
             const stabilityScript = document.createElement('script');
-            stabilityScript.src = 'sethistock-ui-stability.js?v=1';
+            stabilityScript.src = 'sethistock-ui-stability.js?v=2';
             stabilityScript.dataset.sethistockUiStability = '1';
             document.body.appendChild(stabilityScript);
         }
@@ -120,9 +120,18 @@
             financialLink.insertAdjacentHTML('afterend', '<a href="#company-drivers" class="hover:text-blue-600 transition">Drivers</a>');
         });
 
-        // Phase 3E is intentionally lazy. Filing-history extraction can be expensive
-        // on a cold cache, so do not launch it invisibly after every stock search.
-        // Load the module only when the user actually approaches or requests Drivers.
+        const SUPPORTED_DRIVER_TICKERS = new Set([
+            'AAPL', 'MSFT', 'GOOG', 'GOOGL', 'AMZN', 'META', 'NVDA', 'TSLA', 'NFLX', 'JPM', 'V'
+        ]);
+
+        function normaliseDriverTicker(value) {
+            return String(value || '').trim().toUpperCase();
+        }
+
+        // Phase 3D stores immutable KPI snapshots in Supabase. For the flagship
+        // universe, load the lightweight UI module automatically as soon as a search
+        // starts so cached Company Drivers are ready by the time the user reaches them.
+        // Cold/stale extraction still remains isolated from the core stock analysis.
         let driverModulePromise = null;
         function loadCompanyDriversModule(scrollAfterLoad = false) {
             if (window.SethiStockCompanyDrivers) {
@@ -143,7 +152,7 @@
                 }
 
                 const driverScript = document.createElement('script');
-                driverScript.src = 'sethistock-company-drivers.js?v=3e2';
+                driverScript.src = 'sethistock-company-drivers.js?v=3e3';
                 driverScript.dataset.sethistockCompanyDrivers = '1';
                 driverScript.addEventListener('load', () => {
                     resolve(window.SethiStockCompanyDrivers);
@@ -157,6 +166,22 @@
             return driverModulePromise;
         }
 
+        // Exposed for the stability layer so a completed analysis can explicitly
+        // synchronise the current ticker even if the module was still loading.
+        window.SethiStockLoadCompanyDriversModule = loadCompanyDriversModule;
+
+        const searchForm = document.querySelector('#search-form');
+        const tickerInput = document.querySelector('#ticker-input');
+        if (searchForm && searchForm.dataset.driverAutoloadBound !== '1') {
+            searchForm.dataset.driverAutoloadBound = '1';
+            searchForm.addEventListener('submit', () => {
+                const ticker = normaliseDriverTicker(tickerInput?.value);
+                if (SUPPORTED_DRIVER_TICKERS.has(ticker)) {
+                    loadCompanyDriversModule(false).catch(() => null);
+                }
+            }, true);
+        }
+
         document.querySelectorAll('a[href="#company-drivers"]').forEach(link => {
             link.addEventListener('click', event => {
                 if (document.querySelector('#company-drivers')) return;
@@ -165,6 +190,8 @@
             });
         });
 
+        // Keep proximity loading as a fallback for unsupported/newly-added tickers,
+        // while flagship names now initialise automatically from the persistent cache.
         const comparisons = document.querySelector('#comparisons');
         if ('IntersectionObserver' in window && comparisons) {
             const observer = new IntersectionObserver(entries => {
@@ -173,6 +200,11 @@
                 loadCompanyDriversModule(false).catch(() => null);
             }, { rootMargin: '900px 0px', threshold: 0.01 });
             observer.observe(comparisons);
+        }
+
+        const initialTicker = normaliseDriverTicker(new URLSearchParams(window.location.search).get('ticker'));
+        if (SUPPORTED_DRIVER_TICKERS.has(initialTicker)) {
+            loadCompanyDriversModule(false).catch(() => null);
         }
 
         if (window.location.hash === '#company-drivers') {

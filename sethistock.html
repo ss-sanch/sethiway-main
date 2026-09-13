@@ -1119,13 +1119,17 @@
               const el = document.getElementById(id);
               if (!el) return;
               const textValue = String(rawValue || '').trim();
-              const parsed = Date.parse(textValue.replace(/\b(BMO|AMC)\b/gi, '').trim());
+              const cleanedValue = textValue.replace(/\b(BMO|AMC)\b/gi, '').trim();
+    const hasExplicitYear = /\b(?:19|20)\d{2}\b/.test(cleanedValue);
+    const valueForParsing = hasExplicitYear ? cleanedValue : `${cleanedValue}, ${(new Date()).getFullYear()}`;
+    const parsed = Date.parse(valueForParsing);
               if (!Number.isFinite(parsed)) { el.innerText = ''; el.classList.add('hidden'); return; }
               const today = new Date();
               today.setHours(0, 0, 0, 0);
               const target = new Date(parsed);
               target.setHours(0, 0, 0, 0);
               const days = Math.round((target - today) / 86400000);
+    if (Math.abs(days) > 400) { el.innerText = ''; el.classList.add('hidden'); return; }
               if (days > 0) el.innerText = `in ${days}d`;
               else if (days === 0) el.innerText = 'today';
               else el.innerText = `${Math.abs(days)}d ago`;

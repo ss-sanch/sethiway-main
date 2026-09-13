@@ -19,51 +19,65 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
+
           p = Path('sethistock.html')
           text = p.read_text()
 
-          def replace_once(old, new, label):
-              global text
-              count = text.count(old)
-              assert count == 1, f'{label}: expected 1 match, found {count}'
-              text = text.replace(old, new, 1)
+          new_panel = '''                <div class="flex-grow flex flex-col justify-between space-y-4">
+                    <div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-2.5">Valuation & Quality</h4>
+                        <div class="grid grid-cols-2 gap-x-7 gap-y-2 px-1">
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Mkt Cap</span><span id="stat-mkt" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">EV/EBITDA</span><span id="stat-ev" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center gap-3 py-1"><span class="text-sm font-bold text-gray-500 whitespace-nowrap">P/E <span class="text-[10px] text-gray-400">TTM | NTM</span></span><span id="stat-pe-pair" class="text-sm font-black text-gray-900 whitespace-nowrap">--</span></div>
+                            <div class="flex justify-between items-center gap-3 py-1"><span class="text-sm font-bold text-gray-500 whitespace-nowrap">EPS <span class="text-[10px] text-gray-400">TTM | NTM</span></span><span id="stat-eps-pair" class="text-sm font-black text-gray-900 whitespace-nowrap">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Revenue Growth</span><span id="stat-rev-growth" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Net Margin</span><span id="stat-net-margin" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-blue-600">ROE</span><span id="roe" class="text-sm font-black text-blue-700">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-green-600">FCF Yield</span><span id="stat-fcf" class="text-sm font-black text-green-700">--</span></div>
+                        </div>
+                    </div>
 
-          replace_once('''                <div class="flex-grow flex flex-col justify-between space-y-6">''', '''                <div class="flex-grow flex flex-col justify-between space-y-4">''', 'panel spacing')
-          replace_once('''<h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Value & Profitability</h4>''', '''<h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-2.5">Valuation & Quality</h4>''', 'valuation heading')
+                    <div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-2.5">Technicals & Momentum</h4>
+                        <div class="grid grid-cols-2 gap-x-7 gap-y-2 px-1">
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">14d RSI</span><span id="stat-rsi" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Stochastic</span><span id="stat-stoch" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">vs 200D MA</span><span id="stat-sma" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">vs 52W High</span><span id="stat-52w" class="text-sm font-black text-gray-900">--</span></div>
+                        </div>
+                    </div>
 
-          # Tighten all four subsection grids/headings inside the stats card.
-          text = text.replace('grid grid-cols-2 gap-x-8 gap-y-3 px-1', 'grid grid-cols-2 gap-x-7 gap-y-2 px-1', 4)
-          text = text.replace('pb-2 mb-3">Technicals & Momentum', 'pb-2 mb-2.5">Technicals & Momentum', 1)
-          text = text.replace('pb-2 mb-3">Risk & Yield', 'pb-2 mb-2.5">Risk & Capital', 1)
-          text = text.replace('pb-2 mb-3">Catalysts', 'pb-2 mb-2.5">Catalysts', 1)
+                    <div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-2.5">Risk & Capital</h4>
+                        <div class="grid grid-cols-2 gap-x-7 gap-y-2 px-1">
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Beta</span><span id="stat-beta" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-red-500">Short Interest</span><span id="stat-short" class="text-sm font-black text-red-600">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Dividend Yield</span><span id="stat-div" class="text-sm font-black text-gray-900">--</span></div>
+                            <div class="flex justify-between items-center py-1"><span id="stat-balance-label" class="text-sm font-bold text-gray-500">Net Debt/EBITDA</span><span id="stat-balance" class="text-sm font-black text-gray-900">--</span></div>
+                        </div>
+                    </div>
 
-          replace_once('''<div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">P/E (TTM)</span><span id="stat-pe" class="text-sm font-black text-gray-900">--</span></div>''', '''<div class="flex justify-between items-center gap-3 py-1"><span class="text-sm font-bold text-gray-500 whitespace-nowrap">P/E <span class="text-[10px] text-gray-400">TTM | NTM</span></span><span id="stat-pe-pair" class="text-sm font-black text-gray-900 whitespace-nowrap">--</span></div>''', 'pe pair row')
-          replace_once('''<div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">EPS (TTM)</span><span id="stat-eps" class="text-sm font-black text-gray-900">--</span></div>''', '''<div class="flex justify-between items-center gap-3 py-1"><span class="text-sm font-bold text-gray-500 whitespace-nowrap">EPS <span class="text-[10px] text-gray-400">TTM | NTM</span></span><span id="stat-eps-pair" class="text-sm font-black text-gray-900 whitespace-nowrap">--</span></div>''', 'eps pair row')
-          replace_once('''                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">EPS (NTM)</span><span id="stat-feps" class="text-sm font-black text-gray-900">--</span></div>''', '''                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Revenue Growth</span><span id="stat-rev-growth" class="text-sm font-black text-gray-900">--</span></div>
-                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-gray-500">Net Margin</span><span id="stat-net-margin" class="text-sm font-black text-gray-900">--</span></div>''', 'growth and margin rows')
-          replace_once('''                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-blue-600">ROE</span><span id="roe" class="text-sm font-black text-blue-700">--</span></div>''', '''                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-blue-600">ROE</span><span id="roe" class="text-sm font-black text-blue-700">--</span></div>
-                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-green-600">FCF Yield</span><span id="stat-fcf" class="text-sm font-black text-green-700">--</span></div>''', 'fcf move')
+                    <div>
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-2.5">Catalysts</h4>
+                        <div class="grid grid-cols-2 gap-x-7 gap-y-2 px-1">
+                            <div class="py-1 min-w-0"><div class="flex justify-between items-center gap-2"><span class="text-sm font-bold text-purple-600">Next Earnings</span><span id="stat-earn" class="text-sm font-black text-gray-900 text-right">--</span></div><p id="stat-earn-countdown" class="text-[10px] font-bold text-gray-400 text-right mt-0.5">--</p></div>
+                            <div class="py-1 min-w-0"><div class="flex justify-between items-center gap-2"><span class="text-sm font-bold text-purple-600">Ex-Dividend</span><span id="stat-exdiv" class="text-sm font-black text-gray-900 text-right">--</span></div><p id="stat-exdiv-countdown" class="text-[10px] font-bold text-gray-400 text-right mt-0.5">--</p></div>
+                        </div>
+                    </div>
+                </div>'''
 
-          text = text.replace('% From 200MA', 'vs 200D MA', 1)
-          text = text.replace('% From 52W High', 'vs 52W High', 1)
-          text = text.replace('Short Int.', 'Short Interest', 1)
-          text = text.replace('Div Yield', 'Dividend Yield', 1)
-          replace_once('''                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-green-600">FCF Yield</span><span id="stat-fcf" class="text-sm font-black text-green-700">--</span></div>''', '''                            <div class="flex justify-between items-center py-1"><span id="stat-balance-label" class="text-sm font-bold text-gray-500">Net Debt/EBITDA</span><span id="stat-balance" class="text-sm font-black text-gray-900">--</span></div>''', 'balance sheet row')
-
-          replace_once('''                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-purple-600">Next Earnings</span><span id="stat-earn" class="text-sm font-black text-gray-900">--</span></div>''', '''                            <div class="py-1 min-w-0"><div class="flex justify-between items-center gap-2"><span class="text-sm font-bold text-purple-600">Next Earnings</span><span id="stat-earn" class="text-sm font-black text-gray-900 text-right">--</span></div><p id="stat-earn-countdown" class="text-[10px] font-bold text-gray-400 text-right mt-0.5">--</p></div>''', 'earnings catalyst')
-          replace_once('''                            <div class="flex justify-between items-center py-1"><span class="text-sm font-bold text-purple-600">Ex-Dividend</span><span id="stat-exdiv" class="text-sm font-black text-gray-900">--</span></div>''', '''                            <div class="py-1 min-w-0"><div class="flex justify-between items-center gap-2"><span class="text-sm font-bold text-purple-600">Ex-Dividend</span><span id="stat-exdiv" class="text-sm font-black text-gray-900 text-right">--</span></div><p id="stat-exdiv-countdown" class="text-[10px] font-bold text-gray-400 text-right mt-0.5">--</p></div>''', 'dividend catalyst')
+          pattern = re.compile(r'                <div class="flex-grow flex flex-col justify-between space-y-6">.*?                </div>(?=\n            </div>\n            </div>\n        </div>\n\n        <div id="key-metrics")', re.S)
+          text, count = pattern.subn(new_panel, text, count=1)
+          assert count == 1, f'panel replacement count={count}'
 
           old_skeleton = 'const statBoxes = ["current-price", "pe-ratio", "market-cap", "fcf-yield", "sethi-score", "dcf-target", "gordon-growth", "graham-number", "beta", "dividend-yield", "ev-ebitda", "profit-margin", "roe"];'
           new_skeleton = 'const statBoxes = ["current-price", "pe-ratio", "market-cap", "fcf-yield", "sethi-score", "dcf-target", "gordon-growth", "graham-number", "beta", "dividend-yield", "ev-ebitda", "profit-margin", "roe", "stat-pe-pair", "stat-eps-pair", "stat-rev-growth", "stat-net-margin", "stat-balance"];'
-          replace_once(old_skeleton, new_skeleton, 'skeleton ids')
+          assert text.count(old_skeleton) == 1
+          text = text.replace(old_skeleton, new_skeleton, 1)
 
-          old_map = '''                    injectText('stat-mkt', data.stats.mkt_cap || 'N/A');
-                    injectText('stat-ev', data.stats.ev_ebitda || 'N/A');
-                    injectText('stat-pe', data.stats.pe || 'N/A');
-                    injectText('roe', data.stats.roe || 'N/A');
-                    injectText('stat-eps', data.stats.eps !== 'N/A' ? '$' + data.stats.eps : 'N/A');
-                    injectText('stat-feps', data.stats.forward_eps !== 'N/A' ? '$' + data.stats.forward_eps : 'N/A');'''
-          new_map = '''                    injectText('stat-mkt', data.stats.mkt_cap || 'N/A');
+          new_stats = '''                    injectText('stat-mkt', data.stats.mkt_cap || 'N/A');
                     injectText('stat-ev', data.stats.ev_ebitda || 'N/A');
                     injectText('roe', data.stats.roe || 'N/A');
                     injectText('stat-fcf', data.stats.fcf_yield || 'N/A');
@@ -126,15 +140,11 @@ jobs:
                         balanceValue.innerText = 'N/A';
                         balanceValue.className = 'text-sm font-black text-gray-400';
                     }'''
-          replace_once(old_map, new_map, 'stats mapping')
 
-          old_risk = '''                    injectText('stat-beta', data.stats.beta || 'N/A');
-                    injectText('stat-short', data.stats.short_interest || 'N/A');
-                    injectText('stat-div', data.stats.div_yield || 'N/A');
-                    injectText('stat-fcf', data.stats.fcf_yield || 'N/A');
+          stats_pattern = re.compile(r"\s{20}injectText\('stat-mkt'.*?\s{20}injectText\('stat-feps'.*?;", re.S)
+          text, count = stats_pattern.subn('\n' + new_stats, text, count=1)
+          assert count == 1, f'stats mapping replacement count={count}'
 
-                    injectText('stat-earn', data.stats.next_earnings || 'N/A');
-                    injectText('stat-exdiv', data.stats.next_dividend || 'N/A');'''
           new_risk = '''                    injectText('stat-beta', data.stats.beta || 'N/A');
                     injectText('stat-short', data.stats.short_interest || 'N/A');
                     injectText('stat-div', data.stats.div_yield || 'N/A');
@@ -156,9 +166,12 @@ jobs:
                     };
                     setCatalystCountdown('stat-earn-countdown', data.stats.next_earnings);
                     setCatalystCountdown('stat-exdiv-countdown', data.stats.next_dividend);'''
-          replace_once(old_risk, new_risk, 'risk/catalyst mapping')
 
-          # Keep the help modal aligned with the visible card.
+          risk_pattern = re.compile(r"\s{20}injectText\('stat-beta'.*?\s{20}injectText\('stat-exdiv'.*?;", re.S)
+          text, count = risk_pattern.subn('\n' + new_risk, text, count=1)
+          assert count == 1, f'risk mapping replacement count={count}'
+
+          # Keep the stats explainer aligned with the visible card.
           text = text.replace('>Value & Profitability</h4>', '>Valuation & Quality</h4>', 1)
           text = text.replace('<li><strong class="text-blue-600">P/E Ratio:</strong> Price-to-Earnings. How much investors are willing to pay per dollar of earnings.</li>', '<li><strong class="text-blue-600">P/E (TTM | NTM):</strong> Trailing versus forward earnings valuation, showing how expected earnings change the multiple.</li>', 1)
           text = text.replace('<li><strong class="text-blue-600">ROE (Return on Equity):</strong> Measures how efficiently the company turns shareholder cash into profits.</li>', '<li><strong class="text-blue-600">Revenue Growth & Net Margin:</strong> Shows top-line momentum alongside the share of revenue retained as profit.</li>\n                        <li><strong class="text-blue-600">ROE & FCF Yield:</strong> Capital efficiency paired with cash generation relative to market value.</li>', 1)

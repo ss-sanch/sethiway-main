@@ -170,6 +170,16 @@
         // synchronise the current ticker even if the module was still loading.
         window.SethiStockLoadCompanyDriversModule = loadCompanyDriversModule;
 
+        // A smart-search/company-name query may only resolve to a supported ticker
+        // after the main analysis. Ensure the Driver module is present for that
+        // resolved ticker even if the raw input was not itself a ticker symbol.
+        window.addEventListener('sethistock:analysis-ready', event => {
+            const resolvedTicker = normaliseDriverTicker(event?.detail?.ticker);
+            if (SUPPORTED_DRIVER_TICKERS.has(resolvedTicker)) {
+                loadCompanyDriversModule(false).catch(() => null);
+            }
+        });
+
         const searchForm = document.querySelector('#search-form');
         const tickerInput = document.querySelector('#ticker-input');
         if (searchForm && searchForm.dataset.driverAutoloadBound !== '1') {

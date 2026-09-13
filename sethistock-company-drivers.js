@@ -680,6 +680,9 @@
             window.addEventListener('sethistock:analysis-start', event => {
                 const sequence = Number(event?.detail?.sequence || 0);
                 if (sequence) lifecycleSequence = Math.max(lifecycleSequence, sequence);
+                // Every new company starts from the fastest, pre-warmed investor view.
+                activePeriod = 'quarterly';
+                syncPeriodButtons();
             });
             window.addEventListener('sethistock:analysis-ready', event => {
                 const sequence = Number(event?.detail?.sequence || 0);

@@ -83,7 +83,9 @@
                     const dashboard = document.querySelector('#dashboard');
                     const button = document.querySelector('#search-btn');
                     if (dashboard?.classList.contains('opacity-100') && !button?.disabled) {
-                        window.SethiStockCompanyDrivers?.load(ticker)?.catch?.(() => null);
+                        if (window.SethiStockCompanyDrivers?.ticker !== ticker) {
+                            window.SethiStockCompanyDrivers?.load(ticker)?.catch?.(() => null);
+                        }
                     } else if (attempts < 100) {
                         setTimeout(loadWhenReady, 250);
                     }

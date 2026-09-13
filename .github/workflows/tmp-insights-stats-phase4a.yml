@@ -19,12 +19,19 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          import re
 
           p = Path('sethistock.html')
           text = p.read_text()
 
-          new_panel = '''                <div class="flex-grow flex flex-col justify-between space-y-4">
+          # Replace only the visible Insights & Stats body, leaving the outer card/layout intact.
+          panel_start = '                <div class="flex-grow flex flex-col justify-between space-y-6">'
+          panel_end = '\n            </div>\n            </div>\n        </div>\n\n        <div id="key-metrics"'
+          start = text.find(panel_start)
+          assert start >= 0, 'Insights panel start not found'
+          end = text.find(panel_end, start)
+          assert end >= 0, 'Insights panel end not found'
+
+          panel = '''                <div class="flex-grow flex flex-col justify-between space-y-4">
                     <div>
                         <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-2.5">Valuation & Quality</h4>
                         <div class="grid grid-cols-2 gap-x-7 gap-y-2 px-1">
@@ -62,42 +69,59 @@ jobs:
                     <div>
                         <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2 mb-2.5">Catalysts</h4>
                         <div class="grid grid-cols-2 gap-x-7 gap-y-2 px-1">
-                            <div class="py-1 min-w-0"><div class="flex justify-between items-center gap-2"><span class="text-sm font-bold text-purple-600">Next Earnings</span><span id="stat-earn" class="text-sm font-black text-gray-900 text-right">--</span></div><p id="stat-earn-countdown" class="text-[10px] font-bold text-gray-400 text-right mt-0.5">--</p></div>
-                            <div class="py-1 min-w-0"><div class="flex justify-between items-center gap-2"><span class="text-sm font-bold text-purple-600">Ex-Dividend</span><span id="stat-exdiv" class="text-sm font-black text-gray-900 text-right">--</span></div><p id="stat-exdiv-countdown" class="text-[10px] font-bold text-gray-400 text-right mt-0.5">--</p></div>
+                            <div class="py-1 min-w-0"><div class="flex justify-between items-center gap-2"><span class="text-sm font-bold text-purple-600">Next Earnings</span><span id="stat-earn" class="text-sm font-black text-gray-900 text-right">--</span></div><p id="stat-earn-countdown" class="text-[10px] font-bold text-gray-400 text-right mt-0.5"></p></div>
+                            <div class="py-1 min-w-0"><div class="flex justify-between items-center gap-2"><span class="text-sm font-bold text-purple-600">Ex-Dividend</span><span id="stat-exdiv" class="text-sm font-black text-gray-900 text-right">--</span></div><p id="stat-exdiv-countdown" class="text-[10px] font-bold text-gray-400 text-right mt-0.5"></p></div>
                         </div>
                     </div>
                 </div>'''
-
-          pattern = re.compile(r'                <div class="flex-grow flex flex-col justify-between space-y-6">.*?                </div>(?=\n            </div>\n            </div>\n        </div>\n\n        <div id="key-metrics")', re.S)
-          text, count = pattern.subn(new_panel, text, count=1)
-          assert count == 1, f'panel replacement count={count}'
+          text = text[:start] + panel + text[end:]
 
           old_skeleton = 'const statBoxes = ["current-price", "pe-ratio", "market-cap", "fcf-yield", "sethi-score", "dcf-target", "gordon-growth", "graham-number", "beta", "dividend-yield", "ev-ebitda", "profit-margin", "roe"];'
           new_skeleton = 'const statBoxes = ["current-price", "pe-ratio", "market-cap", "fcf-yield", "sethi-score", "dcf-target", "gordon-growth", "graham-number", "beta", "dividend-yield", "ev-ebitda", "profit-margin", "roe", "stat-pe-pair", "stat-eps-pair", "stat-rev-growth", "stat-net-margin", "stat-balance"];'
           assert text.count(old_skeleton) == 1
           text = text.replace(old_skeleton, new_skeleton, 1)
 
-          new_stats = '''                    injectText('stat-mkt', data.stats.mkt_cap || 'N/A');
+          # Replace the complete data.stats block atomically so no partial JS expression can be left behind.
+          block_start = '                // --- BULLETPROOF INSIGHTS & STATS MAPPING ---\n                if (data.stats) {'
+          block_end = '\n\n\n                const score = data.stats.sethi_score;'
+          s = text.find(block_start)
+          assert s >= 0, 'Stats mapping start not found'
+          e = text.find(block_end, s)
+          assert e >= 0, 'Stats mapping end not found'
+
+          mapping = '''                // --- BULLETPROOF INSIGHTS & STATS MAPPING ---
+                if (data.stats) {
+                    injectText('stat-mkt', data.stats.mkt_cap || 'N/A');
                     injectText('stat-ev', data.stats.ev_ebitda || 'N/A');
                     injectText('roe', data.stats.roe || 'N/A');
                     injectText('stat-fcf', data.stats.fcf_yield || 'N/A');
 
-                    const ttmPe = Number(data.stats.pe);
-                    const ttmEps = Number(data.stats.eps);
-                    const ntmEps = Number(data.stats.forward_eps);
-                    const ntmPe = Number.isFinite(ntmEps) && ntmEps > 0 && Number(data.current_price) > 0 ? Number(data.current_price) / ntmEps : NaN;
+                    const asFiniteNumber = value => {
+                        if (value === null || value === undefined || value === '' || value === 'N/A') return NaN;
+                        const number = Number(String(value).replace(/[%,$x]/g, '').trim());
+                        return Number.isFinite(number) ? number : NaN;
+                    };
+                    const ttmPe = asFiniteNumber(data.stats.pe);
+                    const ttmEps = asFiniteNumber(data.stats.eps);
+                    const ntmEps = asFiniteNumber(data.stats.forward_eps);
+                    const currentPriceForStats = asFiniteNumber(data.current_price);
+                    const ntmPe = Number.isFinite(ntmEps) && ntmEps > 0 && Number.isFinite(currentPriceForStats) ? currentPriceForStats / ntmEps : NaN;
                     injectText('stat-pe-pair', `${Number.isFinite(ttmPe) ? ttmPe.toFixed(2) : 'N/A'} | ${Number.isFinite(ntmPe) ? ntmPe.toFixed(2) : 'N/A'}`);
                     injectText('stat-eps-pair', `${Number.isFinite(ttmEps) ? '$' + ttmEps.toFixed(2) : 'N/A'} | ${Number.isFinite(ntmEps) ? '$' + ntmEps.toFixed(2) : 'N/A'}`);
 
-                    const revenues = Array.isArray(data.financials?.revenue) ? data.financials.revenue.map(Number).filter(v => Number.isFinite(v) && v > 0) : [];
-                    const revenueGrowth = revenues.length >= 2 && revenues[revenues.length - 2] !== 0 ? ((revenues[revenues.length - 1] / revenues[revenues.length - 2]) - 1) * 100 : NaN;
+                    const revenues = Array.isArray(data.financials?.revenue)
+                        ? data.financials.revenue.map(Number).filter(value => Number.isFinite(value) && value > 0)
+                        : [];
+                    const revenueGrowth = revenues.length >= 2
+                        ? ((revenues[revenues.length - 1] / revenues[revenues.length - 2]) - 1) * 100
+                        : NaN;
                     const revGrowthEl = document.getElementById('stat-rev-growth');
                     if (revGrowthEl) {
                         revGrowthEl.innerText = Number.isFinite(revenueGrowth) ? `${revenueGrowth >= 0 ? '+' : ''}${revenueGrowth.toFixed(1)}%` : 'N/A';
                         revGrowthEl.className = `text-sm font-black ${Number.isFinite(revenueGrowth) ? (revenueGrowth >= 0 ? 'text-emerald-600' : 'text-red-600') : 'text-gray-400'}`;
                     }
 
-                    const netMargin = Number(data.dupont_analysis?.net_profit_margin);
+                    const netMargin = asFiniteNumber(data.dupont_analysis?.net_profit_margin);
                     const netMarginEl = document.getElementById('stat-net-margin');
                     if (netMarginEl) {
                         netMarginEl.innerText = Number.isFinite(netMargin) ? `${netMargin.toFixed(1)}%` : 'N/A';
@@ -114,9 +138,8 @@ jobs:
                     };
                     const debt = latestNumeric(data.financials?.debt);
                     const cash = latestNumeric(data.financials?.cash);
-                    const sharesForCapital = Number(data.shares);
-                    const priceForCapital = Number(data.current_price);
-                    const evEbitda = Number(data.stats.ev_ebitda);
+                    const sharesForCapital = asFiniteNumber(data.shares);
+                    const evEbitda = asFiniteNumber(data.stats.ev_ebitda);
                     const balanceLabel = document.getElementById('stat-balance-label');
                     const balanceValue = document.getElementById('stat-balance');
                     if (balanceLabel && balanceValue && Number.isFinite(debt) && Number.isFinite(cash)) {
@@ -128,7 +151,7 @@ jobs:
                             balanceValue.innerText = formatBalanceCash(netCash);
                             balanceValue.className = 'text-sm font-black text-emerald-600';
                         } else {
-                            const marketCapRaw = Number.isFinite(sharesForCapital) && Number.isFinite(priceForCapital) ? sharesForCapital * priceForCapital : NaN;
+                            const marketCapRaw = Number.isFinite(sharesForCapital) && Number.isFinite(currentPriceForStats) ? sharesForCapital * currentPriceForStats : NaN;
                             const enterpriseValue = Number.isFinite(marketCapRaw) ? marketCapRaw + netDebt : NaN;
                             const impliedEbitda = Number.isFinite(enterpriseValue) && Number.isFinite(evEbitda) && evEbitda > 0 ? enterpriseValue / evEbitda : NaN;
                             balanceLabel.innerText = 'Net Debt/EBITDA';
@@ -139,13 +162,18 @@ jobs:
                         balanceLabel.innerText = 'Net Debt/EBITDA';
                         balanceValue.innerText = 'N/A';
                         balanceValue.className = 'text-sm font-black text-gray-400';
-                    }'''
+                    }
 
-          stats_pattern = re.compile(r"\s{20}injectText\('stat-mkt'.*?\s{20}injectText\('stat-feps'.*?;", re.S)
-          text, count = stats_pattern.subn('\n' + new_stats, text, count=1)
-          assert count == 1, f'stats mapping replacement count={count}'
+                    injectText('stat-rsi', data.stats.rsi_14 || 'N/A');
+                    injectText('stat-stoch', data.stats.stoch_k || 'N/A');
+                    const smaEl = document.getElementById('stat-sma');
+                    if (smaEl) {
+                        smaEl.innerText = data.stats.sma_200_pct || 'N/A';
+                        smaEl.className = parseFloat(data.stats.sma_200_pct) > 0 ? 'text-xs font-black text-green-600' : 'text-xs font-black text-red-600';
+                    }
+                    injectText('stat-52w', data.stats.dist_52w_high || 'N/A');
 
-          new_risk = '''                    injectText('stat-beta', data.stats.beta || 'N/A');
+                    injectText('stat-beta', data.stats.beta || 'N/A');
                     injectText('stat-short', data.stats.short_interest || 'N/A');
                     injectText('stat-div', data.stats.div_yield || 'N/A');
 
@@ -165,13 +193,11 @@ jobs:
                         el.innerText = days > 0 ? `in ${days} day${days === 1 ? '' : 's'}` : days === 0 ? 'today' : '';
                     };
                     setCatalystCountdown('stat-earn-countdown', data.stats.next_earnings);
-                    setCatalystCountdown('stat-exdiv-countdown', data.stats.next_dividend);'''
+                    setCatalystCountdown('stat-exdiv-countdown', data.stats.next_dividend);
+                }'''
+          text = text[:s] + mapping + text[e:]
 
-          risk_pattern = re.compile(r"\s{20}injectText\('stat-beta'.*?\s{20}injectText\('stat-exdiv'.*?;", re.S)
-          text, count = risk_pattern.subn('\n' + new_risk, text, count=1)
-          assert count == 1, f'risk mapping replacement count={count}'
-
-          # Keep the stats explainer aligned with the visible card.
+          # Update the explainer modal terminology where those legacy lines exist.
           text = text.replace('>Value & Profitability</h4>', '>Valuation & Quality</h4>', 1)
           text = text.replace('<li><strong class="text-blue-600">P/E Ratio:</strong> Price-to-Earnings. How much investors are willing to pay per dollar of earnings.</li>', '<li><strong class="text-blue-600">P/E (TTM | NTM):</strong> Trailing versus forward earnings valuation, showing how expected earnings change the multiple.</li>', 1)
           text = text.replace('<li><strong class="text-blue-600">ROE (Return on Equity):</strong> Measures how efficiently the company turns shareholder cash into profits.</li>', '<li><strong class="text-blue-600">Revenue Growth & Net Margin:</strong> Shows top-line momentum alongside the share of revenue retained as profit.</li>\n                        <li><strong class="text-blue-600">ROE & FCF Yield:</strong> Capital efficiency paired with cash generation relative to market value.</li>', 1)
@@ -190,6 +216,8 @@ jobs:
               assert check in html, check
           assert 'id="stat-pe"' not in html
           assert 'id="stat-feps"' not in html
+          assert "injectText('stat-pe'" not in html
+          assert "injectText('stat-feps'" not in html
           print('PHASE4A_INSIGHTS_STATIC_OK')
           PY
           node --check /tmp/sethistock-inline.js

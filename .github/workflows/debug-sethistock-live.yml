@@ -38,3 +38,4 @@ jobs:
             head -c 300 "/tmp/${name}.out" 2>/dev/null || true
             echo
           done
+          echo 'SETHISTOCK_DIAGNOSTIC_COMPLETE'

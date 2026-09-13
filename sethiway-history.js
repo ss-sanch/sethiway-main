@@ -15,6 +15,7 @@
         'inflation-rates': 'Inflation & Rates',
         'currencies': 'Currencies',
         'key-metrics': 'Key Metrics',
+        'company-drivers': 'Company Drivers',
         'research-labs': 'Research Labs',
         'valuation': 'Valuations',
         'comparisons': 'Comparisons',
@@ -59,4 +60,41 @@
     saveDestination();
     window.addEventListener('hashchange', saveDestination);
     window.addEventListener('popstate', saveDestination);
+
+    // SethiStock progressive feature modules load independently so they cannot
+    // block the core quote, chart or full-analysis request path.
+    if (page === 'sethistock.html') {
+        document.querySelectorAll('nav a[href="#key-metrics"]').forEach(financialLink => {
+            if (financialLink.nextElementSibling?.getAttribute('href') === '#company-drivers') return;
+            financialLink.insertAdjacentHTML('afterend', '<a href="#company-drivers" class="hover:text-blue-600 transition">Drivers</a>');
+        });
+
+        if (!document.querySelector('script[data-sethistock-company-drivers]')) {
+            const driverScript = document.createElement('script');
+            driverScript.src = 'sethistock-company-drivers.js?v=3e1';
+            driverScript.dataset.sethistockCompanyDrivers = '1';
+            driverScript.addEventListener('load', () => {
+                const paramsTicker = (new URLSearchParams(window.location.search).get('ticker') || '').trim().toUpperCase();
+                const stateTicker = typeof state === 'object' ? String(state?.ticker || '').trim().toUpperCase() : '';
+                const ticker = paramsTicker || stateTicker;
+                if (!/^[A-Z0-9.^-]{1,20}$/.test(ticker)) return;
+
+                let attempts = 0;
+                const loadWhenReady = () => {
+                    attempts += 1;
+                    const dashboard = document.querySelector('#dashboard');
+                    const button = document.querySelector('#search-btn');
+                    if (dashboard?.classList.contains('opacity-100') && !button?.disabled) {
+                        if (window.SethiStockCompanyDrivers?.ticker !== ticker) {
+                            window.SethiStockCompanyDrivers?.load(ticker)?.catch?.(() => null);
+                        }
+                    } else if (attempts < 100) {
+                        setTimeout(loadWhenReady, 250);
+                    }
+                };
+                loadWhenReady();
+            });
+            document.body.appendChild(driverScript);
+        }
+    }
 })();

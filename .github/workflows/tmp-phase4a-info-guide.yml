@@ -1,0 +1,122 @@
+name: Temporary Phase 4A info guide
+
+on:
+  push:
+    branches: [phase4a-insights-polish]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase4a-insights-polish
+          fetch-depth: 0
+      - name: Update Insights and Stats guide
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('sethistock.html')
+          text = p.read_text()
+
+          text = text.replace(
+              '<button onclick="toggleModal(\'stats-modal\')" class="text-gray-400 hover:text-blue-600 transition z-10 cursor-pointer">',
+              '<button onclick="toggleModal(\'stats-modal\')" aria-label="Explain Insights and Stats" title="Explain Insights & Stats" class="text-gray-400 hover:text-blue-600 transition z-10 cursor-pointer">',
+              1,
+          )
+
+          start = text.index('    <div id="stats-modal"')
+          end = text.index('    <div id="football-modal"', start)
+
+          modal = '''    <div id="stats-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-4xl w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-start gap-6 mb-6 border-b pb-4">
+                <div>
+                    <h2 class="text-2xl font-black text-gray-900">Insights & Stats Guide</h2>
+                    <p class="text-sm text-gray-500 mt-1">A quick guide to the valuation, momentum, risk and catalyst metrics in the company snapshot.</p>
+                </div>
+                <button onclick="toggleModal('stats-modal')" aria-label="Close Insights and Stats guide" class="text-gray-400 hover:text-red-500 text-3xl leading-none">&times;</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-700 leading-relaxed">
+                <section class="rounded-xl border border-gray-200 p-5">
+                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Valuation & Quality</h4>
+                    <ul class="space-y-3">
+                        <li><strong class="text-blue-600">Market Cap:</strong> Total equity market value of the company.</li>
+                        <li><strong class="text-blue-600">EV/EBITDA:</strong> Enterprise value relative to EBITDA, allowing valuation comparisons with less distortion from capital structure.</li>
+                        <li><strong class="text-blue-600">P/E (TTM | NTM):</strong> Share price relative to trailing earnings versus expected next-twelve-month earnings.</li>
+                        <li><strong class="text-blue-600">EPS (TTM | NTM):</strong> Earnings per share generated over the last twelve months versus the forward consensus estimate.</li>
+                        <li><strong class="text-blue-600">Revenue Growth:</strong> Latest annual revenue growth versus the preceding annual period.</li>
+                        <li><strong class="text-blue-600">Net Margin:</strong> Percentage of revenue retained as net profit.</li>
+                        <li><strong class="text-blue-600">ROE:</strong> Net income generated relative to shareholder equity.</li>
+                        <li><strong class="text-blue-600">FCF Yield:</strong> Free cash flow relative to market value; a higher figure indicates more cash generation for each unit of equity value.</li>
+                    </ul>
+                </section>
+
+                <section class="rounded-xl border border-gray-200 p-5">
+                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Technicals & Momentum</h4>
+                    <ul class="space-y-3">
+                        <li><strong class="text-blue-600">14d RSI:</strong> Relative Strength Index over 14 periods; readings above 70 are commonly viewed as overbought and below 30 as oversold.</li>
+                        <li><strong class="text-blue-600">Stochastic:</strong> Compares the latest close with the recent trading range to indicate momentum and potential turning points.</li>
+                        <li><strong class="text-blue-600">vs 200D MA:</strong> Percentage distance between the current share price and its 200-day moving average.</li>
+                        <li><strong class="text-blue-600">vs 52W High:</strong> Percentage distance from the highest share price recorded over the last 52 weeks.</li>
+                    </ul>
+                </section>
+
+                <section class="rounded-xl border border-gray-200 p-5">
+                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Risk & Capital</h4>
+                    <ul class="space-y-3">
+                        <li><strong class="text-blue-600">Beta:</strong> Historical sensitivity to broad market moves; above 1 indicates greater market sensitivity.</li>
+                        <li><strong class="text-blue-600">Annualised Volatility:</strong> Annualised standard deviation of recent daily returns, measuring realised price variability.</li>
+                        <li><strong class="text-blue-600">Daily VaR (95%):</strong> Estimated one-day loss threshold expected to be exceeded on roughly 5% of trading days under the model assumptions.</li>
+                        <li><strong class="text-red-500">Short Interest:</strong> Percentage of available shares currently sold short.</li>
+                        <li><strong class="text-blue-600">Dividend Yield:</strong> Annual dividend income relative to the current share price.</li>
+                        <li><strong class="text-blue-600">Net Debt/EBITDA / Net Cash:</strong> Shows leverage relative to EBITDA when debt exceeds cash; otherwise the company's net cash position is displayed.</li>
+                    </ul>
+                </section>
+
+                <section class="rounded-xl border border-gray-200 p-5">
+                    <h4 class="font-black text-gray-900 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Catalysts</h4>
+                    <ul class="space-y-3">
+                        <li><strong class="text-purple-600">Next Earnings:</strong> Estimated next earnings-release date. BMO means before market open; AMC means after market close.</li>
+                        <li><strong class="text-purple-600">Ex-Dividend:</strong> Date from which new buyers are no longer entitled to the upcoming dividend.</li>
+                        <li><strong class="text-purple-600">Timing Chip:</strong> Shows the number of days until the supplied catalyst date, or how many days ago it passed.</li>
+                    </ul>
+                    <div class="mt-5 rounded-lg bg-amber-50 border border-amber-100 px-4 py-3 text-xs text-amber-800">
+                        Catalyst dates can come from third-party market data and may occasionally be stale. A past-date chip makes that visible rather than hiding it.
+                    </div>
+                </section>
+            </div>
+
+            <div class="mt-7 pt-4 text-center border-t border-gray-100">
+                <button onclick="toggleModal('stats-modal')" class="bg-gray-900 text-white font-bold py-2 px-8 rounded-lg hover:bg-gray-700 transition">Close Guide</button>
+            </div>
+        </div>
+    </div>
+
+'''
+
+          text = text[:start] + modal + text[end:]
+          p.write_text(text)
+
+          assert text.count('Insights & Stats Guide') == 1
+          assert 'Daily VaR (95%)' in modal
+          assert 'P/E (TTM | NTM)' in modal
+          assert 'EPS (TTM | NTM)' in modal
+          assert 'Timing Chip:' in modal
+          assert 'Quantitative Terminal Glossary' not in modal
+          print('PHASE4A_INFO_GUIDE_OK')
+          PY
+      - name: Commit guide and remove temporary workflow
+        run: |
+          rm .github/workflows/tmp-phase4a-info-guide.yml
+          git config user.name "ss-sanch"
+          git config user.email "mlgsanchit@gmail.com"
+          git add sethistock.html .github/workflows/tmp-phase4a-info-guide.yml
+          git commit -m "Update Insights and Stats guide"
+          git push origin phase4a-insights-polish

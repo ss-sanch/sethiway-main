@@ -1,0 +1,48 @@
+name: Temporary Phase 4A countdown simple
+
+on:
+  push:
+    branches: [phase4a-insights-polish]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase4a-insights-polish
+          fetch-depth: 0
+      - name: Patch countdown
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('sethistock.html')
+          text = p.read_text()
+          old = "const parsed = Date.parse(textValue.replace(/\\b(BMO|AMC)\\b/gi, '').trim());"
+          new = """const cleanedValue = textValue.replace(/\\b(BMO|AMC)\\b/gi, '').trim();
+              const hasExplicitYear = /\\b(?:19|20)\\d{2}\\b/.test(cleanedValue);
+              const valueForParsing = hasExplicitYear ? cleanedValue : `${cleanedValue}, ${(new Date()).getFullYear()}`;
+              const parsed = Date.parse(valueForParsing);"""
+          if old not in text:
+              raise SystemExit('parse line not found')
+          text = text.replace(old, new, 1)
+          old_days = "const days = Math.round((target - today) / 86400000);"
+          new_days = """const days = Math.round((target - today) / 86400000);
+              if (Math.abs(days) > 400) { el.innerText = ''; el.classList.add('hidden'); return; }"""
+          if old_days not in text:
+              raise SystemExit('days line not found')
+          text = text.replace(old_days, new_days, 1)
+          p.write_text(text)
+          print('COUNTDOWN_PATCH_OK')
+          PY
+      - name: Commit
+        run: |
+          rm -f .github/workflows/tmp-phase4a-countdown-fix.yml .github/workflows/tmp-phase4a-countdown-fix2.yml .github/workflows/tmp-phase4a-countdown-fix3.yml .github/workflows/tmp-phase4a-countdown-simple.yml
+          git config user.name "ss-sanch"
+          git config user.email "mlgsanchit@gmail.com"
+          git add sethistock.html .github/workflows/
+          git commit -m "Fix yearless catalyst countdowns"
+          git push origin phase4a-insights-polish

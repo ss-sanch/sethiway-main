@@ -1,0 +1,42 @@
+name: Temporary Phase 4A financial remove compatibility fix
+
+on:
+  push:
+    branches: [phase4a-financial-metrics]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase4a-financial-metrics
+          fetch-depth: 0
+      - name: Patch backdrop removal compatibility
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('sethistock-financial-history.js')
+          text = p.read_text()
+          old = "        document.getElementById('financial-chart-backdrop')?.remove();"
+          new = "        const existingBackdrop = document.getElementById('financial-chart-backdrop');\n        if (existingBackdrop && existingBackdrop.parentNode) existingBackdrop.parentNode.removeChild(existingBackdrop);"
+          count = text.count(old)
+          if count != 2:
+              raise SystemExit(f'expected 2 backdrop remove calls, found {count}')
+          text = text.replace(old, new)
+          p.write_text(text)
+          print('BACKDROP_REMOVE_FIX_OK')
+          PY
+      - name: Validate JavaScript
+        run: node --check sethistock-financial-history.js
+      - name: Commit fix and clean temporary workflow
+        run: |
+          rm -f .github/workflows/tmp-phase4a-financial-remove-fix.yml
+          git config user.name "ss-sanch"
+          git config user.email "mlgsanchit@gmail.com"
+          git add sethistock-financial-history.js .github/workflows/tmp-phase4a-financial-remove-fix.yml
+          git commit -m "Fix financial chart backdrop cleanup compatibility"
+          git push origin phase4a-financial-metrics

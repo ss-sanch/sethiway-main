@@ -760,6 +760,8 @@
             customdata: observations.map(item => [item.price, item.ttm_eps]),
             hovertemplate: '%{x}<br>P/E: %{y:.1f}x<br>Price: $%{customdata[0]:.2f}<br>TTM EPS: %{customdata[1]:.3f}<extra></extra>'
         };
+        const chartElement = document.getElementById('ind-pe');
+        if (chartElement && !chartElement.classList.contains('js-plotly-plot')) chartElement.innerHTML = '';
         const layout = chartLayout({ period: 'quarterly' }, false);
         layout.yaxis.tickformat = '.1f';
         layout.yaxis.ticksuffix = 'x';
@@ -786,6 +788,8 @@
             customdata: events.map(event => [event.eps_estimate, event.reported_eps, event.move_1d_pct, event.move_5d_pct]),
             hovertemplate: '%{x}<br>EPS surprise: %{y:.1f}%<br>Estimate: %{customdata[0]}<br>Actual: %{customdata[1]}<br>1D: %{customdata[2]:.1f}%<br>5D: %{customdata[3]:.1f}%<extra></extra>'
         };
+        const chartElement = document.getElementById('ind-earnings');
+        if (chartElement && !chartElement.classList.contains('js-plotly-plot')) chartElement.innerHTML = '';
         const layout = chartLayout({ period: 'quarterly' }, false);
         layout.yaxis.tickformat = '.1f';
         layout.yaxis.ticksuffix = '%';

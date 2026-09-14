@@ -1,0 +1,36 @@
+name: Temporary generic financial placeholder cleanup
+
+on:
+  push:
+    branches: [phase4a-financial-dashboard-12charts]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase4a-financial-dashboard-12charts
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Apply generic placeholder cleanup
+        run: python .github/phase4a_placeholder_cleanup.py
+      - name: Validate JavaScript
+        run: |
+          node --check sethistock-financial-history.js
+          grep -q "function preparePlotContainer" sethistock-financial-history.js
+          grep -q "preparePlotContainer(id)" sethistock-financial-history.js
+          echo GENERIC_PLACEHOLDER_CLEANUP_OK
+      - name: Commit fix and remove temporary tooling
+        run: |
+          git config user.name "ss-sanch"
+          git config user.email "mlgsanchit@gmail.com"
+          git rm .github/workflows/tmp-generic-placeholder-cleanup.yml .github/phase4a_placeholder_cleanup.py
+          git add sethistock-financial-history.js
+          git commit -m "Fix generic financial chart placeholders"
+          git push origin phase4a-financial-dashboard-12charts

@@ -1,0 +1,34 @@
+name: Temporary financial loading cleanup
+
+on:
+  push:
+    branches: [phase4a-financial-dashboard-12charts]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.head_commit.message == 'Run loading-placeholder cleanup patch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase4a-financial-dashboard-12charts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Apply placeholder cleanup
+        run: python .github/phase4a_clear_loading_placeholders.py
+      - name: Validate JavaScript
+        run: |
+          node --check sethistock-financial-history.js
+          grep -q "chartElement.innerHTML = ''" sethistock-financial-history.js
+      - name: Commit fix and remove temporary tooling
+        run: |
+          git config user.name "ss-sanch"
+          git config user.email "mlgsanchit@gmail.com"
+          git rm .github/workflows/tmp-clear-financial-loading.yml .github/phase4a_clear_loading_placeholders.py
+          git add sethistock-financial-history.js
+          git commit -m "Clear research chart loading placeholders"
+          git push origin phase4a-financial-dashboard-12charts

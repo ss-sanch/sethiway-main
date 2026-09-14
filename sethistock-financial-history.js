@@ -83,6 +83,18 @@
         return /^[A-Z][A-Z0-9.-]{0,9}$/.test(String(ticker || '').trim().toUpperCase());
     }
 
+    function researchPayloadSettled(payload) {
+        const earnings = payload?.earnings_reaction;
+        const valuation = payload?.valuation_bands;
+        const studySettled = (study, dataKey) => {
+            if (!study || typeof study !== 'object') return false;
+            if (study.available === true) return Array.isArray(study[dataKey]);
+            if (study.available === false) return typeof study.reason === 'string' && study.reason.trim().length > 0;
+            return false;
+        };
+        return studySettled(earnings, 'events') && studySettled(valuation, 'observations');
+    }
+
     function extractFastEbitdaPoints(payload) {
         const series = Array.isArray(payload?.metrics?.ebitda?.series) ? payload.metrics.ebitda.series : [];
         return series
@@ -182,10 +194,17 @@
         if (!looksLikeTicker(symbol) || !payload || typeof payload !== 'object') return;
         const research = payload.research && typeof payload.research === 'object' ? payload.research : payload;
         if (!research || typeof research !== 'object') return;
-        fastResearchCache.set(symbol, research);
+
+        // A cached /api/stock row can predate a successful research calculation and
+        // therefore contain the bare {available:false} placeholders. Do not promote
+        // those placeholders into the fast research cache as if they were final data.
+        const settled = researchPayloadSettled(research);
+        if (settled) fastResearchCache.set(symbol, research);
+        else fastResearchCache.delete(symbol);
+
         if (canonicalSupplementaryTicker(financialTicker) === symbol || !financialTicker) {
-            researchData = research;
-            researchTicker = symbol;
+            researchData = settled ? research : null;
+            researchTicker = settled ? symbol : '';
         }
     }
 
@@ -1128,6 +1147,15 @@
         // the same cards independently and never blocks the first financial render.
         renderFinancialCharts(fallbackView);
         displayedView = fallbackView;
+
+        // The full stock-analysis cache is deliberately long-lived. If it contains an
+        // older placeholder research payload, hydrate only these two supplementary
+        // cards from the lightweight research endpoint instead of rebuilding the stock.
+        const supplementaryTicker = canonicalSupplementaryTicker(ticker);
+        if (researchTicker !== supplementaryTicker || !researchPayloadSettled(researchData)) {
+            loadFinancialResearch(ticker, prefetchGeneration).catch(() => null);
+        }
+
         setStatus('Loading long-run SEC history…', 'loading');
         loadFinancialHistory('annual').catch(() => null);
     };

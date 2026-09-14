@@ -1,0 +1,49 @@
+name: Temporary financial modal fix
+
+on:
+  push:
+    branches: [phase4a-financial-dashboard-12charts]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.head_commit.message == 'Add temporary dedicated modal fix runner'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase4a-financial-dashboard-12charts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Apply dedicated modal patch
+        run: python .github/phase4a_modal_patch.py
+      - name: Validate JavaScript and modal structure
+        run: |
+          node --check sethistock-financial-history.js
+          python - <<'PY'
+          from pathlib import Path
+          js = Path('sethistock-financial-history.js').read_text()
+          for token in [
+              "financial-chart-modal",
+              "financial-expanded-plot",
+              "width:min(1040px,calc(100vw - 72px))",
+              "background:rgba(15,23,42,.48)",
+              "renderExpandedPlot(chartId)",
+              "hoverlabel"
+          ]:
+              assert token in js, token
+          assert "card.style.position = 'fixed'" not in js
+          assert "financial-chart-backdrop" not in js
+          print('PHASE4A_MODAL_FIX_STATIC_OK')
+          PY
+      - name: Commit frontend fix and remove temporary tooling
+        run: |
+          git config user.name "ss-sanch"
+          git config user.email "mlgsanchit@gmail.com"
+          git rm .github/workflows/tmp-phase4a-modal-fix.yml .github/phase4a_modal_patch.py
+          git add sethistock-financial-history.js
+          git commit -m "Use dedicated financial chart modal"
+          git push origin phase4a-financial-dashboard-12charts

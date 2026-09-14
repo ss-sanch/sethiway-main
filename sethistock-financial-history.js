@@ -112,7 +112,7 @@
         if (fastEbitdaCache.has(symbol)) return Promise.resolve(fastEbitdaCache.get(symbol));
         if (fastEbitdaPromises.has(symbol)) return fastEbitdaPromises.get(symbol);
 
-        const query = new URLSearchParams({ period: 'annual', metrics: SEC_METRICS.join(','), limit: '5' });
+        const query = new URLSearchParams({ period: 'annual', metrics: 'ebitda', limit: '5' });
         const promise = fetchJsonWithRetry(
             `${API_URL}/api/sec/${encodeURIComponent(symbol)}/fundamentals/series?${query.toString()}`,
             {},
@@ -1084,7 +1084,6 @@
         researchTicker = researchData ? supplementaryTicker : '';
         fallbackView = buildLegacyView(fin);
         applyFastEbitdaFallback(ticker, fallbackView);
-        primeSupplementaryFinancialData(ticker);
         displayedView = fallbackView;
         desiredPeriod = 'annual';
         state.financialPeriod = 'annual';
@@ -1113,12 +1112,37 @@
             applyFastEbitdaFallback(ticker, fallbackView);
         }
 
-        // Keep the existing short history visible instantly, then hydrate the SEC view.
+        // Keep the existing short history visible instantly. Then stage the two
+        // supplementary requests before the heavy long-run SEC hydration so Render
+        // is not hit by a burst of expensive requests at analysis start.
         renderFinancialCharts(fallbackView);
         displayedView = fallbackView;
-        setStatus('Loading long-run SEC history…', 'loading');
-        loadFinancialHistory('annual').catch(() => null);
-        loadFinancialResearch(ticker, prefetchGeneration).catch(() => null);
+        setStatus('Loading recent research and EBITDA…', 'loading');
+
+        const generation = prefetchGeneration;
+        const symbol = canonicalSupplementaryTicker(ticker);
+        (async () => {
+            try {
+                await loadFinancialResearch(symbol, generation);
+            } catch (_) {}
+
+            if (generation !== prefetchGeneration || canonicalSupplementaryTicker(financialTicker) !== symbol) return;
+
+            try {
+                await requestFastEbitda(symbol);
+            } catch (_) {}
+
+            if (generation !== prefetchGeneration || canonicalSupplementaryTicker(financialTicker) !== symbol) return;
+            if (fallbackView?.sourceType === 'legacy') {
+                applyFastEbitdaFallback(symbol, fallbackView);
+                renderFinancialCards(fallbackView);
+                renderFinancialCharts(fallbackView);
+                displayedView = fallbackView;
+            }
+
+            setStatus('Loading long-run SEC history…', 'loading');
+            loadFinancialHistory('annual').catch(() => null);
+        })();
     };
 
     document.querySelectorAll('.financial-period-btn').forEach(button => {
@@ -1138,21 +1162,6 @@
             if (displayedView) renderFinancialCharts(displayedView);
         });
     });
-
-    // Start the lightweight supplementary requests as soon as a ticker search begins.
-    // They are independent from the long-run SEC hydration, so the three newer cards
-    // can populate alongside the legacy 4-year fallback instead of waiting behind it.
-    window.addEventListener('sethistock:analysis-start', event => {
-        const ticker = canonicalSupplementaryTicker(event?.detail?.ticker);
-        if (looksLikeTicker(ticker)) primeSupplementaryFinancialData(ticker);
-    });
-    window.addEventListener('sethistock:analysis-ready', event => {
-        const ticker = canonicalSupplementaryTicker(event?.detail?.ticker);
-        if (looksLikeTicker(ticker)) primeSupplementaryFinancialData(ticker);
-    });
-    if (window.__sethiStockLastAnalysisReady?.ticker) {
-        primeSupplementaryFinancialData(window.__sethiStockLastAnalysisReady.ticker);
-    }
 
     document.addEventListener('keydown', event => {
         if (event.key === 'Escape' && expandedChartId) toggleExpandedChart(expandedChartId);

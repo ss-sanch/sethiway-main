@@ -1,0 +1,42 @@
+name: Temporary frontend runtime stability validation
+
+on:
+  push:
+    branches: [phase4a-runtime-stability]
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase4a-runtime-stability
+      - name: Apply lifecycle patch
+        run: python tmp_frontend_runtime_patch.py
+      - name: Validate financial module syntax
+        run: node --check sethistock-financial-history.js
+      - name: Validate lifecycle invariants
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          html = Path('sethistock.html').read_text()
+          fin = Path('sethistock-financial-history.js').read_text()
+          assert 'let analysisAbortController = null;' in html
+          assert 'signal: analysisController.signal' in html
+          assert "if (err?.name === 'AbortError') return;" in html
+          assert "prefetchOtherPeriods(ticker, period);" not in fin
+          assert "window.addEventListener('sethistock:analysis-start'" in fin
+          print('FRONTEND_RUNTIME_INVARIANTS_OK')
+          PY
+      - name: Commit validated application changes only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f tmp_frontend_runtime_patch.py .github/workflows/tmp-frontend-runtime-stability.yml
+          git add sethistock.html sethistock-financial-history.js
+          git commit -m "Cancel obsolete SethiStock runtime work"
+          git push origin HEAD:phase4a-runtime-stability

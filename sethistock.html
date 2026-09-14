@@ -1246,6 +1246,10 @@
                     injectText('dupont-roe', 'N/A');
                 }
 
+                if (data.research && window.SethiStockFinancialHistory?.primeInitialData) {
+                    window.SethiStockFinancialHistory.primeInitialData(state.ticker, { research: data.research });
+                }
+
                 let cleanFin = { years: [], revenue: [], net: [], ebitda: [], gross_margin: [], op_margin: [], net_margin: [], fcf: [], ocf: [], capex: [], cash: [], debt: [], shares: [] };
                 for(let i=0; i<data.financials.years.length; i++) {
                     if (data.financials.revenue[i] !== 0) {
@@ -1268,14 +1272,32 @@
                 dash.classList.remove('hidden');
                 injectFinancialHTML(cleanFin);
 
-                setTimeout(async () => {
-                    await chartPromise;
-                    if (!state.chartData) await fetchChart().catch(() => null);
+                // The main analysis already fetched five years of daily prices. Use its
+                // one-year preview immediately if the dedicated price-chart request is
+                // still in flight, rather than leaving Price Action blank.
+                if (!state.chartData && state.period === '1y' && state.interval === '1d' && data.chart_preview) {
+                    const preview = normaliseChartData(data.chart_preview);
+                    if (preview.closes.length) {
+                        const previewKey = `${state.ticker}|1y|1d`;
+                        rememberChart(previewKey, preview);
+                        state.chartData = preview;
+                        renderPeriodReturn();
+                        drawPriceChart();
+                    }
+                }
+
+                // Financials no longer wait for Price Action. They render as soon as the
+                // main analysis arrives; the independent chart request can finish later.
+                setTimeout(() => {
                     drawFinancials(cleanFin);
                     loadPeers(data.peers);
                     loadInsiders(data.insiders);
-                    dash.classList.add('opacity-100'); 
-                }, 150);
+                    dash.classList.add('opacity-100');
+
+                    chartPromise.then(() => {
+                        if (!state.chartData) fetchChart().catch(() => null);
+                    }).catch(() => null);
+                }, 0);
 
             } catch (err) {
                 clearInterval(loadingInterval);

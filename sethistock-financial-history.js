@@ -177,6 +177,18 @@
         requestFastEbitda(symbol).catch(() => null);
     }
 
+    function primeInitialData(ticker, payload) {
+        const symbol = canonicalSupplementaryTicker(ticker);
+        if (!looksLikeTicker(symbol) || !payload || typeof payload !== 'object') return;
+        const research = payload.research && typeof payload.research === 'object' ? payload.research : payload;
+        if (!research || typeof research !== 'object') return;
+        fastResearchCache.set(symbol, research);
+        if (canonicalSupplementaryTicker(financialTicker) === symbol || !financialTicker) {
+            researchData = research;
+            researchTicker = symbol;
+        }
+    }
+
     function metricPointsFromAligned(view, key) {
         const values = Array.isArray(view?.[key]) ? view[key] : [];
         const dates = Array.isArray(view?.dates) ? view.dates : [];
@@ -1112,37 +1124,13 @@
             applyFastEbitdaFallback(ticker, fallbackView);
         }
 
-        // Keep the existing short history visible instantly. Then stage the two
-        // supplementary requests before the heavy long-run SEC hydration so Render
-        // is not hit by a burst of expensive requests at analysis start.
+        // The main stock payload now contains recent EBITDA plus P/E / earnings
+        // research, so all 12 cards render in one pass. Long-run SEC history upgrades
+        // the same cards independently and never blocks the first financial render.
         renderFinancialCharts(fallbackView);
         displayedView = fallbackView;
-        setStatus('Loading recent research and EBITDA…', 'loading');
-
-        const generation = prefetchGeneration;
-        const symbol = canonicalSupplementaryTicker(ticker);
-        (async () => {
-            try {
-                await loadFinancialResearch(symbol, generation);
-            } catch (_) {}
-
-            if (generation !== prefetchGeneration || canonicalSupplementaryTicker(financialTicker) !== symbol) return;
-
-            try {
-                await requestFastEbitda(symbol);
-            } catch (_) {}
-
-            if (generation !== prefetchGeneration || canonicalSupplementaryTicker(financialTicker) !== symbol) return;
-            if (fallbackView?.sourceType === 'legacy') {
-                applyFastEbitdaFallback(symbol, fallbackView);
-                renderFinancialCards(fallbackView);
-                renderFinancialCharts(fallbackView);
-                displayedView = fallbackView;
-            }
-
-            setStatus('Loading long-run SEC history…', 'loading');
-            loadFinancialHistory('annual').catch(() => null);
-        })();
+        setStatus('Loading long-run SEC history…', 'loading');
+        loadFinancialHistory('annual').catch(() => null);
     };
 
     document.querySelectorAll('.financial-period-btn').forEach(button => {
@@ -1173,6 +1161,7 @@
         get period() { return desiredPeriod; },
         get source() { return displayedView?.sourceType || null; },
         get periodCount() { return displayedView?.periodCount || 0; },
+        primeInitialData,
         load: loadFinancialHistory
     };
 })();

@@ -39,6 +39,8 @@
     const financialMemoryCache = new Map();
     let researchData = null;
     let researchTicker = '';
+    const fastEbitdaPromises = new Map();
+    const fastEbitdaCache = new Map();
 
     function finiteNumber(value) {
         const number = Number(value);
@@ -69,6 +71,84 @@
     function normaliseLegacyDate(year) {
         const match = String(year ?? '').match(/(19|20)\d{2}/);
         return match ? `${match[0]}-12-31` : String(year ?? '');
+    }
+
+    function canonicalSupplementaryTicker(ticker) {
+        const symbol = String(ticker || '').trim().toUpperCase();
+        return symbol === 'GOOG' ? 'GOOGL' : symbol;
+    }
+
+    function looksLikeTicker(ticker) {
+        return /^[A-Z][A-Z0-9.-]{0,9}$/.test(String(ticker || '').trim().toUpperCase());
+    }
+
+    function extractFastEbitdaPoints(payload) {
+        const series = Array.isArray(payload?.metrics?.ebitda?.series) ? payload.metrics.ebitda.series : [];
+        return series
+            .map(point => ({
+                ...point,
+                value: finiteNumber(point?.value),
+                end: point?.end || null,
+                label: point?.label || point?.end || ''
+            }))
+            .filter(point => point.end && point.value !== null)
+            .sort((a, b) => String(a.end).localeCompare(String(b.end)))
+            .slice(-5);
+    }
+
+    function applyFastEbitdaFallback(ticker, view) {
+        const symbol = canonicalSupplementaryTicker(ticker);
+        const points = fastEbitdaCache.get(symbol);
+        if (!view || view.sourceType !== 'legacy' || !Array.isArray(points) || !points.length) return false;
+        if (!view.metricPoints) view.metricPoints = {};
+        view.metricPoints.ebitda = points.map(point => ({ ...point }));
+        return true;
+    }
+
+    function requestFastEbitda(ticker) {
+        const symbol = canonicalSupplementaryTicker(ticker);
+        if (!looksLikeTicker(symbol)) return Promise.resolve([]);
+        if (fastEbitdaCache.has(symbol)) return Promise.resolve(fastEbitdaCache.get(symbol));
+        if (fastEbitdaPromises.has(symbol)) return fastEbitdaPromises.get(symbol);
+
+        const query = new URLSearchParams({ period: 'annual', metrics: 'ebitda', limit: '5' });
+        const promise = fetchJsonWithRetry(
+            `${API_URL}/api/sec/${encodeURIComponent(symbol)}/fundamentals/series?${query.toString()}`,
+            {},
+            1
+        ).then(payload => {
+            const points = extractFastEbitdaPoints(payload);
+            if (points.length) fastEbitdaCache.set(symbol, points);
+
+            if (points.length && financialTicker === symbol && fallbackView?.sourceType === 'legacy') {
+                applyFastEbitdaFallback(symbol, fallbackView);
+                if (displayedView?.sourceType === 'legacy') {
+                    renderFinancialCards(fallbackView);
+                    drawSingleMetric(fallbackView, 'ind-ebitda', 'ebitda', '#0f766e', { name: 'EBITDA' });
+                    if (expandedChartId === 'ind-ebitda') requestAnimationFrame(() => renderExpandedPlot('ind-ebitda'));
+                }
+            }
+            return points;
+        }).catch(error => {
+            console.debug(`Fast EBITDA fallback unavailable for ${symbol}:`, error);
+            return [];
+        }).finally(() => {
+            if (!fastEbitdaCache.has(symbol)) fastEbitdaPromises.delete(symbol);
+        });
+
+        fastEbitdaPromises.set(symbol, promise);
+        return promise;
+    }
+
+    function primeSupplementaryFinancialData(ticker) {
+        const symbol = canonicalSupplementaryTicker(ticker);
+        if (!looksLikeTicker(symbol)) return;
+        if (typeof window.getSethiStockResearch === 'function') {
+            window.getSethiStockResearch(symbol).catch(error => {
+                console.debug(`Early research prefetch unavailable for ${symbol}:`, error);
+            });
+        }
+        requestFastEbitda(symbol).catch(() => null);
     }
 
     function metricPointsFromAligned(view, key) {
@@ -493,7 +573,15 @@
             return;
         }
 
-        const traces = source.data.map(trace => ({ ...trace }));
+        const traces = source.data.map(trace => {
+            const clone = { ...trace };
+            if (clone.type === 'bar' && Array.isArray(clone.text) && clone.text.length) {
+                clone.textposition = 'outside';
+                clone.textfont = { ...(clone.textfont || {}), color: '#334155', size: 11 };
+                clone.cliponaxis = false;
+            }
+            return clone;
+        });
         const sourceLayout = source.layout || {};
         const layout = {
             ...sourceLayout,
@@ -721,8 +809,9 @@
         if (annualBars) {
             trace.type = 'bar';
             trace.marker = { color: colour, line: { width: 0 } };
-            trace.textposition = 'outside';
-            trace.textfont = { color: '#334155', size: 10 };
+            // Keep normal dashboard bars clean; exact values remain available on hover.
+            // The expanded modal restores outside labels where there is enough room.
+            trace.textposition = 'none';
             trace.cliponaxis = false;
         } else {
             trace.type = 'scatter';
@@ -966,6 +1055,8 @@
         researchData = null;
         researchTicker = '';
         fallbackView = buildLegacyView(fin);
+        applyFastEbitdaFallback(ticker, fallbackView);
+        primeSupplementaryFinancialData(ticker);
         displayedView = fallbackView;
         desiredPeriod = 'annual';
         state.financialPeriod = 'annual';
@@ -1013,6 +1104,21 @@
             if (displayedView) renderFinancialCharts(displayedView);
         });
     });
+
+    // Start the lightweight supplementary requests as soon as a ticker search begins.
+    // They are independent from the long-run SEC hydration, so the three newer cards
+    // can populate alongside the legacy 4-year fallback instead of waiting behind it.
+    window.addEventListener('sethistock:analysis-start', event => {
+        const ticker = canonicalSupplementaryTicker(event?.detail?.ticker);
+        if (looksLikeTicker(ticker)) primeSupplementaryFinancialData(ticker);
+    });
+    window.addEventListener('sethistock:analysis-ready', event => {
+        const ticker = canonicalSupplementaryTicker(event?.detail?.ticker);
+        if (looksLikeTicker(ticker)) primeSupplementaryFinancialData(ticker);
+    });
+    if (window.__sethiStockLastAnalysisReady?.ticker) {
+        primeSupplementaryFinancialData(window.__sethiStockLastAnalysisReady.ticker);
+    }
 
     document.addEventListener('keydown', event => {
         if (event.key === 'Escape' && expandedChartId) toggleExpandedChart(expandedChartId);

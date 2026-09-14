@@ -470,10 +470,13 @@
         if (!card) return;
         card.style.position = '';
         card.style.left = '';
+        card.style.right = '';
         card.style.top = '';
+        card.style.bottom = '';
         card.style.width = '';
         card.style.maxWidth = '';
         card.style.height = '';
+        card.style.margin = '';
         card.style.transform = '';
         card.style.zIndex = '';
         card.style.boxShadow = '';
@@ -504,18 +507,23 @@
         const backdrop = document.createElement('button');
         backdrop.id = 'financial-chart-backdrop';
         backdrop.type = 'button';
-        backdrop.className = 'fixed inset-0 z-[150] bg-gray-900/55 backdrop-blur-sm';
+        backdrop.className = 'fixed inset-0 z-[150] bg-gray-900/55';
         backdrop.setAttribute('aria-label', 'Close expanded chart');
         backdrop.addEventListener('click', () => toggleExpandedChart(chartId));
         document.body.appendChild(backdrop);
 
+        // Avoid transforms on the enlarged Plotly container. Transformed SVGs can
+        // land on fractional pixels and render soft; fixed edges + auto margins stay crisp.
         card.style.position = 'fixed';
-        card.style.left = '50%';
-        card.style.top = '7vh';
-        card.style.width = '92vw';
+        card.style.left = '0';
+        card.style.right = '0';
+        card.style.top = '6vh';
+        card.style.bottom = '6vh';
+        card.style.width = 'calc(100vw - 48px)';
         card.style.maxWidth = '1280px';
-        card.style.height = '86vh';
-        card.style.transform = 'translateX(-50%)';
+        card.style.height = '88vh';
+        card.style.margin = '0 auto';
+        card.style.transform = 'none';
         card.style.zIndex = '160';
         card.style.boxShadow = '0 30px 70px rgba(15, 23, 42, 0.28)';
         card.style.overflow = chartId === 'ind-earnings' ? 'auto' : 'hidden';
@@ -527,11 +535,18 @@
             if (detail) detail.classList.remove('hidden');
             renderEarningsDetail();
         } else if (chart) {
-            chart.style.height = 'calc(86vh - 118px)';
+            chart.style.height = 'calc(88vh - 118px)';
         }
+        // Wait for the fixed card to settle before Plotly measures its enlarged box.
         requestAnimationFrame(() => {
-            renderFinancialCharts(displayedView);
-            Plotly.Plots.resize(chartId);
+            requestAnimationFrame(() => {
+                renderFinancialCharts(displayedView);
+                const expandedPlot = document.getElementById(chartId);
+                if (expandedPlot) Plotly.Plots.resize(expandedPlot);
+                setTimeout(() => {
+                    if (expandedPlot?.isConnected) Plotly.Plots.resize(expandedPlot);
+                }, 80);
+            });
         });
     }
 
@@ -622,6 +637,13 @@
             showlegend: showLegend,
             autosize: true,
             hovermode: 'x unified',
+            hoverlabel: {
+                bgcolor: '#ffffff',
+                bordercolor: '#cbd5e1',
+                font: { color: '#0f172a', size: 12 },
+                align: 'left',
+                namelength: -1
+            },
             xaxis: {
                 type: 'date',
                 showgrid: false,

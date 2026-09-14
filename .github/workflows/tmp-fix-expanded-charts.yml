@@ -8,16 +8,13 @@ permissions:
   contents: write
 
 jobs:
-  fix:
-    if: github.event.head_commit.message != 'Fix expanded chart clarity and hover labels'
+  patch:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: phase4a-financial-dashboard-12charts
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+          fetch-depth: 0
       - name: Patch expanded chart rendering and tooltips
         run: |
           python - <<'PY'
@@ -26,7 +23,8 @@ jobs:
           path = Path('sethistock-financial-history.js')
           text = path.read_text()
 
-          old_clear = """        card.style.position = '';
+          replacements = [
+              ("""        card.style.position = '';
         card.style.left = '';
         card.style.top = '';
         card.style.width = '';
@@ -35,8 +33,8 @@ jobs:
         card.style.transform = '';
         card.style.zIndex = '';
         card.style.boxShadow = '';
-        card.style.overflow = '';"""
-          new_clear = """        card.style.position = '';
+        card.style.overflow = '';""",
+               """        card.style.position = '';
         card.style.left = '';
         card.style.right = '';
         card.style.top = '';
@@ -48,18 +46,10 @@ jobs:
         card.style.transform = '';
         card.style.zIndex = '';
         card.style.boxShadow = '';
-        card.style.overflow = '';"""
-          if old_clear not in text:
-              raise SystemExit('clearExpandedCardStyles target not found')
-          text = text.replace(old_clear, new_clear, 1)
-
-          old_backdrop = "backdrop.className = 'fixed inset-0 z-[150] bg-gray-900/55 backdrop-blur-sm';"
-          new_backdrop = "backdrop.className = 'fixed inset-0 z-[150] bg-gray-900/55';"
-          if old_backdrop not in text:
-              raise SystemExit('backdrop target not found')
-          text = text.replace(old_backdrop, new_backdrop, 1)
-
-          old_modal = """        card.style.position = 'fixed';
+        card.style.overflow = '';"""),
+              ("backdrop.className = 'fixed inset-0 z-[150] bg-gray-900/55 backdrop-blur-sm';",
+               "backdrop.className = 'fixed inset-0 z-[150] bg-gray-900/55';"),
+              ("""        card.style.position = 'fixed';
         card.style.left = '50%';
         card.style.top = '7vh';
         card.style.width = '92vw';
@@ -68,9 +58,9 @@ jobs:
         card.style.transform = 'translateX(-50%)';
         card.style.zIndex = '160';
         card.style.boxShadow = '0 30px 70px rgba(15, 23, 42, 0.28)';
-        card.style.overflow = chartId === 'ind-earnings' ? 'auto' : 'hidden';"""
-          new_modal = """        // Use true fixed positioning rather than a translated container. CSS transforms
-        // can put Plotly's SVG on fractional pixels, which makes expanded charts look soft.
+        card.style.overflow = chartId === 'ind-earnings' ? 'auto' : 'hidden';""",
+               """        // Avoid transforms on the expanded Plotly container: transformed SVGs can
+        // land on fractional pixels and render soft. Left/right + auto margins centres crisply.
         card.style.position = 'fixed';
         card.style.left = '0';
         card.style.right = '0';
@@ -83,23 +73,13 @@ jobs:
         card.style.transform = 'none';
         card.style.zIndex = '160';
         card.style.boxShadow = '0 30px 70px rgba(15, 23, 42, 0.28)';
-        card.style.overflow = chartId === 'ind-earnings' ? 'auto' : 'hidden';"""
-          if old_modal not in text:
-              raise SystemExit('expanded modal target not found')
-          text = text.replace(old_modal, new_modal, 1)
-
-          old_height = "chart.style.height = 'calc(86vh - 118px)';"
-          new_height = "chart.style.height = 'calc(88vh - 118px)';"
-          if old_height not in text:
-              raise SystemExit('expanded chart height target not found')
-          text = text.replace(old_height, new_height, 1)
-
-          old_resize = """        requestAnimationFrame(() => {
+        card.style.overflow = chartId === 'ind-earnings' ? 'auto' : 'hidden';"""),
+              ("chart.style.height = 'calc(86vh - 118px)';", "chart.style.height = 'calc(88vh - 118px)';"),
+              ("""        requestAnimationFrame(() => {
             renderFinancialCharts(displayedView);
             Plotly.Plots.resize(chartId);
-        });"""
-          new_resize = """        // Redraw only after the fixed card has reached its final geometry, then resize
-        // once more on the next frame so Plotly measures the crisp, untransformed box.
+        });""",
+               """        // Let fixed positioning settle before Plotly measures the enlarged card.
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 renderFinancialCharts(displayedView);
@@ -109,15 +89,11 @@ jobs:
                     if (expandedPlot?.isConnected) Plotly.Plots.resize(expandedPlot);
                 }, 80);
             });
-        });"""
-          if old_resize not in text:
-              raise SystemExit('expanded resize target not found')
-          text = text.replace(old_resize, new_resize, 1)
-
-          old_hover = """            autosize: true,
+        });"""),
+              ("""            autosize: true,
             hovermode: 'x unified',
-            xaxis: {"""
-          new_hover = """            autosize: true,
+            xaxis: {""",
+               """            autosize: true,
             hovermode: 'x unified',
             hoverlabel: {
                 bgcolor: '#ffffff',
@@ -126,20 +102,27 @@ jobs:
                 align: 'left',
                 namelength: -1
             },
-            xaxis: {"""
-          if old_hover not in text:
-              raise SystemExit('chartLayout hover target not found')
-          text = text.replace(old_hover, new_hover, 1)
+            xaxis: {""")
+          ]
+
+          for old, new in replacements:
+              if old not in text:
+                  raise SystemExit(f'Patch target not found: {old[:80]!r}')
+              text = text.replace(old, new, 1)
 
           path.write_text(text)
           PY
+      - name: Validate JavaScript
+        run: |
           node --check sethistock-financial-history.js
           grep -q "hoverlabel" sethistock-financial-history.js
           grep -q "card.style.transform = 'none'" sethistock-financial-history.js
+          grep -q "card.style.right = '0'" sethistock-financial-history.js
       - name: Commit fixes
         run: |
           git config user.name "ss-sanch"
           git config user.email "mlgsanchit@gmail.com"
+          git rm .github/workflows/tmp-fix-expanded-charts.yml
           git add sethistock-financial-history.js
           git commit -m "Fix expanded chart clarity and hover labels"
           git push origin phase4a-financial-dashboard-12charts

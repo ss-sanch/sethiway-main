@@ -737,6 +737,7 @@
         let watchlist = JSON.parse(localStorage.getItem('sethiWatchlist')) || [];
         let chartRequestId = 0;
         let chartAbortController = null;
+        let analysisAbortController = null;
         const chartMemoryCache = new Map();
         const CHART_MEMORY_TTL_MS = 5 * 60 * 1000;
         const CHART_MEMORY_MAX = 48;
@@ -932,6 +933,9 @@
             const analysisSequence = (Number(window.__sethiStockAnalysisSequence) || 0) + 1;
             window.__sethiStockAnalysisSequence = analysisSequence;
             state.ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+            if (analysisAbortController) analysisAbortController.abort();
+            const analysisController = new AbortController();
+            analysisAbortController = analysisController;
             window.__sethiStockLastAnalysisReady = null;
             window.dispatchEvent(new CustomEvent('sethistock:analysis-start', { detail: { ticker: state.ticker, sequence: analysisSequence } }));
             
@@ -982,9 +986,9 @@
                 // Stage 1 starts immediately: chart + lightweight quote.
                 // The full analysis continues in parallel and hydrates the heavier sections when ready.
                 const chartPromise = fetchChart().catch(() => null);
-                const fullDataPromise = fetchJsonWithRetry(`${API_URL}/api/stock/${encodeURIComponent(requestedTicker)}`, {}, 1);
+                const fullDataPromise = fetchJsonWithRetry(`${API_URL}/api/stock/${encodeURIComponent(requestedTicker)}`, { signal: analysisController.signal }, 1);
                 let fullAnalysisReady = false;
-                const quoteHydrationPromise = fetchJsonWithRetry(`${API_URL}/api/quote/${encodeURIComponent(requestedTicker)}`, {}, 1)
+                const quoteHydrationPromise = fetchJsonWithRetry(`${API_URL}/api/quote/${encodeURIComponent(requestedTicker)}`, { signal: analysisController.signal }, 1)
                     .then((quoteData) => {
                         if (!quoteData || fullAnalysisReady || analysisSequence !== window.__sethiStockAnalysisSequence) return;
 
@@ -1301,6 +1305,7 @@
 
             } catch (err) {
                 clearInterval(loadingInterval);
+                if (err?.name === 'AbortError') return;
                 dash.classList.remove('opacity-50');
                 dash.classList.add('opacity-100');
                 if(loadingBubbleText) loadingBubbleText.innerText = "Data Sync Failed.";
@@ -1314,6 +1319,7 @@
                 document.getElementById('error-message').innerText = message;
                 document.getElementById('error-message').classList.remove('hidden');
             } finally {
+                if (analysisAbortController === analysisController) analysisAbortController = null;
                 if (analysisSequence === window.__sethiStockAnalysisSequence) {
                     btn.innerHTML = 'Analyse'; btn.disabled = false;
                 }

@@ -1060,7 +1060,6 @@
             const view = transformSecPayload(payload);
             if (!view.metricPoints.revenue?.length) throw new Error('Revenue history unavailable.');
             rememberFinancialView(key, view);
-            prefetchOtherPeriods(ticker, period);
             if (ticker === String(state.ticker || '').trim().toUpperCase() && desiredPeriod === period) {
                 renderView(view);
             }
@@ -1153,6 +1152,14 @@
 
     document.addEventListener('keydown', event => {
         if (event.key === 'Escape' && expandedChartId) toggleExpandedChart(expandedChartId);
+    });
+
+    window.addEventListener('sethistock:analysis-start', () => {
+        prefetchGeneration += 1;
+        requestId += 1;
+        if (requestController) requestController.abort();
+        requestController = null;
+        closeExpandedChart();
     });
 
     // Expose a tiny debugging surface for production smoke tests without coupling the

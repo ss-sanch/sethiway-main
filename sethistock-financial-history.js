@@ -656,7 +656,19 @@
 
     function emptyChart(id, message = 'Data Unavailable') {
         const element = document.getElementById(id);
-        if (element) element.innerHTML = `<div class="flex h-full items-center justify-center text-gray-400 font-bold text-sm text-center px-5">${message}</div>`;
+        if (!element) return;
+        if (typeof Plotly !== 'undefined' && (element.classList.contains('js-plotly-plot') || element._fullLayout)) {
+            try { Plotly.purge(element); } catch (_) {}
+        }
+        element.innerHTML = `<div class="flex h-full items-center justify-center text-gray-400 font-bold text-sm text-center px-5">${message}</div>`;
+    }
+
+    function preparePlotContainer(id) {
+        const element = document.getElementById(id);
+        if (!element) return null;
+        const hasPlot = element.classList.contains('js-plotly-plot') || Boolean(element._fullLayout);
+        if (!hasPlot) element.innerHTML = '';
+        return element;
     }
 
     function chartLayout(view, showLegend = false) {
@@ -725,6 +737,7 @@
     function drawSingleMetric(view, id, key, colour, options = {}) {
         const trace = traceForMetric(view, key, options.name || key, colour, options);
         if (!trace) return emptyChart(id);
+        if (!preparePlotContainer(id)) return;
         const layout = chartLayout(view, false);
         if (RATIO_KEYS.has(key)) layout.yaxis.tickformat = '.1f';
         Plotly.react(id, [trace], layout, { displayModeBar: false, responsive: true });
@@ -740,6 +753,7 @@
             .map(([key, name, colour]) => traceForMetric(view, key, name, colour, { forceLine: true }))
             .filter(Boolean);
         if (!traces.length) return emptyChart('ind-margins');
+        if (!preparePlotContainer('ind-margins')) return;
         const layout = chartLayout(view, true);
         layout.yaxis.tickformat = '.1f';
         layout.yaxis.ticksuffix = '%';
@@ -760,8 +774,7 @@
             customdata: observations.map(item => [item.price, item.ttm_eps]),
             hovertemplate: '%{x}<br>P/E: %{y:.1f}x<br>Price: $%{customdata[0]:.2f}<br>TTM EPS: %{customdata[1]:.3f}<extra></extra>'
         };
-        const chartElement = document.getElementById('ind-pe');
-        if (chartElement && !chartElement.classList.contains('js-plotly-plot')) chartElement.innerHTML = '';
+        if (!preparePlotContainer('ind-pe')) return;
         const layout = chartLayout({ period: 'quarterly' }, false);
         layout.yaxis.tickformat = '.1f';
         layout.yaxis.ticksuffix = 'x';
@@ -788,8 +801,7 @@
             customdata: events.map(event => [event.eps_estimate, event.reported_eps, event.move_1d_pct, event.move_5d_pct]),
             hovertemplate: '%{x}<br>EPS surprise: %{y:.1f}%<br>Estimate: %{customdata[0]}<br>Actual: %{customdata[1]}<br>1D: %{customdata[2]:.1f}%<br>5D: %{customdata[3]:.1f}%<extra></extra>'
         };
-        const chartElement = document.getElementById('ind-earnings');
-        if (chartElement && !chartElement.classList.contains('js-plotly-plot')) chartElement.innerHTML = '';
+        if (!preparePlotContainer('ind-earnings')) return;
         const layout = chartLayout({ period: 'quarterly' }, false);
         layout.yaxis.tickformat = '.1f';
         layout.yaxis.ticksuffix = '%';
@@ -803,6 +815,7 @@
         const trace2 = traceForMetric(view, second.key, second.name, second.colour, { forceLine: nonAnnual });
         const traces = [trace1, trace2].filter(Boolean);
         if (traces.length < 2) return emptyChart(id);
+        if (!preparePlotContainer(id)) return;
         const layout = chartLayout(view, true);
         if (view.period === 'annual') layout.barmode = 'group';
         Plotly.react(id, traces, layout, { displayModeBar: false, responsive: true });

@@ -1098,14 +1098,20 @@
     injectFinancialHTML = function(fin) {
         const ticker = String(state.ticker || '').trim().toUpperCase();
         if (!fallbackView || financialTicker !== ticker) resetForTicker(ticker, fin);
-        else fallbackView = buildLegacyView(fin);
+        else {
+            fallbackView = buildLegacyView(fin);
+            applyFastEbitdaFallback(ticker, fallbackView);
+        }
         renderFinancialCards(fallbackView);
     };
 
     drawFinancials = function(fin) {
         const ticker = String(state.ticker || '').trim().toUpperCase();
         if (!fallbackView || financialTicker !== ticker) resetForTicker(ticker, fin);
-        else fallbackView = buildLegacyView(fin);
+        else {
+            fallbackView = buildLegacyView(fin);
+            applyFastEbitdaFallback(ticker, fallbackView);
+        }
 
         // Keep the existing short history visible instantly, then hydrate the SEC view.
         renderFinancialCharts(fallbackView);

@@ -1,0 +1,72 @@
+name: Temporary supplementary research hydration validation
+
+on:
+  push:
+    branches: [phase4a-runtime-stability]
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase4a-runtime-stability
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply frontend patch
+        run: python tmp_research_hydration_patch.py
+      - name: Syntax and contract checks
+        run: |
+          node --check sethistock-financial-history.js
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('sethistock-financial-history.js').read_text()
+          assert 'function researchPayloadSettled(payload)' in text
+          assert "loadFinancialResearch(ticker, prefetchGeneration).catch(() => null);" in text
+          assert "fastResearchCache.delete(symbol);" in text
+          print('FRONTEND_RESEARCH_CONTRACT_OK')
+          PY
+      - name: Verify live research endpoints settle
+        run: |
+          pip install requests
+          python - <<'PY'
+          import requests
+          base = 'https://sethistock-api.onrender.com/api/research'
+          for ticker in ['GOOGL', 'AMZN', 'UBER', 'SPGI']:
+              r = requests.get(f'{base}/{ticker}', timeout=35)
+              r.raise_for_status()
+              data = r.json()
+              earnings = data.get('earnings_reaction') or {}
+              valuation = data.get('valuation_bands') or {}
+              def settled(study, key):
+                  if study.get('available') is True:
+                      return isinstance(study.get(key), list)
+                  if study.get('available') is False:
+                      return bool(study.get('reason'))
+                  return False
+              result = {
+                  'ticker': ticker,
+                  'earnings_available': earnings.get('available'),
+                  'earnings_events': len(earnings.get('events') or []),
+                  'valuation_available': valuation.get('available'),
+                  'valuation_observations': len(valuation.get('observations') or []),
+                  'earnings_reason': earnings.get('reason'),
+                  'valuation_reason': valuation.get('reason'),
+              }
+              print(result)
+              assert settled(earnings, 'events'), result
+              assert settled(valuation, 'observations'), result
+          print('LIVE_RESEARCH_ENDPOINTS_SETTLED_OK')
+          PY
+      - name: Commit validated application change only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f tmp_research_hydration_patch.py .github/workflows/tmp-research-hydration.yml
+          git add sethistock-financial-history.js
+          git commit -m "Hydrate incomplete financial research cards"
+          git push origin HEAD:phase4a-runtime-stability

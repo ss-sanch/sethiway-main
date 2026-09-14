@@ -1,0 +1,33 @@
+name: Temporary live API recovery smoke
+on:
+  push:
+    paths:
+      - '.github/workflows/tmp-live-api-recovery-smoke.yml'
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Render and verify core routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://sethistock-api.onrender.com'
+          for attempt in $(seq 1 24); do
+            echo "Attempt $attempt"
+            code=$(curl -sS -o /tmp/root.out -w '%{http_code}' --max-time 25 "$base/" || true)
+            echo "root=$code"
+            if [ "$code" = "200" ]; then
+              break
+            fi
+            sleep 15
+          done
+          test "$code" = "200"
+          for path in '/api/quote/UBER' '/api/quote/AAPL'; do
+            code=$(curl -sS -D /tmp/headers -o /tmp/body -w '%{http_code}' --max-time 40 "$base$path")
+            echo "$path -> $code"
+            cat /tmp/headers
+            head -c 500 /tmp/body || true
+            echo
+            test "$code" = "200"
+            grep -qi '^access-control-allow-origin:' /tmp/headers
+          done

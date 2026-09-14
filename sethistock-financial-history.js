@@ -39,6 +39,7 @@
     const financialMemoryCache = new Map();
     let researchData = null;
     let researchTicker = '';
+    const fastResearchCache = new Map();
     const fastEbitdaPromises = new Map();
     const fastEbitdaCache = new Map();
 
@@ -111,7 +112,7 @@
         if (fastEbitdaCache.has(symbol)) return Promise.resolve(fastEbitdaCache.get(symbol));
         if (fastEbitdaPromises.has(symbol)) return fastEbitdaPromises.get(symbol);
 
-        const query = new URLSearchParams({ period: 'annual', metrics: 'ebitda', limit: '5' });
+        const query = new URLSearchParams({ period: 'annual', metrics: SEC_METRICS.join(','), limit: '5' });
         const promise = fetchJsonWithRetry(
             `${API_URL}/api/sec/${encodeURIComponent(symbol)}/fundamentals/series?${query.toString()}`,
             {},
@@ -120,7 +121,7 @@
             const points = extractFastEbitdaPoints(payload);
             if (points.length) fastEbitdaCache.set(symbol, points);
 
-            if (points.length && financialTicker === symbol && fallbackView?.sourceType === 'legacy') {
+            if (points.length && canonicalSupplementaryTicker(financialTicker) === symbol && fallbackView?.sourceType === 'legacy') {
                 applyFastEbitdaFallback(symbol, fallbackView);
                 if (displayedView?.sourceType === 'legacy') {
                     renderFinancialCards(fallbackView);
@@ -143,11 +144,36 @@
     function primeSupplementaryFinancialData(ticker) {
         const symbol = canonicalSupplementaryTicker(ticker);
         if (!looksLikeTicker(symbol)) return;
+
         if (typeof window.getSethiStockResearch === 'function') {
-            window.getSethiStockResearch(symbol).catch(error => {
-                console.debug(`Early research prefetch unavailable for ${symbol}:`, error);
-            });
+            window.getSethiStockResearch(symbol)
+                .then(data => {
+                    if (!data) return null;
+                    fastResearchCache.set(symbol, data);
+
+                    // If the legacy financial cards already exist, hydrate the two research
+                    // cards immediately instead of waiting for the long-run SEC request.
+                    if (canonicalSupplementaryTicker(financialTicker) === symbol) {
+                        researchData = data;
+                        researchTicker = symbol;
+                        if (displayedView?.sourceType === 'legacy') {
+                            renderFinancialCards(displayedView);
+                            drawHistoricalPE();
+                            drawEarningsSurprise();
+                            if (expandedChartId === 'ind-earnings') renderEarningsDetail();
+                            if (expandedChartId === 'ind-pe' || expandedChartId === 'ind-earnings') {
+                                requestAnimationFrame(() => renderExpandedPlot(expandedChartId));
+                            }
+                        }
+                    }
+                    return data;
+                })
+                .catch(error => {
+                    console.debug(`Early research prefetch unavailable for ${symbol}:`, error);
+                    return null;
+                });
         }
+
         requestFastEbitda(symbol).catch(() => null);
     }
 
@@ -513,7 +539,8 @@
             const data = await loader;
             if (generation !== prefetchGeneration || symbol !== String(state.ticker || '').trim().toUpperCase()) return null;
             researchData = data;
-            researchTicker = symbol;
+            researchTicker = canonicalSupplementaryTicker(symbol);
+            fastResearchCache.set(researchTicker, data);
             if (displayedView) {
                 renderFinancialCards(displayedView);
                 renderFinancialCharts(displayedView);
@@ -1052,8 +1079,9 @@
         desiredWindow = 'max';
         closeExpandedChart();
         financialTicker = ticker;
-        researchData = null;
-        researchTicker = '';
+        const supplementaryTicker = canonicalSupplementaryTicker(ticker);
+        researchData = fastResearchCache.get(supplementaryTicker) || null;
+        researchTicker = researchData ? supplementaryTicker : '';
         fallbackView = buildLegacyView(fin);
         applyFastEbitdaFallback(ticker, fallbackView);
         primeSupplementaryFinancialData(ticker);

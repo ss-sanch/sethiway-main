@@ -834,6 +834,8 @@
                 console.warn(`🛡️ Null-Shield intercepted missing ID: "${id}"`);
                 // Return a dummy safe object so setting .innerText never crashes your app
                 return { 
+                    is_null_shield: true,
+                    dataset: {},
                     style: {}, 
                     classList: { add(){}, remove(){}, contains(){} },
                     setAttribute() {},
@@ -1244,12 +1246,13 @@
                     injectText('dupont-roe', 'N/A');
                 }
 
-                let cleanFin = { years: [], revenue: [], net: [], gross_margin: [], op_margin: [], net_margin: [], fcf: [], ocf: [], capex: [], cash: [], debt: [], shares: [] };
+                let cleanFin = { years: [], revenue: [], net: [], ebitda: [], gross_margin: [], op_margin: [], net_margin: [], fcf: [], ocf: [], capex: [], cash: [], debt: [], shares: [] };
                 for(let i=0; i<data.financials.years.length; i++) {
                     if (data.financials.revenue[i] !== 0) {
                         cleanFin.years.push(data.financials.years[i]);
                         cleanFin.revenue.push(data.financials.revenue[i]);
                         cleanFin.net.push(data.financials.net[i]);
+                        cleanFin.ebitda.push(Array.isArray(data.financials.ebitda) ? data.financials.ebitda[i] : null);
                         cleanFin.gross_margin.push(data.financials.gross_margin[i]);
                         cleanFin.op_margin.push(data.financials.op_margin[i]);
                         cleanFin.net_margin.push(data.financials.net_margin[i]);

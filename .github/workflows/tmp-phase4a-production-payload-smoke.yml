@@ -1,0 +1,60 @@
+name: Temporary Phase 4A production payload smoke
+on:
+  push:
+    paths:
+      - '.github/workflows/tmp-phase4a-production-payload-smoke.yml'
+permissions:
+  contents: write
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase4a-initial-dashboard-unified
+      - name: Wait for new Render payload and verify GOOGL
+        shell: bash
+        run: |
+          set -u
+          url='https://sethistock-api.onrender.com/api/stock/GOOGL'
+          ok=0
+          for attempt in $(seq 1 12); do
+            echo "Attempt $attempt"
+            code=$(curl -sS -H 'Origin: http://127.0.0.1:5500' --max-time 35 -o /tmp/googl.json -w '%{http_code} %{time_total}' "$url" || true)
+            echo "HTTP/timing: $code"
+            if [[ "$code" == 200* ]]; then
+              if python - <<'PY'
+          import json
+          p=json.load(open('/tmp/googl.json'))
+          fin=p.get('financials') or {}
+          research=p.get('research') or {}
+          preview=p.get('chart_preview') or {}
+          e=[x for x in (fin.get('ebitda') or []) if isinstance(x,(int,float)) and x!=0]
+          pe=(research.get('valuation_bands') or {}).get('observations') or []
+          ev=(research.get('earnings_reaction') or {}).get('events') or []
+          closes=preview.get('closes') or []
+          print({'ebitda_points':len(e),'pe_observations':len(pe),'earnings_events':len(ev),'chart_points':len(closes)})
+          raise SystemExit(0 if len(e)>=3 and len(pe)>=4 and len(ev)>=4 and len(closes)>=100 else 1)
+          PY
+              then ok=1; break; fi
+            fi
+            sleep 20
+          done
+          test "$ok" = 1
+          echo 'Warm request:'
+          curl -sS -H 'Origin: http://127.0.0.1:5500' --max-time 20 -o /tmp/warm.json -w 'HTTP %{http_code} in %{time_total}s\n' "$url"
+          python - <<'PY'
+          import json
+          p=json.load(open('/tmp/warm.json'))
+          print({'ticker':p.get('ticker'),'price':p.get('current_price'),'ebitda':len([x for x in ((p.get('financials') or {}).get('ebitda') or []) if isinstance(x,(int,float)) and x!=0]),'research':bool(p.get('research')),'chart_preview':len((p.get('chart_preview') or {}).get('closes') or [])})
+          PY
+      - name: Remove temporary workflow
+        if: always()
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/tmp-phase4a-production-payload-smoke.yml
+          git commit -m 'Remove temporary production payload smoke' || true
+          git push origin HEAD:phase4a-initial-dashboard-unified

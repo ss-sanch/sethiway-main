@@ -198,7 +198,7 @@
             </div>
         </div>
 
-        <div id="key-metrics" class="scroll-mt-24">
+        <div id="key-metrics" class="scroll-mt-24 w-[calc(100vw-2rem)] max-w-[1800px] relative left-1/2 -translate-x-1/2">
             <div class="mt-10 mb-5 border-b border-gray-200 pb-4 flex flex-col lg:flex-row lg:items-end justify-between gap-4">
                 <div>
                     <div class="flex items-center gap-3 flex-wrap">
@@ -226,7 +226,7 @@
                 </div>
             </div>
             <div id="financial-history-alert" class="hidden mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold leading-relaxed text-amber-900"></div>
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="individual-charts-container"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5" id="individual-charts-container"></div>
         </div>
 
         <div id="comparisons" class="scroll-mt-24">
@@ -1912,6 +1912,21 @@
 (() => {
     const RESEARCH_API = "https://sethistock-api.onrender.com";
     let researchRequestId = 0;
+    const sharedResearchPromises = window.SethiStockResearchPromises || new Map();
+    window.SethiStockResearchPromises = sharedResearchPromises;
+    window.getSethiStockResearch = window.getSethiStockResearch || (ticker => {
+        const symbol = String(ticker || '').trim().toUpperCase();
+        if (!symbol) return Promise.reject(new Error('Ticker is required'));
+        if (sharedResearchPromises.has(symbol)) return sharedResearchPromises.get(symbol);
+        const promise = fetch(`${RESEARCH_API}/api/research/${encodeURIComponent(symbol)}`)
+            .then(res => {
+                if (!res.ok) throw new Error(`Research API returned ${res.status}`);
+                return res.json();
+            });
+        sharedResearchPromises.set(symbol, promise);
+        promise.catch(() => sharedResearchPromises.delete(symbol));
+        return promise;
+    });
 
     const pct = (value, digits = 1) => value === null || value === undefined || Number.isNaN(Number(value)) ? "--" : `${Number(value).toFixed(digits)}%`;
     const mult = (value) => value === null || value === undefined || Number.isNaN(Number(value)) ? "--" : `${Number(value).toFixed(1)}x`;
@@ -2146,9 +2161,7 @@
         setResearchLoading(ticker);
 
         try {
-            const res = await fetch(`${RESEARCH_API}/api/research/${encodeURIComponent(ticker)}`);
-            if (!res.ok) throw new Error(`Research API returned ${res.status}`);
-            const data = await res.json();
+            const data = await window.getSethiStockResearch(ticker);
             if (requestId !== researchRequestId) return;
 
             renderEarnings(data.earnings_reaction);

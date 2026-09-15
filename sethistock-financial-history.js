@@ -39,6 +39,9 @@
     const financialMemoryCache = new Map();
     let researchData = null;
     let researchTicker = '';
+    const fastResearchCache = new Map();
+    const fastEbitdaPromises = new Map();
+    const fastEbitdaCache = new Map();
 
     function finiteNumber(value) {
         const number = Number(value);
@@ -69,6 +72,166 @@
     function normaliseLegacyDate(year) {
         const match = String(year ?? '').match(/(19|20)\d{2}/);
         return match ? `${match[0]}-12-31` : String(year ?? '');
+    }
+
+    function canonicalSupplementaryTicker(ticker) {
+        const symbol = String(ticker || '').trim().toUpperCase();
+        return symbol === 'GOOG' ? 'GOOGL' : symbol;
+    }
+
+    function looksLikeTicker(ticker) {
+        return /^[A-Z][A-Z0-9.-]{0,9}$/.test(String(ticker || '').trim().toUpperCase());
+    }
+
+    function researchPayloadSettled(payload) {
+        const earnings = payload?.earnings_reaction;
+        const valuation = payload?.valuation_bands;
+        const studyHasData = (study, dataKey) => {
+            if (!study || typeof study !== 'object' || study.available !== true) return false;
+            return Array.isArray(study[dataKey]) && study[dataKey].length > 0;
+        };
+        return studyHasData(earnings, 'events') && studyHasData(valuation, 'observations');
+    }
+
+    function annualCategoryLabel(point, index = 0) {
+        const label = String(point?.label || '').trim();
+        const labelledYear = label.match(/(?:FY\s*)?((?:19|20)\d{2})/i);
+        if (labelledYear) return labelledYear[1];
+        const end = String(point?.end || '');
+        const datedYear = end.match(/^((?:19|20)\d{2})/);
+        return datedYear ? datedYear[1] : (label || String(index + 1));
+    }
+
+    function collapseAnnualPlotPoints(points) {
+        const byYear = new Map();
+        (points || []).forEach((point, index) => {
+            const category = annualCategoryLabel(point, index);
+            const previous = byYear.get(category);
+            // SEC can expose more than one annual context for the same fiscal year.
+            // Keep the latest filing-period end so Plotly receives exactly one bar per year.
+            if (!previous || String(point?.end || '') >= String(previous?.end || '')) {
+                byYear.set(category, { ...point, annualCategory: category });
+            }
+        });
+        return Array.from(byYear.values()).sort((a, b) => {
+            const ay = Number(a.annualCategory);
+            const by = Number(b.annualCategory);
+            if (Number.isFinite(ay) && Number.isFinite(by)) return ay - by;
+            return String(a.annualCategory).localeCompare(String(b.annualCategory));
+        });
+    }
+
+    function extractFastEbitdaPoints(payload) {
+        const series = Array.isArray(payload?.metrics?.ebitda?.series) ? payload.metrics.ebitda.series : [];
+        return series
+            .map(point => ({
+                ...point,
+                value: finiteNumber(point?.value),
+                end: point?.end || null,
+                label: point?.label || point?.end || ''
+            }))
+            .filter(point => point.end && point.value !== null)
+            .sort((a, b) => String(a.end).localeCompare(String(b.end)))
+            .slice(-5);
+    }
+
+    function applyFastEbitdaFallback(ticker, view) {
+        const symbol = canonicalSupplementaryTicker(ticker);
+        const points = fastEbitdaCache.get(symbol);
+        if (!view || view.sourceType !== 'legacy' || !Array.isArray(points) || !points.length) return false;
+        if (!view.metricPoints) view.metricPoints = {};
+        view.metricPoints.ebitda = points.map(point => ({ ...point }));
+        return true;
+    }
+
+    function requestFastEbitda(ticker) {
+        const symbol = canonicalSupplementaryTicker(ticker);
+        if (!looksLikeTicker(symbol)) return Promise.resolve([]);
+        if (fastEbitdaCache.has(symbol)) return Promise.resolve(fastEbitdaCache.get(symbol));
+        if (fastEbitdaPromises.has(symbol)) return fastEbitdaPromises.get(symbol);
+
+        const query = new URLSearchParams({ period: 'annual', metrics: 'ebitda', limit: '5' });
+        const promise = fetchJsonWithRetry(
+            `${API_URL}/api/sec/${encodeURIComponent(symbol)}/fundamentals/series?${query.toString()}`,
+            {},
+            1
+        ).then(payload => {
+            const points = extractFastEbitdaPoints(payload);
+            if (points.length) fastEbitdaCache.set(symbol, points);
+
+            if (points.length && canonicalSupplementaryTicker(financialTicker) === symbol && fallbackView?.sourceType === 'legacy') {
+                applyFastEbitdaFallback(symbol, fallbackView);
+                if (displayedView?.sourceType === 'legacy') {
+                    renderFinancialCards(fallbackView);
+                    drawSingleMetric(fallbackView, 'ind-ebitda', 'ebitda', '#0f766e', { name: 'EBITDA' });
+                    if (expandedChartId === 'ind-ebitda') requestAnimationFrame(() => renderExpandedPlot('ind-ebitda'));
+                }
+            }
+            return points;
+        }).catch(error => {
+            console.debug(`Fast EBITDA fallback unavailable for ${symbol}:`, error);
+            return [];
+        }).finally(() => {
+            if (!fastEbitdaCache.has(symbol)) fastEbitdaPromises.delete(symbol);
+        });
+
+        fastEbitdaPromises.set(symbol, promise);
+        return promise;
+    }
+
+    function primeSupplementaryFinancialData(ticker) {
+        const symbol = canonicalSupplementaryTicker(ticker);
+        if (!looksLikeTicker(symbol)) return;
+
+        if (typeof window.getSethiStockResearch === 'function') {
+            window.getSethiStockResearch(symbol)
+                .then(data => {
+                    if (!data) return null;
+                    fastResearchCache.set(symbol, data);
+
+                    // If the legacy financial cards already exist, hydrate the two research
+                    // cards immediately instead of waiting for the long-run SEC request.
+                    if (canonicalSupplementaryTicker(financialTicker) === symbol) {
+                        researchData = data;
+                        researchTicker = symbol;
+                        if (displayedView?.sourceType === 'legacy') {
+                            renderFinancialCards(displayedView);
+                            drawHistoricalPE();
+                            drawEarningsSurprise();
+                            if (expandedChartId === 'ind-earnings') renderEarningsDetail();
+                            if (expandedChartId === 'ind-pe' || expandedChartId === 'ind-earnings') {
+                                requestAnimationFrame(() => renderExpandedPlot(expandedChartId));
+                            }
+                        }
+                    }
+                    return data;
+                })
+                .catch(error => {
+                    console.debug(`Early research prefetch unavailable for ${symbol}:`, error);
+                    return null;
+                });
+        }
+
+        requestFastEbitda(symbol).catch(() => null);
+    }
+
+    function primeInitialData(ticker, payload) {
+        const symbol = canonicalSupplementaryTicker(ticker);
+        if (!looksLikeTicker(symbol) || !payload || typeof payload !== 'object') return;
+        const research = payload.research && typeof payload.research === 'object' ? payload.research : payload;
+        if (!research || typeof research !== 'object') return;
+
+        // A cached /api/stock row can predate a successful research calculation and
+        // therefore contain the bare {available:false} placeholders. Do not promote
+        // those placeholders into the fast research cache as if they were final data.
+        const settled = researchPayloadSettled(research);
+        if (settled) fastResearchCache.set(symbol, research);
+        else fastResearchCache.delete(symbol);
+
+        if (canonicalSupplementaryTicker(financialTicker) === symbol || !financialTicker) {
+            researchData = settled ? research : null;
+            researchTicker = settled ? symbol : '';
+        }
     }
 
     function metricPointsFromAligned(view, key) {
@@ -433,7 +596,8 @@
             const data = await loader;
             if (generation !== prefetchGeneration || symbol !== String(state.ticker || '').trim().toUpperCase()) return null;
             researchData = data;
-            researchTicker = symbol;
+            researchTicker = canonicalSupplementaryTicker(symbol);
+            fastResearchCache.set(researchTicker, data);
             if (displayedView) {
                 renderFinancialCards(displayedView);
                 renderFinancialCharts(displayedView);
@@ -493,7 +657,15 @@
             return;
         }
 
-        const traces = source.data.map(trace => ({ ...trace }));
+        const traces = source.data.map(trace => {
+            const clone = { ...trace };
+            if (clone.type === 'bar' && Array.isArray(clone.text) && clone.text.length) {
+                clone.textposition = 'outside';
+                clone.textfont = { ...(clone.textfont || {}), color: '#334155', size: 11 };
+                clone.cliponaxis = false;
+            }
+            return clone;
+        });
         const sourceLayout = source.layout || {};
         const layout = {
             ...sourceLayout,
@@ -660,14 +832,27 @@
         if (typeof Plotly !== 'undefined' && (element.classList.contains('js-plotly-plot') || element._fullLayout)) {
             try { Plotly.purge(element); } catch (_) {}
         }
-        element.innerHTML = `<div class="flex h-full items-center justify-center text-gray-400 font-bold text-sm text-center px-5">${message}</div>`;
+        element.innerHTML = `<div data-financial-placeholder="1" class="flex h-full items-center justify-center text-gray-400 font-bold text-sm text-center px-5">${message}</div>`;
     }
 
     function preparePlotContainer(id) {
         const element = document.getElementById(id);
         if (!element) return null;
-        const hasPlot = element.classList.contains('js-plotly-plot') || Boolean(element._fullLayout);
-        if (!hasPlot) element.innerHTML = '';
+
+        // Plotly.purge can leave its marker class behind even after an empty-state
+        // placeholder has replaced the plot DOM. Treat the placeholder itself as the
+        // source of truth so loading/unavailable text can never survive under a chart.
+        const placeholder = element.querySelector('[data-financial-placeholder="1"]');
+        if (placeholder) {
+            if (typeof Plotly !== 'undefined' && (element.classList.contains('js-plotly-plot') || element._fullLayout)) {
+                try { Plotly.purge(element); } catch (_) {}
+            }
+            element.innerHTML = '';
+            element.classList.remove('js-plotly-plot');
+        } else {
+            const hasPlot = element.classList.contains('js-plotly-plot') || Boolean(element._fullLayout);
+            if (!hasPlot) element.innerHTML = '';
+        }
         return element;
     }
 
@@ -707,11 +892,12 @@
     }
 
     function traceForMetric(view, key, name, colour, options = {}) {
-        const points = filterPointsToWindow(validMetricPoints(view, key));
-        if (!points.length) return null;
+        const rawPoints = filterPointsToWindow(validMetricPoints(view, key));
+        if (!rawPoints.length) return null;
         const annualBars = view.period === 'annual' && options.forceLine !== true;
+        const points = annualBars ? collapseAnnualPlotPoints(rawPoints) : rawPoints;
         const trace = {
-            x: points.map(point => point.end),
+            x: annualBars ? points.map(point => point.annualCategory) : points.map(point => point.end),
             y: points.map(point => point.value),
             name,
             customdata: points.map(point => point.label),
@@ -721,8 +907,9 @@
         if (annualBars) {
             trace.type = 'bar';
             trace.marker = { color: colour, line: { width: 0 } };
-            trace.textposition = 'outside';
-            trace.textfont = { color: '#334155', size: 10 };
+            // Keep normal dashboard bars clean; exact values remain available on hover.
+            // The expanded modal restores outside labels where there is enough room.
+            trace.textposition = 'none';
             trace.cliponaxis = false;
         } else {
             trace.type = 'scatter';
@@ -932,7 +1119,6 @@
             const view = transformSecPayload(payload);
             if (!view.metricPoints.revenue?.length) throw new Error('Revenue history unavailable.');
             rememberFinancialView(key, view);
-            prefetchOtherPeriods(ticker, period);
             if (ticker === String(state.ticker || '').trim().toUpperCase() && desiredPeriod === period) {
                 renderView(view);
             }
@@ -963,9 +1149,11 @@
         desiredWindow = 'max';
         closeExpandedChart();
         financialTicker = ticker;
-        researchData = null;
-        researchTicker = '';
+        const supplementaryTicker = canonicalSupplementaryTicker(ticker);
+        researchData = fastResearchCache.get(supplementaryTicker) || null;
+        researchTicker = researchData ? supplementaryTicker : '';
         fallbackView = buildLegacyView(fin);
+        applyFastEbitdaFallback(ticker, fallbackView);
         displayedView = fallbackView;
         desiredPeriod = 'annual';
         state.financialPeriod = 'annual';
@@ -979,21 +1167,37 @@
     injectFinancialHTML = function(fin) {
         const ticker = String(state.ticker || '').trim().toUpperCase();
         if (!fallbackView || financialTicker !== ticker) resetForTicker(ticker, fin);
-        else fallbackView = buildLegacyView(fin);
+        else {
+            fallbackView = buildLegacyView(fin);
+            applyFastEbitdaFallback(ticker, fallbackView);
+        }
         renderFinancialCards(fallbackView);
     };
 
     drawFinancials = function(fin) {
         const ticker = String(state.ticker || '').trim().toUpperCase();
         if (!fallbackView || financialTicker !== ticker) resetForTicker(ticker, fin);
-        else fallbackView = buildLegacyView(fin);
+        else {
+            fallbackView = buildLegacyView(fin);
+            applyFastEbitdaFallback(ticker, fallbackView);
+        }
 
-        // Keep the existing short history visible instantly, then hydrate the SEC view.
+        // The main stock payload now contains recent EBITDA plus P/E / earnings
+        // research, so all 12 cards render in one pass. Long-run SEC history upgrades
+        // the same cards independently and never blocks the first financial render.
         renderFinancialCharts(fallbackView);
         displayedView = fallbackView;
+
+        // The full stock-analysis cache is deliberately long-lived. If it contains an
+        // older placeholder research payload, hydrate only these two supplementary
+        // cards from the lightweight research endpoint instead of rebuilding the stock.
+        const supplementaryTicker = canonicalSupplementaryTicker(ticker);
+        if (researchTicker !== supplementaryTicker || !researchPayloadSettled(researchData)) {
+            loadFinancialResearch(ticker, prefetchGeneration).catch(() => null);
+        }
+
         setStatus('Loading long-run SEC history…', 'loading');
         loadFinancialHistory('annual').catch(() => null);
-        loadFinancialResearch(ticker, prefetchGeneration).catch(() => null);
     };
 
     document.querySelectorAll('.financial-period-btn').forEach(button => {
@@ -1018,12 +1222,21 @@
         if (event.key === 'Escape' && expandedChartId) toggleExpandedChart(expandedChartId);
     });
 
+    window.addEventListener('sethistock:analysis-start', () => {
+        prefetchGeneration += 1;
+        requestId += 1;
+        if (requestController) requestController.abort();
+        requestController = null;
+        closeExpandedChart();
+    });
+
     // Expose a tiny debugging surface for production smoke tests without coupling the
     // rest of SethiStock to the implementation details of this module.
     window.SethiStockFinancialHistory = {
         get period() { return desiredPeriod; },
         get source() { return displayedView?.sourceType || null; },
         get periodCount() { return displayedView?.periodCount || 0; },
+        primeInitialData,
         load: loadFinancialHistory
     };
 })();

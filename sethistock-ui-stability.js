@@ -99,7 +99,7 @@
 
     function resetDriverSurface(ticker) {
         const section = document.getElementById('company-drivers');
-        if (!section) return;
+        if (!section || section.is_null_shield || !section.dataset) return;
         const symbol = normaliseTicker(ticker);
         section.dataset.expectedTicker = canonicalDriverTicker(symbol);
 

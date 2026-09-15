@@ -737,6 +737,7 @@
         let watchlist = JSON.parse(localStorage.getItem('sethiWatchlist')) || [];
         let chartRequestId = 0;
         let chartAbortController = null;
+        let analysisAbortController = null;
         const chartMemoryCache = new Map();
         const CHART_MEMORY_TTL_MS = 5 * 60 * 1000;
         const CHART_MEMORY_MAX = 48;
@@ -834,6 +835,8 @@
                 console.warn(`🛡️ Null-Shield intercepted missing ID: "${id}"`);
                 // Return a dummy safe object so setting .innerText never crashes your app
                 return { 
+                    is_null_shield: true,
+                    dataset: {},
                     style: {}, 
                     classList: { add(){}, remove(){}, contains(){} },
                     setAttribute() {},
@@ -930,6 +933,9 @@
             const analysisSequence = (Number(window.__sethiStockAnalysisSequence) || 0) + 1;
             window.__sethiStockAnalysisSequence = analysisSequence;
             state.ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+            if (analysisAbortController) analysisAbortController.abort();
+            const analysisController = new AbortController();
+            analysisAbortController = analysisController;
             window.__sethiStockLastAnalysisReady = null;
             window.dispatchEvent(new CustomEvent('sethistock:analysis-start', { detail: { ticker: state.ticker, sequence: analysisSequence } }));
             
@@ -980,9 +986,9 @@
                 // Stage 1 starts immediately: chart + lightweight quote.
                 // The full analysis continues in parallel and hydrates the heavier sections when ready.
                 const chartPromise = fetchChart().catch(() => null);
-                const fullDataPromise = fetchJsonWithRetry(`${API_URL}/api/stock/${encodeURIComponent(requestedTicker)}`, {}, 1);
+                const fullDataPromise = fetchJsonWithRetry(`${API_URL}/api/stock/${encodeURIComponent(requestedTicker)}`, { signal: analysisController.signal }, 1);
                 let fullAnalysisReady = false;
-                const quoteHydrationPromise = fetchJsonWithRetry(`${API_URL}/api/quote/${encodeURIComponent(requestedTicker)}`, {}, 1)
+                const quoteHydrationPromise = fetchJsonWithRetry(`${API_URL}/api/quote/${encodeURIComponent(requestedTicker)}`, { signal: analysisController.signal }, 1)
                     .then((quoteData) => {
                         if (!quoteData || fullAnalysisReady || analysisSequence !== window.__sethiStockAnalysisSequence) return;
 
@@ -1244,12 +1250,17 @@
                     injectText('dupont-roe', 'N/A');
                 }
 
-                let cleanFin = { years: [], revenue: [], net: [], gross_margin: [], op_margin: [], net_margin: [], fcf: [], ocf: [], capex: [], cash: [], debt: [], shares: [] };
+                if (data.research && window.SethiStockFinancialHistory?.primeInitialData) {
+                    window.SethiStockFinancialHistory.primeInitialData(state.ticker, { research: data.research });
+                }
+
+                let cleanFin = { years: [], revenue: [], net: [], ebitda: [], gross_margin: [], op_margin: [], net_margin: [], fcf: [], ocf: [], capex: [], cash: [], debt: [], shares: [] };
                 for(let i=0; i<data.financials.years.length; i++) {
                     if (data.financials.revenue[i] !== 0) {
                         cleanFin.years.push(data.financials.years[i]);
                         cleanFin.revenue.push(data.financials.revenue[i]);
                         cleanFin.net.push(data.financials.net[i]);
+                        cleanFin.ebitda.push(Array.isArray(data.financials.ebitda) ? data.financials.ebitda[i] : null);
                         cleanFin.gross_margin.push(data.financials.gross_margin[i]);
                         cleanFin.op_margin.push(data.financials.op_margin[i]);
                         cleanFin.net_margin.push(data.financials.net_margin[i]);
@@ -1265,17 +1276,36 @@
                 dash.classList.remove('hidden');
                 injectFinancialHTML(cleanFin);
 
-                setTimeout(async () => {
-                    await chartPromise;
-                    if (!state.chartData) await fetchChart().catch(() => null);
+                // The main analysis already fetched five years of daily prices. Use its
+                // one-year preview immediately if the dedicated price-chart request is
+                // still in flight, rather than leaving Price Action blank.
+                if (!state.chartData && state.period === '1y' && state.interval === '1d' && data.chart_preview) {
+                    const preview = normaliseChartData(data.chart_preview);
+                    if (preview.closes.length) {
+                        const previewKey = `${state.ticker}|1y|1d`;
+                        rememberChart(previewKey, preview);
+                        state.chartData = preview;
+                        renderPeriodReturn();
+                        drawPriceChart();
+                    }
+                }
+
+                // Financials no longer wait for Price Action. They render as soon as the
+                // main analysis arrives; the independent chart request can finish later.
+                setTimeout(() => {
                     drawFinancials(cleanFin);
                     loadPeers(data.peers);
                     loadInsiders(data.insiders);
-                    dash.classList.add('opacity-100'); 
-                }, 150);
+                    dash.classList.add('opacity-100');
+
+                    chartPromise.then(() => {
+                        if (!state.chartData) fetchChart().catch(() => null);
+                    }).catch(() => null);
+                }, 0);
 
             } catch (err) {
                 clearInterval(loadingInterval);
+                if (err?.name === 'AbortError') return;
                 dash.classList.remove('opacity-50');
                 dash.classList.add('opacity-100');
                 if(loadingBubbleText) loadingBubbleText.innerText = "Data Sync Failed.";
@@ -1289,6 +1319,7 @@
                 document.getElementById('error-message').innerText = message;
                 document.getElementById('error-message').classList.remove('hidden');
             } finally {
+                if (analysisAbortController === analysisController) analysisAbortController = null;
                 if (analysisSequence === window.__sethiStockAnalysisSequence) {
                     btn.innerHTML = 'Analyse'; btn.disabled = false;
                 }

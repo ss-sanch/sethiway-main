@@ -1,0 +1,37 @@
+name: Temporary placeholder cleanup validation
+on:
+  push:
+    branches: [phase4a-runtime-stability]
+permissions:
+  contents: write
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase4a-runtime-stability
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply patch
+        run: python tmp_placeholder_cleanup_patch.py
+      - name: Validate JavaScript and contract
+        run: |
+          node --check sethistock-financial-history.js
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('sethistock-financial-history.js').read_text()
+          assert 'data-financial-placeholder="1"' in text
+          assert "element.querySelector('[data-financial-placeholder=\"1\"]')" in text
+          assert "element.classList.remove('js-plotly-plot')" in text
+          print('PLACEHOLDER_CLEANUP_CONTRACT_OK')
+          PY
+      - name: Commit application change only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f tmp_placeholder_cleanup_patch.py .github/workflows/tmp-placeholder-cleanup.yml
+          git add sethistock-financial-history.js
+          git commit -m "Clear financial chart placeholders before render"
+          git push origin HEAD:phase4a-runtime-stability

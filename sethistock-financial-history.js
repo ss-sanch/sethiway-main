@@ -832,14 +832,27 @@
         if (typeof Plotly !== 'undefined' && (element.classList.contains('js-plotly-plot') || element._fullLayout)) {
             try { Plotly.purge(element); } catch (_) {}
         }
-        element.innerHTML = `<div class="flex h-full items-center justify-center text-gray-400 font-bold text-sm text-center px-5">${message}</div>`;
+        element.innerHTML = `<div data-financial-placeholder="1" class="flex h-full items-center justify-center text-gray-400 font-bold text-sm text-center px-5">${message}</div>`;
     }
 
     function preparePlotContainer(id) {
         const element = document.getElementById(id);
         if (!element) return null;
-        const hasPlot = element.classList.contains('js-plotly-plot') || Boolean(element._fullLayout);
-        if (!hasPlot) element.innerHTML = '';
+
+        // Plotly.purge can leave its marker class behind even after an empty-state
+        // placeholder has replaced the plot DOM. Treat the placeholder itself as the
+        // source of truth so loading/unavailable text can never survive under a chart.
+        const placeholder = element.querySelector('[data-financial-placeholder="1"]');
+        if (placeholder) {
+            if (typeof Plotly !== 'undefined' && (element.classList.contains('js-plotly-plot') || element._fullLayout)) {
+                try { Plotly.purge(element); } catch (_) {}
+            }
+            element.innerHTML = '';
+            element.classList.remove('js-plotly-plot');
+        } else {
+            const hasPlot = element.classList.contains('js-plotly-plot') || Boolean(element._fullLayout);
+            if (!hasPlot) element.innerHTML = '';
+        }
         return element;
     }
 

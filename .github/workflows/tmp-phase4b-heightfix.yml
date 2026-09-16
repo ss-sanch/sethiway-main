@@ -28,9 +28,14 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           text = Path('sethistock-company-drivers.js').read_text()
-          assert '#driver-dialog { width:min(1240px,calc(100vw - 48px)); height:auto; max-height:min(720px,calc(100vh - 72px)); }' in text
-          assert '#driver-dialog { width:calc(100vw - 24px); height:auto; max-height:calc(100vh - 32px); }' in text
-          assert 'height:min(720px,calc(100vh - 72px))' not in text
+          new_desktop = '#driver-dialog { width:min(1240px,calc(100vw - 48px)); height:auto; max-height:min(720px,calc(100vh - 72px)); }'
+          new_mobile = '#driver-dialog { width:calc(100vw - 24px); height:auto; max-height:calc(100vh - 32px); }'
+          old_desktop = '#driver-dialog { width:min(1240px,calc(100vw - 48px)); height:min(720px,calc(100vh - 72px)); max-height:calc(100vh - 48px); }'
+          old_mobile = '#driver-dialog { width:calc(100vw - 24px); height:calc(100vh - 32px); max-height:calc(100vh - 32px); }'
+          assert new_desktop in text
+          assert new_mobile in text
+          assert old_desktop not in text
+          assert old_mobile not in text
           print('PHASE4B_HEIGHTFIX_OK')
           PY
       - name: Commit application change only

@@ -218,9 +218,19 @@
         style.id = 'sethistock-driver-styles';
         style.textContent = `
             #company-drivers { overscroll-behavior:contain; }
+            #company-drivers.hidden { display:none !important; }
+            #driver-dialog { width:min(1240px,calc(100vw - 48px)); height:min(720px,calc(100vh - 72px)); max-height:calc(100vh - 48px); }
+            #driver-dialog-body { min-height:0; overflow-y:auto; }
             .driver-period-btn.active { background:#2563eb; color:#fff; border-color:#2563eb; }
+            .driver-card { min-width:0; overflow:hidden; }
             .driver-card .modebar { display:none !important; }
-            .driver-card { min-width:0; }
+            .driver-card [id^="driver-chart-"] { width:100% !important; max-width:100% !important; overflow:hidden !important; }
+            .driver-card [id^="driver-chart-"] .js-plotly-plot,
+            .driver-card [id^="driver-chart-"] .plot-container,
+            .driver-card [id^="driver-chart-"] .svg-container { width:100% !important; max-width:100% !important; }
+            @media (max-width: 720px) {
+                #driver-dialog { width:calc(100vw - 24px); height:calc(100vh - 32px); max-height:calc(100vh - 32px); }
+            }
             @media (prefers-reduced-motion: reduce) { .driver-loading-pulse { animation:none !important; } }
         `;
         document.head.appendChild(style);
@@ -244,50 +254,41 @@
 
         const section = document.createElement('section');
         section.id = 'company-drivers';
-        section.className = 'hidden fixed inset-0 z-[210] bg-gray-50 overflow-y-auto';
-        section.setAttribute('role', 'dialog');
-        section.setAttribute('aria-modal', 'true');
-        section.setAttribute('aria-label', 'Revenue drivers');
+        section.className = 'hidden fixed inset-0 z-[220] flex items-center justify-center p-3 sm:p-6 md:p-9';
         section.innerHTML = `
-            <div class="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-gray-200">
-                <div class="max-w-[1800px] mx-auto px-5 md:px-8 py-3 flex items-center justify-between gap-4">
-                    <button id="driver-back-button" type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm font-bold text-gray-700 hover:text-blue-700 hover:border-blue-300 hover:bg-blue-50 transition">
-                        <span aria-hidden="true">←</span><span>Back to Financials</span>
-                    </button>
-                    <div class="flex items-center gap-2">
-                        <span class="hidden sm:inline px-2.5 py-1 rounded-full bg-blue-50 border border-blue-100 text-[9px] font-black text-blue-700 uppercase tracking-widest">Filing-derived</span>
+            <button id="driver-modal-backdrop" type="button" aria-label="Close revenue drivers" style="position:absolute;inset:0;border:0;background:rgba(15,23,42,.48);cursor:default;"></button>
+            <div id="driver-dialog" role="dialog" aria-modal="true" aria-label="Revenue drivers" class="relative z-10 bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+                <header class="shrink-0 border-b border-gray-200 bg-white px-5 md:px-6 py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div class="min-w-0">
+                        <p class="text-[9px] font-black text-blue-600 uppercase tracking-[0.18em] mb-1">Company Drivers · Revenue Engine</p>
+                        <h2 id="driver-view-title" class="text-xl md:text-2xl font-black tracking-tight text-gray-900 truncate">Revenue Drivers</h2>
+                        <p id="driver-theme" class="text-xs text-gray-500 mt-1 line-clamp-1">Revenue segments and direct operating drivers from verified company filings.</p>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                        <div id="driver-period-controls" class="flex space-x-1 bg-gray-100 p-1 rounded-lg border border-gray-200" aria-label="Revenue driver period">
+                            <button type="button" class="driver-period-btn active px-3.5 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-driver-period="quarterly">Quarterly</button>
+                            <button type="button" class="driver-period-btn px-3.5 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-driver-period="annual">Annual</button>
+                        </div>
                         <button id="driver-close-button" type="button" aria-label="Close revenue drivers" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:text-gray-900 hover:border-gray-300 transition text-xl">×</button>
                     </div>
-                </div>
-            </div>
+                </header>
 
-            <div class="max-w-[1800px] mx-auto px-5 md:px-8 py-7 md:py-9">
-                <div class="mb-5 border-b border-gray-200 pb-5 flex flex-col xl:flex-row xl:items-end justify-between gap-4">
-                    <div class="max-w-4xl">
-                        <p class="text-[10px] font-black text-blue-600 uppercase tracking-[0.18em] mb-1">Company Drivers · Revenue Engine</p>
-                        <h2 id="driver-view-title" class="text-3xl md:text-4xl font-black tracking-tight text-gray-900">Revenue Drivers</h2>
-                        <p id="driver-theme" class="text-sm text-gray-500 mt-1.5">Revenue segments and direct operating drivers from verified company filings.</p>
+                <div id="driver-dialog-body" class="flex-1 px-5 md:px-6 py-4 bg-gray-50/70">
+                    <div class="flex items-center justify-between gap-3 mb-3 min-h-[18px]">
+                        <p id="driver-status" class="text-[9px] font-bold uppercase tracking-widest text-gray-400">Open a supported stock to load revenue drivers</p>
                     </div>
-                    <div class="flex flex-col items-start xl:items-end gap-2">
-                        <div id="driver-period-controls" class="flex space-x-1 bg-gray-100 p-1 rounded-lg border border-gray-200" aria-label="Revenue driver period">
-                            <button type="button" class="driver-period-btn active px-4 py-1.5 text-sm font-bold rounded-md text-gray-600 transition" data-driver-period="quarterly">Quarterly</button>
-                            <button type="button" class="driver-period-btn px-4 py-1.5 text-sm font-bold rounded-md text-gray-600 transition" data-driver-period="annual">Annual</button>
-                        </div>
-                        <p id="driver-status" class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Open a supported stock to load revenue drivers</p>
+                    <div id="driver-summary" class="hidden mb-3 rounded-xl border border-blue-100 bg-blue-50/70 px-3.5 py-2 text-[10px] text-blue-900"></div>
+                    <div id="driver-empty" class="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-12 text-center">
+                        <p class="text-sm font-bold text-gray-600">Revenue-driver histories will appear here.</p>
+                        <p class="text-xs text-gray-400 mt-1">Only verified filing histories are charted; missing periods are never estimated.</p>
                     </div>
+                    <div id="driver-chart-grid" class="hidden grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+                    <div id="driver-unavailable" class="hidden mt-4 rounded-xl border border-gray-200 bg-white px-4 py-3"></div>
                 </div>
-
-                <div id="driver-summary" class="hidden mb-4 rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-2.5 text-[11px] text-blue-900"></div>
-                <div id="driver-empty" class="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-14 text-center">
-                    <p class="text-sm font-bold text-gray-600">Revenue-driver histories will appear here.</p>
-                    <p class="text-xs text-gray-400 mt-1">Only verified filing histories are charted; missing periods are never estimated.</p>
-                </div>
-                <div id="driver-chart-grid" class="hidden grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4"></div>
-                <div id="driver-unavailable" class="hidden mt-4 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3"></div>
             </div>`;
         document.body.appendChild(section);
 
-        qs('#driver-back-button', section)?.addEventListener('click', () => closeDrivers(true));
+        qs('#driver-modal-backdrop', section)?.addEventListener('click', () => closeDrivers(false));
         qs('#driver-close-button', section)?.addEventListener('click', () => closeDrivers(false));
         qsa('.driver-period-btn', section).forEach(button => {
             button.addEventListener('click', () => {
@@ -654,6 +655,7 @@
         document.body.classList.add('modal-active');
         activePeriod = 'quarterly';
         syncPeriodButtons();
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         await loadCompanyDrivers(symbol);
         return true;
     }

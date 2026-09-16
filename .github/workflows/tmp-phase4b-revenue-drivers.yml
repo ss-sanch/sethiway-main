@@ -1,0 +1,55 @@
+name: Temporary Phase 4B Revenue Drivers validation
+
+on:
+  push:
+    branches: [phase4b-revenue-by-segment]
+    paths:
+      - 'tmp_phase4b_segment_patch.py'
+      - '.github/workflows/tmp-phase4b-revenue-drivers.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase4b-revenue-by-segment
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply Revenue card patch
+        run: python tmp_phase4b_segment_patch.py
+      - name: Validate JavaScript and Phase 4B contracts
+        run: |
+          node --check sethistock-financial-history.js
+          node --check sethistock-company-drivers.js
+          node --check sethiway-history.js
+          python - <<'PY'
+          from pathlib import Path
+          fin = Path('sethistock-financial-history.js').read_text()
+          drivers = Path('sethistock-company-drivers.js').read_text()
+          history = Path('sethiway-history.js').read_text()
+          assert 'financial-segment-button' in fin
+          assert 'By Segment' in fin
+          assert 'SethiStockOpenRevenueDrivers' in fin
+          assert 'REVENUE_DRIVER_KEYS' in drivers
+          assert "NVDA: ['data_center_revenue', 'gaming_revenue', 'automotive_revenue']" in drivers
+          assert 'gross_margin' not in drivers.split('REVENUE_DRIVER_KEYS =',1)[1].split('};',1)[0]
+          assert "section.className = 'hidden fixed inset-0" in drivers
+          assert 'grid-cols-1 md:grid-cols-2 2xl:grid-cols-3' in drivers
+          assert 'SethiStockOpenRevenueDrivers' in history
+          assert 'IntersectionObserver' not in history
+          assert 'href="#company-drivers"' not in history
+          print('PHASE4B_CONTRACT_OK')
+          PY
+      - name: Commit validated application change only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f tmp_phase4b_segment_patch.py .github/workflows/tmp-phase4b-revenue-drivers.yml
+          git add sethistock-financial-history.js
+          git commit -m "Add Revenue By Segment entry point"
+          git push origin HEAD:phase4b-revenue-by-segment

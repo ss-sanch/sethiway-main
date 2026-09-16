@@ -1,0 +1,44 @@
+name: Temporary Phase 4B button display validation
+
+on:
+  push:
+    branches: [phase4b-revenue-by-segment]
+    paths:
+      - 'tmp_phase4b_button_display.py'
+      - '.github/workflows/tmp-phase4b-button-display.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase4b-revenue-by-segment
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply display patch
+        run: python tmp_phase4b_button_display.py
+      - name: Validate scripts and display contract
+        run: |
+          node --check sethistock-financial-history.js
+          node --check sethistock-company-drivers.js
+          node --check sethiway-history.js
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('sethistock-financial-history.js').read_text()
+          assert "button.classList.toggle('inline-flex', supported);" in text
+          assert 'financial-segment-button' in text
+          print('PHASE4B_BUTTON_DISPLAY_OK')
+          PY
+      - name: Commit application change only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f tmp_phase4b_button_display.py .github/workflows/tmp-phase4b-button-display.yml
+          git add sethistock-financial-history.js
+          git commit -m "Polish Revenue By Segment control"
+          git push origin HEAD:phase4b-revenue-by-segment

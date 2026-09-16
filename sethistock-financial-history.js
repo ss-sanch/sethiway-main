@@ -758,6 +758,28 @@
         });
     }
 
+    function bindRevenueDriverButton() {
+        const button = document.getElementById('financial-segment-button');
+        if (!button || button.dataset.bound === '1') return;
+        button.dataset.bound = '1';
+        button.addEventListener('click', () => {
+            const ticker = String((typeof state === 'object' ? state?.ticker : '') || document.getElementById('display-ticker')?.textContent || '').trim().toUpperCase();
+            if (!ticker || typeof window.SethiStockOpenRevenueDrivers !== 'function') return;
+            window.SethiStockOpenRevenueDrivers(ticker).catch?.(() => null);
+        });
+    }
+
+    function syncRevenueDriverButton() {
+        const button = document.getElementById('financial-segment-button');
+        if (!button) return;
+        const ticker = String((typeof state === 'object' ? state?.ticker : '') || document.getElementById('display-ticker')?.textContent || '').trim().toUpperCase();
+        const supported = typeof window.SethiStockHasRevenueDrivers === 'function'
+            ? window.SethiStockHasRevenueDrivers(ticker)
+            : ['AAPL','MSFT','GOOG','GOOGL','AMZN','META','NVDA','TSLA','NFLX','JPM','V'].includes(ticker);
+        button.classList.toggle('hidden', !supported);
+        button.disabled = !supported;
+    }
+
     function renderFinancialCards(view) {
         const cards = [
             { id: 'ind-rev', key: 'revenue', title: 'Revenue' },
@@ -786,6 +808,7 @@
                         <div class="flex items-center justify-between gap-3 mb-1">
                             <h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest">${card.title}</h4>
                             <div class="flex items-center gap-2">
+                                ${card.id === 'ind-rev' ? `<button id="financial-segment-button" type="button" class="financial-segment-btn hidden items-center gap-1 px-2.5 py-1 rounded-lg border border-blue-200 bg-blue-50 text-[9px] font-black text-blue-700 uppercase tracking-wider hover:bg-blue-100 hover:border-blue-300 transition whitespace-nowrap" title="Open company revenue segments and operating drivers">By Segment <span aria-hidden="true">→</span></button>` : ''}
                                 <span id="fin-period-${card.id}" class="px-2 py-1 rounded-md bg-gray-50 border border-gray-100 text-[9px] font-black text-gray-400 uppercase tracking-widest">${initialBadge}</span>
                                 <button type="button" class="financial-expand-btn inline-flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition" data-chart-id="${card.id}" aria-label="Expand ${card.title} chart" title="Expand chart">
                                     <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M16 21h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
@@ -802,8 +825,10 @@
             container.innerHTML = html;
             if (container.dataset) container.dataset.phase4DashboardReady = '1';
             bindExpandButtons();
+            bindRevenueDriverButton();
         }
 
+        syncRevenueDriverButton();
         cards.forEach(card => {
             const badge = document.getElementById(`fin-period-${card.id}`);
             if (badge) {

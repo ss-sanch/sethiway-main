@@ -1,0 +1,53 @@
+name: Temporary remove Financial Comparisons switches
+
+on:
+  push:
+    branches: [phase4c-remove-comparison-switches-temp]
+    paths:
+      - 'tmp_remove_comparison_switches.py'
+      - '.github/workflows/tmp-remove-comparison-switches.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase4c-remove-comparison-switches-temp
+      - name: Apply simplification patch
+        run: python tmp_remove_comparison_switches.py
+      - name: Validate JS and no-request comparison contract
+        run: |
+          node --check sethistock-financial-history.js
+          python - <<'PY'
+          from pathlib import Path
+          html = Path('sethistock.html').read_text()
+          js = Path('sethistock-financial-history.js').read_text()
+          for token in ('comparison-period-btn','comparison-window-btn','comparison-mode-btn','comparison-status'):
+              assert token not in html, token
+              assert token not in js, token
+          assert 'Annual</span>' in html
+          assert 'renderComparisonFooter' in js
+          assert 'renderFinancialComparisons' in js
+          assert 'comparisonView' in js
+          assert 'loadComparisonPeriod(' not in js
+          assert 'comparisonRequestToken' not in js
+          # The simplified comparison renderer must be client-side only.
+          start = js.index('function comparisonAnnualPoints')
+          end = js.index('function renderFinancialCharts')
+          block = js[start:end]
+          assert 'fetch(' not in block
+          assert '/api/' not in block
+          print('PHASE4C_SWITCH_REMOVAL_OK')
+          PY
+      - name: Commit app changes and clean temporary files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f tmp_remove_comparison_switches.py .github/workflows/tmp-remove-comparison-switches.yml
+          git add sethistock.html sethistock-financial-history.js
+          git commit -m "Simplify Financial Comparisons controls"
+          git push origin HEAD:phase4c-remove-comparison-switches-temp

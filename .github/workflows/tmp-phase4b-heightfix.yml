@@ -1,0 +1,43 @@
+name: Temporary Phase 4B height validation
+
+on:
+  push:
+    branches: [phase4b-revenue-by-segment-heightfix]
+    paths:
+      - 'tmp_phase4b_heightfix.py'
+      - '.github/workflows/tmp-phase4b-heightfix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase4b-revenue-by-segment-heightfix
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply height patch
+        run: python tmp_phase4b_heightfix.py
+      - name: Validate JavaScript and modal sizing
+        run: |
+          node --check sethistock-company-drivers.js
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('sethistock-company-drivers.js').read_text()
+          assert '#driver-dialog { width:min(1240px,calc(100vw - 48px)); height:auto; max-height:min(720px,calc(100vh - 72px)); }' in text
+          assert '#driver-dialog { width:calc(100vw - 24px); height:auto; max-height:calc(100vh - 32px); }' in text
+          assert 'height:min(720px,calc(100vh - 72px))' not in text
+          print('PHASE4B_HEIGHTFIX_OK')
+          PY
+      - name: Commit application change only
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f tmp_phase4b_heightfix.py .github/workflows/tmp-phase4b-heightfix.yml
+          git add sethistock-company-drivers.js
+          git commit -m "Shrink Revenue Drivers modal to content"
+          git push origin HEAD:phase4b-revenue-by-segment-heightfix

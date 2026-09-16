@@ -10,7 +10,7 @@
     <style>
         html { scroll-behavior: smooth; scroll-padding-top: 8rem; }
         #dashboard, #key-metrics, #comparisons, #valuation, #extra { scroll-margin-top: 8rem; }
-        .tf-btn.active, .type-btn.active, .financial-period-btn.active, .financial-window-btn.active, .comparison-period-btn.active, .comparison-window-btn.active, .comparison-mode-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
+        .tf-btn.active, .type-btn.active, .financial-period-btn.active, .financial-window-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
         .modal-active { overflow: hidden; }
         @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
     </style>
@@ -230,30 +230,12 @@
         </div>
 
         <div id="comparisons" class="scroll-mt-24">
-            <div class="mt-10 mb-3 border-b border-gray-200 pb-4 flex flex-col xl:flex-row xl:items-end justify-between gap-4">
+            <div class="mt-10 mb-3 border-b border-gray-200 pb-4 flex items-end justify-between gap-4">
                 <div>
                     <h3 class="text-2xl font-black">Financial Comparisons</h3>
-                    <p class="text-sm text-gray-500 mt-1">Compare growth, cash conversion and balance-sheet strength using the financial history already loaded above.</p>
+                    <p class="text-sm text-gray-500 mt-1">Compare profitability, cash conversion and balance-sheet strength across the full annual history already loaded above.</p>
                 </div>
-                <div class="flex flex-col items-start xl:items-end gap-2">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg border border-gray-200" aria-label="Comparison reporting period">
-                            <button type="button" class="comparison-period-btn active px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-comparison-period="annual">Annual</button>
-                            <button type="button" class="comparison-period-btn px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-comparison-period="quarterly">Quarterly</button>
-                        </div>
-                        <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg border border-gray-200" aria-label="Comparison history window">
-                            <button type="button" class="comparison-window-btn px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-comparison-window="3">3Y</button>
-                            <button type="button" class="comparison-window-btn px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-comparison-window="5">5Y</button>
-                            <button type="button" class="comparison-window-btn px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-comparison-window="10">10Y</button>
-                            <button type="button" class="comparison-window-btn active px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-comparison-window="max">MAX</button>
-                        </div>
-                        <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg border border-gray-200" aria-label="Comparison chart mode">
-                            <button type="button" class="comparison-mode-btn active px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-comparison-mode="absolute">Absolute</button>
-                            <button type="button" class="comparison-mode-btn px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-comparison-mode="indexed">Indexed</button>
-                        </div>
-                    </div>
-                    <p id="comparison-status" class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Annual · Absolute · Loaded history</p>
-                </div>
+                <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-[10px] font-black text-gray-500 uppercase tracking-widest">Annual</span>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <article data-financial-card="comp-rev-net" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">

@@ -224,7 +224,8 @@
                 const compactLayout = {
                     ...layout,
                     height: DRIVER_CHART_HEIGHT,
-                    autosize: false,
+                    width: undefined,
+                    autosize: true,
                     margin: { t: 8, r: 8, b: 34, l: 46 },
                     xaxis: {
                         ...(layout.xaxis || {}),

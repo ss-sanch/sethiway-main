@@ -15,7 +15,6 @@
         'inflation-rates': 'Inflation & Rates',
         'currencies': 'Currencies',
         'key-metrics': 'Key Metrics',
-        'company-drivers': 'Company Drivers',
         'research-labs': 'Research Labs',
         'valuation': 'Valuations',
         'comparisons': 'Comparisons',
@@ -64,7 +63,7 @@
     if (page === 'sethistock.html') {
         if (!document.querySelector('script[data-sethistock-ui-stability]')) {
             const stabilityScript = document.createElement('script');
-            stabilityScript.src = 'sethistock-ui-stability.js?v=4';
+            stabilityScript.src = 'sethistock-ui-stability.js?v=5';
             stabilityScript.dataset.sethistockUiStability = '1';
             document.body.appendChild(stabilityScript);
         }
@@ -115,11 +114,6 @@
             };
         }
 
-        document.querySelectorAll('nav a[href="#key-metrics"]').forEach(financialLink => {
-            if (financialLink.nextElementSibling?.getAttribute('href') === '#company-drivers') return;
-            financialLink.insertAdjacentHTML('afterend', '<a href="#company-drivers" class="hover:text-blue-600 transition">Drivers</a>');
-        });
-
         const SUPPORTED_DRIVER_TICKERS = new Set([
             'AAPL', 'MSFT', 'GOOG', 'GOOGL', 'AMZN', 'META', 'NVDA', 'TSLA', 'NFLX', 'JPM', 'V'
         ]);
@@ -128,20 +122,15 @@
             return String(value || '').trim().toUpperCase();
         }
 
-        // Phase 3D stores immutable KPI snapshots in Supabase. For the flagship
-        // universe, load the lightweight UI module automatically as soon as a search
-        // starts so cached Company Drivers are ready by the time the user reaches them.
-        // Cold/stale extraction still remains isolated from the core stock analysis.
+        function canonicalDriverTicker(value) {
+            const ticker = normaliseDriverTicker(value);
+            return ticker === 'GOOG' ? 'GOOGL' : ticker;
+        }
+
         let driverModulePromise = null;
-        function loadCompanyDriversModule(scrollAfterLoad = false) {
-            if (window.SethiStockCompanyDrivers) {
-                if (scrollAfterLoad) document.querySelector('#company-drivers')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                return Promise.resolve(window.SethiStockCompanyDrivers);
-            }
-            if (driverModulePromise) {
-                if (scrollAfterLoad) driverModulePromise.then(() => document.querySelector('#company-drivers')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-                return driverModulePromise;
-            }
+        function loadCompanyDriversModule() {
+            if (window.SethiStockCompanyDrivers) return Promise.resolve(window.SethiStockCompanyDrivers);
+            if (driverModulePromise) return driverModulePromise;
 
             driverModulePromise = new Promise((resolve, reject) => {
                 const existing = document.querySelector('script[data-sethistock-company-drivers]');
@@ -152,73 +141,32 @@
                 }
 
                 const driverScript = document.createElement('script');
-                driverScript.src = 'sethistock-company-drivers.js?v=3e6';
+                driverScript.src = 'sethistock-company-drivers.js?v=4b2';
                 driverScript.dataset.sethistockCompanyDrivers = '1';
-                driverScript.addEventListener('load', () => {
-                    resolve(window.SethiStockCompanyDrivers);
-                    if (scrollAfterLoad) {
-                        requestAnimationFrame(() => document.querySelector('#company-drivers')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-                    }
+                driverScript.addEventListener('load', () => resolve(window.SethiStockCompanyDrivers), { once: true });
+                driverScript.addEventListener('error', error => {
+                    driverModulePromise = null;
+                    reject(error);
                 }, { once: true });
-                driverScript.addEventListener('error', reject, { once: true });
                 document.body.appendChild(driverScript);
             });
             return driverModulePromise;
         }
 
-        // Exposed for the stability layer so a completed analysis can explicitly
-        // synchronise the current ticker even if the module was still loading.
+        // Phase 4B: Company Drivers no longer occupy the normal SethiStock page and
+        // are not preloaded during every flagship analysis. Revenue opens them on demand.
         window.SethiStockLoadCompanyDriversModule = loadCompanyDriversModule;
-
-        // A smart-search/company-name query may only resolve to a supported ticker
-        // after the main analysis. Ensure the Driver module is present for that
-        // resolved ticker even if the raw input was not itself a ticker symbol.
-        window.addEventListener('sethistock:analysis-ready', event => {
-            const resolvedTicker = normaliseDriverTicker(event?.detail?.ticker);
-            if (SUPPORTED_DRIVER_TICKERS.has(resolvedTicker)) {
-                loadCompanyDriversModule(false).catch(() => null);
-            }
-        });
-
-        const searchForm = document.querySelector('#search-form');
-        const tickerInput = document.querySelector('#ticker-input');
-        if (searchForm && searchForm.dataset.driverAutoloadBound !== '1') {
-            searchForm.dataset.driverAutoloadBound = '1';
-            searchForm.addEventListener('submit', () => {
-                const ticker = normaliseDriverTicker(tickerInput?.value);
-                if (SUPPORTED_DRIVER_TICKERS.has(ticker)) {
-                    loadCompanyDriversModule(false).catch(() => null);
-                }
-            }, true);
-        }
-
-        document.querySelectorAll('a[href="#company-drivers"]').forEach(link => {
-            link.addEventListener('click', event => {
-                if (document.querySelector('#company-drivers')) return;
-                event.preventDefault();
-                loadCompanyDriversModule(true).catch(() => null);
+        window.SethiStockHasRevenueDrivers = ticker => SUPPORTED_DRIVER_TICKERS.has(normaliseDriverTicker(ticker));
+        window.SethiStockOpenRevenueDrivers = ticker => {
+            const symbol = canonicalDriverTicker(ticker || (typeof state === 'object' ? state?.ticker : '') || document.getElementById('display-ticker')?.textContent);
+            if (!SUPPORTED_DRIVER_TICKERS.has(symbol)) return Promise.resolve(false);
+            return loadCompanyDriversModule().then(module => {
+                if (!module?.open) return false;
+                return module.open(symbol);
+            }).catch(error => {
+                console.warn('Revenue Drivers failed to open:', error);
+                return false;
             });
-        });
-
-        // Keep proximity loading as a fallback for unsupported/newly-added tickers,
-        // while flagship names now initialise automatically from the persistent cache.
-        const comparisons = document.querySelector('#comparisons');
-        if ('IntersectionObserver' in window && comparisons) {
-            const observer = new IntersectionObserver(entries => {
-                if (!entries.some(entry => entry.isIntersecting)) return;
-                observer.disconnect();
-                loadCompanyDriversModule(false).catch(() => null);
-            }, { rootMargin: '900px 0px', threshold: 0.01 });
-            observer.observe(comparisons);
-        }
-
-        const initialTicker = normaliseDriverTicker(new URLSearchParams(window.location.search).get('ticker'));
-        if (SUPPORTED_DRIVER_TICKERS.has(initialTicker)) {
-            loadCompanyDriversModule(false).catch(() => null);
-        }
-
-        if (window.location.hash === '#company-drivers') {
-            loadCompanyDriversModule(true).catch(() => null);
-        }
+        };
     }
 })();

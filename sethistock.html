@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="style.css">
     <style>
         html { scroll-behavior: smooth; scroll-padding-top: 8rem; }
-        #dashboard, #key-metrics, #comparisons, #research-labs, #valuation, #extra { scroll-margin-top: 8rem; }
-        .tf-btn.active, .type-btn.active, .financial-period-btn.active, .financial-window-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
+        #dashboard, #key-metrics, #comparisons, #valuation, #extra { scroll-margin-top: 8rem; }
+        .tf-btn.active, .type-btn.active, .financial-period-btn.active, .financial-window-btn.active, .comparison-period-btn.active, .comparison-window-btn.active, .comparison-mode-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
         .modal-active { overflow: hidden; }
         @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
     </style>
@@ -28,7 +28,7 @@
                     <button type="button" onclick="window.scrollTo({ top: 0, behavior: 'smooth' });" class="hover:text-blue-600 transition">Overview</button>
                     <a href="#key-metrics" class="hover:text-blue-600 transition">Financials</a>
                     <a href="#comparisons" class="hover:text-blue-600 transition">Comparisons</a>
-                    <a href="#research-labs" class="hover:text-blue-600 transition">Research</a>
+                    
                     <a href="#valuation" class="hover:text-blue-600 transition">Valuation</a>
                     <a href="#extra" class="hover:text-blue-600 transition">More</a>
                 </div>
@@ -41,7 +41,7 @@
                 <button type="button" onclick="window.scrollTo({ top: 0, behavior: 'smooth' });" class="hover:text-blue-600 transition">Overview</button>
                 <a href="#key-metrics" class="hover:text-blue-600 transition">Financials</a>
                 <a href="#comparisons" class="hover:text-blue-600 transition">Comparisons</a>
-                <a href="#research-labs" class="hover:text-blue-600 transition">Research</a>
+                
                 <a href="#valuation" class="hover:text-blue-600 transition">Valuation</a>
                 <a href="#extra" class="hover:text-blue-600 transition">More</a>
             </div>
@@ -230,74 +230,67 @@
         </div>
 
         <div id="comparisons" class="scroll-mt-24">
-            <div class="mt-10 mb-2 border-b border-gray-200 pb-4 flex items-center justify-between gap-4">
-                <h3 class="text-2xl font-black">Financial Comparisons</h3>
-                <span id="comparison-period-label" class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-[10px] font-black text-gray-500 uppercase tracking-widest">Annual</span>
+            <div class="mt-10 mb-3 border-b border-gray-200 pb-4 flex flex-col xl:flex-row xl:items-end justify-between gap-4">
+                <div>
+                    <h3 class="text-2xl font-black">Financial Comparisons</h3>
+                    <p class="text-sm text-gray-500 mt-1">Compare growth, cash conversion and balance-sheet strength using the financial history already loaded above.</p>
+                </div>
+                <div class="flex flex-col items-start xl:items-end gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg border border-gray-200" aria-label="Comparison reporting period">
+                            <button type="button" class="comparison-period-btn active px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-comparison-period="annual">Annual</button>
+                            <button type="button" class="comparison-period-btn px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-comparison-period="quarterly">Quarterly</button>
+                        </div>
+                        <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg border border-gray-200" aria-label="Comparison history window">
+                            <button type="button" class="comparison-window-btn px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-comparison-window="3">3Y</button>
+                            <button type="button" class="comparison-window-btn px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-comparison-window="5">5Y</button>
+                            <button type="button" class="comparison-window-btn px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-comparison-window="10">10Y</button>
+                            <button type="button" class="comparison-window-btn active px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-comparison-window="max">MAX</button>
+                        </div>
+                        <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg border border-gray-200" aria-label="Comparison chart mode">
+                            <button type="button" class="comparison-mode-btn active px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-comparison-mode="absolute">Absolute</button>
+                            <button type="button" class="comparison-mode-btn px-3 py-1.5 text-xs font-bold rounded-md text-gray-600 transition" data-comparison-mode="indexed">Indexed</button>
+                        </div>
+                    </div>
+                    <p id="comparison-status" class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Annual · Absolute · Loaded history</p>
+                </div>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200"><h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">Revenue vs Net Income</h4><div id="comp-rev-net" class="h-64 w-full"></div></div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200"><h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">Cash vs Total Debt</h4><div id="comp-cash-debt" class="h-64 w-full"></div></div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200"><h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">Operating CF vs Free Cash Flow</h4><div id="comp-fcf-ocf" class="h-64 w-full"></div></div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200"><h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest text-center mb-2">Operating CF vs CapEx</h4><div id="comp-ocf-capex" class="h-64 w-full"></div></div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <article data-financial-card="comp-rev-net" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+                    <div class="flex items-center justify-between gap-3 mb-2">
+                        <h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest">Revenue vs Net Income</h4>
+                        <button type="button" class="financial-expand-btn inline-flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition" data-chart-id="comp-rev-net" aria-label="Expand Revenue vs Net Income chart" title="Expand chart"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M16 21h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
+                    </div>
+                    <div id="comp-rev-net" class="h-56 w-full"></div>
+                    <div id="comp-rev-net-footer" class="grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-gray-100 pt-3 mt-2"></div>
+                </article>
+                <article data-financial-card="comp-cash-debt" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+                    <div class="flex items-center justify-between gap-3 mb-2">
+                        <h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest">Cash vs Total Debt</h4>
+                        <button type="button" class="financial-expand-btn inline-flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition" data-chart-id="comp-cash-debt" aria-label="Expand Cash vs Total Debt chart" title="Expand chart"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M16 21h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
+                    </div>
+                    <div id="comp-cash-debt" class="h-56 w-full"></div>
+                    <div id="comp-cash-debt-footer" class="grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-gray-100 pt-3 mt-2"></div>
+                </article>
+                <article data-financial-card="comp-fcf-ocf" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+                    <div class="flex items-center justify-between gap-3 mb-2">
+                        <h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest">Operating CF vs Free Cash Flow</h4>
+                        <button type="button" class="financial-expand-btn inline-flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition" data-chart-id="comp-fcf-ocf" aria-label="Expand Operating CF vs Free Cash Flow chart" title="Expand chart"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M16 21h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
+                    </div>
+                    <div id="comp-fcf-ocf" class="h-56 w-full"></div>
+                    <div id="comp-fcf-ocf-footer" class="grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-gray-100 pt-3 mt-2"></div>
+                </article>
+                <article data-financial-card="comp-ocf-capex" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+                    <div class="flex items-center justify-between gap-3 mb-2">
+                        <h4 class="text-sm font-bold text-gray-500 uppercase tracking-widest">Operating CF vs CapEx</h4>
+                        <button type="button" class="financial-expand-btn inline-flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition" data-chart-id="comp-ocf-capex" aria-label="Expand Operating CF vs CapEx chart" title="Expand chart"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M16 21h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
+                    </div>
+                    <div id="comp-ocf-capex" class="h-56 w-full"></div>
+                    <div id="comp-ocf-capex-footer" class="grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-gray-100 pt-3 mt-2"></div>
+                </article>
             </div>
         </div>
-
-
-        <section id="research-labs" class="mt-12 scroll-mt-24">
-            <div class="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-6 border-b border-gray-200 pb-4">
-                <div>
-                    <div class="flex items-center gap-3">
-                        <h3 class="text-2xl font-black text-gray-900">Research Labs</h3>
-                        <span class="px-2.5 py-1 rounded-full bg-blue-50 border border-blue-100 text-[10px] font-black text-blue-700 uppercase tracking-widest">New</span>
-                    </div>
-                    <p class="text-sm text-gray-500 mt-1">How the stock behaves around earnings and how today's valuation compares with its own history.</p>
-                </div>
-                <p id="research-status" class="text-xs font-bold text-gray-400 uppercase tracking-widest">Search a stock to initialise</p>
-            </div>
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                <article class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-200">
-                    <div class="mb-6">
-                        <p class="text-[10px] font-black text-purple-600 uppercase tracking-widest mb-1">Event Study</p>
-                        <h4 class="text-xl font-black text-gray-900">Earnings Reaction Study</h4>
-                        <p class="text-sm text-gray-500 mt-1">Historical share-price reactions around reported earnings.</p>
-                    </div>
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-                        <div class="bg-gray-50 border border-gray-100 rounded-xl p-4"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Avg |1D Move|</p><p id="earnings-avg-abs" class="text-2xl font-black text-gray-900">--</p></div>
-                        <div class="bg-gray-50 border border-gray-100 rounded-xl p-4"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Positive Reactions</p><p id="earnings-positive" class="text-2xl font-black text-gray-900">--</p></div>
-                        <div class="bg-gray-50 border border-gray-100 rounded-xl p-4"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">EPS Beat Rate</p><p id="earnings-beat" class="text-2xl font-black text-gray-900">--</p></div>
-                        <div class="bg-gray-50 border border-gray-100 rounded-xl p-4"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Avg 5D Move</p><p id="earnings-5d" class="text-2xl font-black text-gray-900">--</p></div>
-                    </div>
-                    <div id="earnings-reaction-chart" class="w-full h-[300px]"></div>
-                    <div id="earnings-reaction-empty" class="hidden py-16 text-center text-sm font-semibold text-gray-400"></div>
-                    <div class="overflow-x-auto mt-3 max-h-[260px] overflow-y-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="sticky top-0 bg-white text-gray-400 uppercase tracking-wider"><tr><th class="py-2 pr-3">Earnings</th><th class="py-2 px-3">EPS Surprise</th><th class="py-2 px-3">1D</th><th class="py-2 pl-3">5D</th></tr></thead>
-                            <tbody id="earnings-reaction-table" class="divide-y divide-gray-100"></tbody>
-                        </table>
-                    </div>
-                </article>
-                <article class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-200">
-                    <div class="mb-6">
-                        <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">Self-Relative Valuation</p>
-                        <h4 class="text-xl font-black text-gray-900">Historical Valuation Bands</h4>
-                        <p class="text-sm text-gray-500 mt-1">Current trailing P/E versus reconstructed post-earnings P/E history.</p>
-                    </div>
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-                        <div class="bg-gray-50 border border-gray-100 rounded-xl p-4"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Current P/E</p><p id="valuation-current" class="text-2xl font-black text-gray-900">--</p></div>
-                        <div class="bg-gray-50 border border-gray-100 rounded-xl p-4"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Historical Median</p><p id="valuation-median" class="text-2xl font-black text-gray-900">--</p></div>
-                        <div class="bg-gray-50 border border-gray-100 rounded-xl p-4"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Current Percentile</p><p id="valuation-percentile" class="text-2xl font-black text-gray-900">--</p></div>
-                        <div class="bg-gray-50 border border-gray-100 rounded-xl p-4"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Position</p><p id="valuation-label" class="text-sm font-black text-gray-900 leading-tight mt-2">--</p></div>
-                    </div>
-                    <div id="valuation-band-chart" class="w-full h-[300px]"></div>
-                    <div id="valuation-band-empty" class="hidden py-16 text-center text-sm font-semibold text-gray-400"></div>
-                    <div class="mt-4 bg-blue-50/70 border border-blue-100 rounded-xl p-4">
-                        <p class="text-[11px] leading-relaxed text-blue-900"><strong>Method:</strong> after each earnings release, SethiStock sums the latest four reported quarterly EPS figures and divides the post-release share price by that trailing EPS. This keeps the comparison historical rather than applying today's earnings backwards.</p>
-                    </div>
-                </article>
-            </div>
-        </section>
-
-        <div id="valuation" class="mt-12 scroll-mt-24">
+<div id="valuation" class="mt-12 scroll-mt-24">
             <h3 class="text-2xl font-black mb-6 border-b border-gray-200 pb-4">Advanced Valuation Engine</h3>
             
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-4">
@@ -1970,91 +1963,7 @@
     }
 
     function ensureResearchUI() {
-        if (document.getElementById("research-labs")) return;
-
-        const valuationLink = document.querySelector('nav a[href="#valuation"]');
-        if (valuationLink && !document.querySelector('nav a[href="#research-labs"]')) {
-            valuationLink.insertAdjacentHTML("beforebegin", '<a href="#research-labs" class="hover:text-blue-600 transition">Research</a>');
-        }
-
-        const valuation = document.getElementById("valuation");
-        if (!valuation) return;
-
-        const section = document.createElement("section");
-        section.id = "research-labs";
-        section.className = "mt-12 scroll-mt-24";
-        section.innerHTML = `
-            <div class="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-6 border-b border-gray-200 pb-4">
-                <div>
-                    <div class="flex items-center gap-3">
-                        <h3 class="text-2xl font-black text-gray-900">Research Labs</h3>
-                        <span class="px-2.5 py-1 rounded-full bg-blue-50 border border-blue-100 text-[10px] font-black text-blue-700 uppercase tracking-widest">New</span>
-                    </div>
-                    <p class="text-sm text-gray-500 mt-1">How the stock behaves around earnings and how today's valuation compares with its own history.</p>
-                </div>
-                <p id="research-status" class="text-xs font-bold text-gray-400 uppercase tracking-widest">Search a stock to initialise</p>
-            </div>
-
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                <article class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-200">
-                    <div class="mb-6">
-                        <p class="text-[10px] font-black text-purple-600 uppercase tracking-widest mb-1">Event Study</p>
-                        <h4 class="text-xl font-black text-gray-900">Earnings Reaction Study</h4>
-                        <p class="text-sm text-gray-500 mt-1">Historical share-price reactions around reported earnings.</p>
-                    </div>
-
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-                        ${researchCard("Avg |1D Move|", "earnings-avg-abs")}
-                        ${researchCard("Positive Reactions", "earnings-positive")}
-                        ${researchCard("EPS Beat Rate", "earnings-beat")}
-                        ${researchCard("Avg 5D Move", "earnings-5d")}
-                    </div>
-
-                    <div id="earnings-reaction-chart" class="w-full h-[300px]"></div>
-                    <div id="earnings-reaction-empty" class="hidden py-16 text-center text-sm font-semibold text-gray-400"></div>
-
-                    <div class="overflow-x-auto mt-3 max-h-[260px] overflow-y-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="sticky top-0 bg-white text-gray-400 uppercase tracking-wider">
-                                <tr>
-                                    <th class="py-2 pr-3">Earnings</th>
-                                    <th class="py-2 px-3">EPS Surprise</th>
-                                    <th class="py-2 px-3">1D</th>
-                                    <th class="py-2 pl-3">5D</th>
-                                </tr>
-                            </thead>
-                            <tbody id="earnings-reaction-table" class="divide-y divide-gray-100"></tbody>
-                        </table>
-                    </div>
-                </article>
-
-                <article class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-200">
-                    <div class="mb-6">
-                        <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">Self-Relative Valuation</p>
-                        <h4 class="text-xl font-black text-gray-900">Historical Valuation Bands</h4>
-                        <p class="text-sm text-gray-500 mt-1">Current trailing P/E versus reconstructed post-earnings P/E history.</p>
-                    </div>
-
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-                        ${researchCard("Current P/E", "valuation-current")}
-                        ${researchCard("Historical Median", "valuation-median")}
-                        ${researchCard("Current Percentile", "valuation-percentile")}
-                        <div class="bg-gray-50 border border-gray-100 rounded-xl p-4">
-                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Position</p>
-                            <p id="valuation-label" class="text-sm font-black text-gray-900 leading-tight mt-2">--</p>
-                        </div>
-                    </div>
-
-                    <div id="valuation-band-chart" class="w-full h-[300px]"></div>
-                    <div id="valuation-band-empty" class="hidden py-16 text-center text-sm font-semibold text-gray-400"></div>
-
-                    <div class="mt-4 bg-blue-50/70 border border-blue-100 rounded-xl p-4">
-                        <p class="text-[11px] leading-relaxed text-blue-900"><strong>Method:</strong> after each earnings release, SethiStock sums the latest four reported quarterly EPS figures and divides the post-release share price by that trailing EPS. This keeps the comparison historical rather than applying today's earnings backwards.</p>
-                    </div>
-                </article>
-            </div>`;
-
-        valuation.parentNode.insertBefore(section, valuation);
+        return; // Retired: P/E History and Earnings Surprise now live in Key Financial Metrics.
     }
 
     function setResearchStatus(text, tone = "neutral") {
@@ -2186,6 +2095,7 @@
     }
 
     async function loadStockResearch(ticker) {
+        return null; // Retired legacy UI; shared research data is consumed by Financial History.
         ensureResearchUI();
         if (!ticker) return;
         const requestId = ++researchRequestId;

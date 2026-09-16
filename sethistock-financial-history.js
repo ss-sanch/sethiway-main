@@ -32,6 +32,11 @@
     let displayedView = null;
     let desiredPeriod = 'annual';
     let desiredWindow = 'max';
+    let comparisonPeriod = 'annual';
+    let comparisonWindow = 'max';
+    let comparisonMode = 'absolute';
+    let comparisonView = null;
+    let comparisonRequestToken = 0;
     let expandedChartId = null;
     let prefetchGeneration = 0;
     let requestId = 0;
@@ -754,6 +759,8 @@
 
     function bindExpandButtons() {
         document.querySelectorAll('.financial-expand-btn').forEach(button => {
+            if (button.dataset.financialExpandBound === '1') return;
+            button.dataset.financialExpandBound = '1';
             button.addEventListener('click', () => toggleExpandedChart(button.dataset.chartId));
         });
     }
@@ -918,7 +925,7 @@
     }
 
     function traceForMetric(view, key, name, colour, options = {}) {
-        const rawPoints = filterPointsToWindow(validMetricPoints(view, key));
+        const rawPoints = filterPointsToWindow(validMetricPoints(view, key), options.windowValue ?? desiredWindow);
         if (!rawPoints.length) return null;
         const annualBars = view.period === 'annual' && options.forceLine !== true;
         const points = annualBars ? collapseAnnualPlotPoints(rawPoints) : rawPoints;
@@ -1022,16 +1029,295 @@
         Plotly.react('ind-earnings', [trace], layout, { displayModeBar: false, responsive: true });
     }
 
+    function syncComparisonControls() {
+        document.querySelectorAll('.comparison-period-btn').forEach(button => {
+            button.classList.toggle('active', button.dataset.comparisonPeriod === comparisonPeriod);
+        });
+        document.querySelectorAll('.comparison-window-btn').forEach(button => {
+            button.classList.toggle('active', String(button.dataset.comparisonWindow) === String(comparisonWindow));
+        });
+        document.querySelectorAll('.comparison-mode-btn').forEach(button => {
+            button.classList.toggle('active', button.dataset.comparisonMode === comparisonMode);
+        });
+    }
+
+    function setComparisonStatus(message, tone = 'neutral') {
+        const element = document.getElementById('comparison-status');
+        if (!element) return;
+        element.textContent = message;
+        element.className = `text-[10px] font-bold uppercase tracking-widest ${tone === 'loading' ? 'text-blue-600' : tone === 'error' ? 'text-red-500' : 'text-gray-400'}`;
+    }
+
+    function comparisonPeriodLabel(view) {
+        return humanPeriod(view?.period || comparisonPeriod);
+    }
+
+    function comparisonMetricPoints(view, key) {
+        const filtered = filterPointsToWindow(validMetricPoints(view, key), comparisonWindow);
+        return view?.period === 'annual' ? collapseAnnualPlotPoints(filtered) : filtered;
+    }
+
+    function comparisonDateKey(point, annual) {
+        return annual ? (point?.annualCategory || annualCategoryLabel(point)) : String(point?.end || '');
+    }
+
+    function pairedComparisonRows(view, firstKey, secondKey, windowValue = 'max') {
+        const annual = view?.period === 'annual';
+        const firstRaw = filterPointsToWindow(validMetricPoints(view, firstKey), windowValue);
+        const secondRaw = filterPointsToWindow(validMetricPoints(view, secondKey), windowValue);
+        const first = annual ? collapseAnnualPlotPoints(firstRaw) : firstRaw;
+        const second = annual ? collapseAnnualPlotPoints(secondRaw) : secondRaw;
+        const secondMap = new Map(second.map(point => [comparisonDateKey(point, annual), point]));
+        return first.map(point => {
+            const key = comparisonDateKey(point, annual);
+            const match = secondMap.get(key);
+            if (!match) return null;
+            return {
+                key,
+                end: point?.end || match?.end || null,
+                first: finiteNumber(point?.value),
+                second: finiteNumber(match?.value)
+            };
+        }).filter(row => row && row.first !== null && row.second !== null);
+    }
+
+    function comparisonPriorRow(rows, years = 5) {
+        if (!Array.isArray(rows) || rows.length < 2) return null;
+        const latest = rows[rows.length - 1];
+        const latestDate = new Date(`${latest.end || latest.key}T00:00:00Z`);
+        if (Number.isNaN(latestDate.getTime())) {
+            const latestYear = Number(String(latest.key).slice(0, 4));
+            return rows.find(row => Number(String(row.key).slice(0, 4)) === latestYear - years) || null;
+        }
+        const target = new Date(latestDate.getTime());
+        target.setUTCFullYear(target.getUTCFullYear() - years);
+        let best = null;
+        let distance = Infinity;
+        rows.slice(0, -1).forEach(row => {
+            const date = new Date(`${row.end || row.key}T00:00:00Z`);
+            if (Number.isNaN(date.getTime())) return;
+            const delta = Math.abs(date.getTime() - target.getTime());
+            if (delta < distance) { distance = delta; best = row; }
+        });
+        return distance <= 220 * 24 * 60 * 60 * 1000 ? best : null;
+    }
+
+    function ratioPercent(numerator, denominator) {
+        const top = finiteNumber(numerator);
+        const bottom = finiteNumber(denominator);
+        if (top === null || bottom === null || bottom === 0) return null;
+        return (top / bottom) * 100;
+    }
+
+    function formatComparisonPercent(value, digits = 1, suffix = '%') {
+        const number = finiteNumber(value);
+        if (number === null) return 'N/A';
+        const sign = suffix === 'pp' && number > 0 ? '+' : '';
+        return `${sign}${number.toFixed(digits)}${suffix}`;
+    }
+
+    function formatComparisonMoney(value) {
+        const number = finiteNumber(value);
+        return number === null ? 'N/A' : metricDisplayValue('revenue', number);
+    }
+
+    function formatComparisonRatio(value) {
+        const number = finiteNumber(value);
+        return number === null ? 'N/A' : `${number.toFixed(2)}x`;
+    }
+
+    function averageRecentRatio(view, numeratorKey, denominatorKey, years = 5) {
+        const rows = pairedComparisonRows(view, numeratorKey, denominatorKey, String(years));
+        const ratios = rows.map(row => ratioPercent(row.first, row.second)).filter(value => value !== null);
+        if (!ratios.length) return null;
+        return ratios.reduce((sum, value) => sum + value, 0) / ratios.length;
+    }
+
+    function comparisonFooterStats(view, id) {
+        const growth = key => getGrowthStats(view, key)?.['5Y'] || '-';
+        if (id === 'comp-rev-net') {
+            const rows = pairedComparisonRows(view, 'revenue', 'net');
+            const latest = rows[rows.length - 1];
+            const prior = comparisonPriorRow(rows, 5);
+            const latestMargin = latest ? ratioPercent(latest.second, latest.first) : null;
+            const priorMargin = prior ? ratioPercent(prior.second, prior.first) : null;
+            const delta = latestMargin !== null && priorMargin !== null ? latestMargin - priorMargin : null;
+            return [
+                ['Net Margin', formatComparisonPercent(latestMargin)],
+                ['5Y Δ Margin', formatComparisonPercent(delta, 1, 'pp')],
+                ['Revenue 5Y CAGR', growth('revenue')],
+                ['Net Income 5Y CAGR', growth('net')]
+            ];
+        }
+        if (id === 'comp-cash-debt') {
+            const rows = pairedComparisonRows(view, 'cash', 'debt');
+            const latest = rows[rows.length - 1];
+            const netDebt = latest ? latest.second - latest.first : null;
+            const debtCash = latest && latest.first !== 0 ? latest.second / latest.first : null;
+            return [
+                ['Net Debt', formatComparisonMoney(netDebt)],
+                ['Debt / Cash', formatComparisonRatio(debtCash)],
+                ['Cash 5Y CAGR', growth('cash')],
+                ['Debt 5Y CAGR', growth('debt')]
+            ];
+        }
+        if (id === 'comp-fcf-ocf') {
+            const rows = pairedComparisonRows(view, 'fcf', 'ocf');
+            const latest = rows[rows.length - 1];
+            const conversion = latest ? ratioPercent(latest.first, latest.second) : null;
+            return [
+                ['FCF Conversion', formatComparisonPercent(conversion)],
+                ['5Y Avg Conversion', formatComparisonPercent(averageRecentRatio(view, 'fcf', 'ocf', 5))],
+                ['FCF 5Y CAGR', growth('fcf')],
+                ['OCF 5Y CAGR', growth('ocf')]
+            ];
+        }
+        if (id === 'comp-ocf-capex') {
+            const rows = pairedComparisonRows(view, 'ocf', 'capex');
+            const latest = rows[rows.length - 1];
+            const intensity = latest ? ratioPercent(latest.second, latest.first) : null;
+            const retained = latest ? latest.first - latest.second : null;
+            return [
+                ['CapEx / OCF', formatComparisonPercent(intensity)],
+                ['Retained Cash', formatComparisonMoney(retained)],
+                ['5Y Avg CapEx / OCF', formatComparisonPercent(averageRecentRatio(view, 'capex', 'ocf', 5))],
+                ['OCF 5Y CAGR', growth('ocf')]
+            ];
+        }
+        return [];
+    }
+
+    function renderComparisonFooter(view, id) {
+        const footer = document.getElementById(`${id}-footer`);
+        if (!footer) return;
+        const stats = comparisonFooterStats(view, id);
+        footer.innerHTML = stats.map(([label, value]) => `
+            <div class="min-w-0">
+                <p class="text-[9px] font-black text-gray-400 uppercase tracking-wider leading-tight">${label}</p>
+                <p class="text-sm font-black text-gray-900 mt-1 truncate">${value}</p>
+            </div>`).join('');
+    }
+
+    function indexedTrace(trace, key) {
+        if (!trace || !Array.isArray(trace.y)) return trace;
+        const original = trace.y.map(value => finiteNumber(value));
+        const baseIndex = original.findIndex(value => value !== null && value !== 0);
+        if (baseIndex < 0) return trace;
+        const base = original[baseIndex];
+        const labels = Array.isArray(trace.customdata) ? trace.customdata.slice() : trace.x.slice();
+        const displayValues = original.map(value => value === null ? 'N/A' : metricDisplayValue(key, value));
+        trace.y = original.map(value => value === null ? null : (value / base) * 100);
+        trace.customdata = labels.map((label, index) => [label, displayValues[index]]);
+        trace.text = undefined;
+        trace.hovertemplate = '%{customdata[0]}<br>%{fullData.name}: %{customdata[1]}<br>Indexed: %{y:.1f}<extra></extra>';
+        return trace;
+    }
+
     function drawComparison(view, id, first, second) {
         const nonAnnual = view.period !== 'annual';
-        const trace1 = traceForMetric(view, first.key, first.name, first.colour, { forceLine: nonAnnual });
-        const trace2 = traceForMetric(view, second.key, second.name, second.colour, { forceLine: nonAnnual });
+        const trace1 = traceForMetric(view, first.key, first.name, first.colour, { forceLine: nonAnnual, windowValue: comparisonWindow });
+        const trace2 = traceForMetric(view, second.key, second.name, second.colour, { forceLine: nonAnnual, windowValue: comparisonWindow });
         const traces = [trace1, trace2].filter(Boolean);
-        if (traces.length < 2) return emptyChart(id);
+        if (traces.length < 2) {
+            emptyChart(id, 'Comparison history unavailable');
+            renderComparisonFooter(view, id);
+            return;
+        }
+        if (comparisonMode === 'indexed') {
+            indexedTrace(trace1, first.key);
+            indexedTrace(trace2, second.key);
+        }
         if (!preparePlotContainer(id)) return;
         const layout = chartLayout(view, true);
+        layout.hovermode = 'x unified';
+        layout.hoverlabel = { bgcolor: '#ffffff', bordercolor: '#cbd5e1', font: { color: '#0f172a', size: 11 } };
         if (view.period === 'annual') layout.barmode = 'group';
+        if (comparisonMode === 'indexed') {
+            layout.yaxis.tickprefix = '';
+            layout.yaxis.ticksuffix = '';
+            layout.yaxis.tickformat = '.0f';
+            layout.yaxis.title = { text: 'Index (first visible = 100)', font: { size: 10, color: '#64748b' } };
+            layout.shapes = [{ type: 'line', xref: 'paper', x0: 0, x1: 1, y0: 100, y1: 100, line: { color: '#cbd5e1', width: 1, dash: 'dot' } }];
+        }
         Plotly.react(id, traces, layout, { displayModeBar: false, responsive: true });
+        renderComparisonFooter(view, id);
+    }
+
+    function renderFinancialComparisons(view) {
+        if (!view) return;
+        syncComparisonControls();
+        renderFinancialComparisons(comparisonView || view);
+        const sourceLabel = view.sourceType === 'sec' ? 'SEC history' : 'loaded history';
+        setComparisonStatus(`${comparisonPeriodLabel(view)} · ${comparisonMode === 'indexed' ? 'Indexed' : 'Absolute'} · ${sourceLabel}`);
+        bindExpandButtons();
+    }
+
+    async function loadComparisonPeriod(period) {
+        const ticker = String(state.ticker || '').trim().toUpperCase();
+        if (!ticker || !['annual', 'quarterly'].includes(period)) return;
+        comparisonPeriod = period;
+        syncComparisonControls();
+        const token = ++comparisonRequestToken;
+
+        let view = null;
+        if (displayedView?.period === period) view = displayedView;
+        if (!view) {
+            const cached = financialMemoryCache.get(`${ticker}|${period}`);
+            if (cached && Date.now() - cached.savedAt < FINANCIAL_CACHE_TTL_MS) view = cached.view;
+        }
+        if (!view && period === 'annual' && fallbackView) view = fallbackView;
+
+        if (view) {
+            if (token !== comparisonRequestToken) return;
+            comparisonView = view;
+            renderFinancialComparisons(view);
+            return;
+        }
+
+        setComparisonStatus(`Loading ${humanPeriod(period)} comparison history…`, 'loading');
+        view = await fetchFinancialHistoryIntoCache(ticker, period, prefetchGeneration);
+        if (token !== comparisonRequestToken || ticker !== String(state.ticker || '').trim().toUpperCase()) return;
+        if (!view) {
+            setComparisonStatus(`${humanPeriod(period)} comparison history unavailable`, 'error');
+            return;
+        }
+        comparisonView = view;
+        renderFinancialComparisons(view);
+    }
+
+    function bindComparisonControls() {
+        document.querySelectorAll('.comparison-period-btn').forEach(button => {
+            if (button.dataset.comparisonBound === '1') return;
+            button.dataset.comparisonBound = '1';
+            button.addEventListener('click', () => {
+                const next = button.dataset.comparisonPeriod || 'annual';
+                if (next === comparisonPeriod && comparisonView) return;
+                loadComparisonPeriod(next).catch(error => {
+                    console.debug('Comparison period load skipped:', error);
+                    setComparisonStatus('Comparison history temporarily unavailable', 'error');
+                });
+            });
+        });
+        document.querySelectorAll('.comparison-window-btn').forEach(button => {
+            if (button.dataset.comparisonBound === '1') return;
+            button.dataset.comparisonBound = '1';
+            button.addEventListener('click', () => {
+                comparisonWindow = button.dataset.comparisonWindow || 'max';
+                syncComparisonControls();
+                if (comparisonView) renderFinancialComparisons(comparisonView);
+            });
+        });
+        document.querySelectorAll('.comparison-mode-btn').forEach(button => {
+            if (button.dataset.comparisonBound === '1') return;
+            button.dataset.comparisonBound = '1';
+            button.addEventListener('click', () => {
+                comparisonMode = button.dataset.comparisonMode === 'indexed' ? 'indexed' : 'absolute';
+                syncComparisonControls();
+                if (comparisonView) renderFinancialComparisons(comparisonView);
+            });
+        });
+        syncComparisonControls();
+        bindExpandButtons();
     }
 
     function renderFinancialCharts(view) {
@@ -1065,6 +1351,7 @@
 
     function renderView(view, statusTone = 'success', statusOverride = null) {
         displayedView = view;
+        if (!comparisonView || comparisonPeriod === (view.period || 'annual')) comparisonView = view;
         desiredPeriod = view.period || 'annual';
         state.financialPeriod = desiredPeriod;
         syncPeriodControls(desiredPeriod);
@@ -1173,6 +1460,11 @@
         requestId += 1;
         prefetchGeneration += 1;
         desiredWindow = 'max';
+        comparisonPeriod = 'annual';
+        comparisonWindow = 'max';
+        comparisonMode = 'absolute';
+        comparisonView = null;
+        comparisonRequestToken += 1;
         closeExpandedChart();
         financialTicker = ticker;
         const supplementaryTicker = canonicalSupplementaryTicker(ticker);
@@ -1181,6 +1473,7 @@
         fallbackView = buildLegacyView(fin);
         applyFastEbitdaFallback(ticker, fallbackView);
         displayedView = fallbackView;
+        comparisonView = fallbackView;
         desiredPeriod = 'annual';
         state.financialPeriod = 'annual';
         syncPeriodControls('annual');
@@ -1243,6 +1536,8 @@
             if (displayedView) renderFinancialCharts(displayedView);
         });
     });
+
+    bindComparisonControls();
 
     document.addEventListener('keydown', event => {
         if (event.key === 'Escape' && expandedChartId) toggleExpandedChart(expandedChartId);

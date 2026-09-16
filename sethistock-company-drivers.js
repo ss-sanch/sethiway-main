@@ -219,7 +219,7 @@
         style.textContent = `
             #company-drivers { overscroll-behavior:contain; }
             #company-drivers.hidden { display:none !important; }
-            #driver-dialog { width:min(1240px,calc(100vw - 48px)); height:min(720px,calc(100vh - 72px)); max-height:calc(100vh - 48px); }
+            #driver-dialog { width:min(1240px,calc(100vw - 48px)); height:auto; max-height:min(720px,calc(100vh - 72px)); }
             #driver-dialog-body { min-height:0; overflow-y:auto; }
             .driver-period-btn.active { background:#2563eb; color:#fff; border-color:#2563eb; }
             .driver-card { min-width:0; overflow:hidden; }
@@ -229,7 +229,7 @@
             .driver-card [id^="driver-chart-"] .plot-container,
             .driver-card [id^="driver-chart-"] .svg-container { width:100% !important; max-width:100% !important; }
             @media (max-width: 720px) {
-                #driver-dialog { width:calc(100vw - 24px); height:calc(100vh - 32px); max-height:calc(100vh - 32px); }
+                #driver-dialog { width:calc(100vw - 24px); height:auto; max-height:calc(100vh - 32px); }
             }
             @media (prefers-reduced-motion: reduce) { .driver-loading-pulse { animation:none !important; } }
         `;

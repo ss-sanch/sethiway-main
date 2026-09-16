@@ -777,6 +777,7 @@
             ? window.SethiStockHasRevenueDrivers(ticker)
             : ['AAPL','MSFT','GOOG','GOOGL','AMZN','META','NVDA','TSLA','NFLX','JPM','V'].includes(ticker);
         button.classList.toggle('hidden', !supported);
+        button.classList.toggle('inline-flex', supported);
         button.disabled = !supported;
     }
 

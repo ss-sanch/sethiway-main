@@ -4,7 +4,7 @@
     if (window.__sethiStockValuationV2PolishInstalled) return;
     window.__sethiStockValuationV2PolishInstalled = true;
 
-    const VERSION = '4d4';
+    const VERSION = '4d5';
     const VIEW_KEY = 'sethistockValuationView';
     let timer = null;
     let view = 'standard';
@@ -172,7 +172,7 @@
         const modeToggle = valuation.querySelector('[data-valuation-mode]')?.parentElement;
         const sensitivityToggle = sensitivity?.querySelector('[data-sensitivity]')?.parentElement;
 
-        setDisplay(scenarios, false);
+        setDisplay(scenarios, true);
         setDisplay(lbo, false);
         setDisplay(sensitivity, true);
         setDisplay(fairRange, true);
@@ -184,12 +184,17 @@
 
         if (innerGrid) innerGrid.style.gridTemplateColumns = '1fr';
         if (workbench) {
-            workbench.classList.remove('xl:col-span-3');
-            workbench.classList.add('xl:col-span-5');
+            workbench.classList.remove('xl:col-span-5');
+            workbench.classList.add('xl:col-span-3');
             const title = workbench.querySelector('h4');
             if (title) title.textContent = 'DCF Calculator';
         }
-        setTextSafe('valuation-mode-copy', 'Set the core assumptions, then use the live sensitivity and fair-value range below to stress-test the result.');
+        if (scenarios) {
+            scenarios.classList.add('xl:col-span-2');
+            const copy = scenarios.querySelector('p.text-xs');
+            if (copy) copy.textContent = 'A quick Bear, Base and Bull range around the assumptions you have set.';
+        }
+        setTextSafe('valuation-mode-copy', 'Set the core assumptions; the scenario panel shows how the result moves under a simple bear/base/bull range.');
         const topCopy = valuation.firstElementChild?.querySelector('p.text-sm');
         if (topCopy) topCopy.textContent = 'A clear DCF view by default, with the full valuation workbench one click away.';
         setSnapshotLayout(true);
@@ -218,6 +223,10 @@
             workbench.classList.add('xl:col-span-3');
             const title = workbench.querySelector('h4');
             if (title) title.textContent = 'DCF Workbench';
+        }
+        if (scenarios) {
+            const copy = scenarios.querySelector('p.text-xs');
+            if (copy) copy.textContent = 'Bear, Base and Bull flex growth, discount rate and terminal assumptions coherently.';
         }
         setTextSafe('valuation-mode-copy', isReverseMode() ? `Solve the FCF growth rate today's share price requires.` : 'Project your own FCF growth assumption into an implied fair value.');
         const topCopy = valuation.firstElementChild?.querySelector('p.text-sm');

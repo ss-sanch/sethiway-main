@@ -1,0 +1,49 @@
+name: Temporary Phase 4C comparison polish validation
+
+on:
+  push:
+    branches: [phase4c-financial-comparisons]
+    paths:
+      - 'tmp_phase4c_comparison_polish.py'
+      - '.github/workflows/tmp-phase4c-comparison-polish.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase4c-financial-comparisons
+      - name: Apply comparison polish
+        run: python tmp_phase4c_comparison_polish.py
+      - name: Validate JS and no-request contract
+        run: |
+          node --check sethistock-financial-history.js
+          python - <<'PY'
+          from pathlib import Path
+          html = Path('sethistock.html').read_text()
+          js = Path('sethistock-financial-history.js').read_text()
+          assert 'id="comparisons-info-modal"' in html
+          assert "toggleModal('comparisons-info-modal')" in html
+          assert 'comparisonRelationship' in js
+          assert 'comparisonBarColours' in js
+          assert 'Net Margin' in js and 'Net Debt' in js and 'FCF Conversion' in js and 'CapEx / OCF' in js
+          assert 'data-comparison-period' not in html
+          assert 'data-comparison-window' not in html
+          assert 'data-comparison-mode' not in html
+          comparison = js[js.index('function comparisonRelationship'):js.index('function renderFinancialCharts')]
+          assert 'fetch(' not in comparison
+          assert '/api/' not in comparison
+          print('PHASE4C_COMPARISON_POLISH_OK')
+          PY
+      - name: Commit app changes and clean temporary files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f tmp_phase4c_comparison_polish.py .github/workflows/tmp-phase4c-comparison-polish.yml
+          git add sethistock.html sethistock-financial-history.js
+          git commit -m "Polish Financial Comparisons interactions"
+          git push origin HEAD:phase4c-financial-comparisons

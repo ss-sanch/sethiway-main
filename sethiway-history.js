@@ -167,7 +167,7 @@
         function loadValuationPolish() {
             if (window.SethiStockValuationV2Polish || document.querySelector('script[data-sethistock-valuation-v2-polish]')) return;
             const polishScript = document.createElement('script');
-            polishScript.src = 'sethistock-valuation-v2-polish.js?v=4d4';
+            polishScript.src = 'sethistock-valuation-v2-polish.js?v=4d5';
             polishScript.dataset.sethistockValuationV2Polish = '1';
             polishScript.addEventListener('error', error => console.warn('Advanced Valuation 2.0 polish failed to load:', error), { once: true });
             document.body.appendChild(polishScript);

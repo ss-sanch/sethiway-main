@@ -1220,6 +1220,21 @@
         const layout = chartLayout({ period: 'annual' }, true);
         layout.barmode = 'group';
         layout.xaxis.type = 'category';
+        // Keep the comparison legend inside the plot instead of spending a full row
+        // beneath the x-axis. Early-period bars are typically smallest, so the upper-left
+        // corner provides a readable key while giving the chart more vertical space.
+        layout.margin = { ...layout.margin, t: 8, b: 24 };
+        layout.legend = {
+            orientation: 'h',
+            x: 0.01,
+            xanchor: 'left',
+            y: 0.99,
+            yanchor: 'top',
+            bgcolor: 'rgba(255,255,255,0.86)',
+            bordercolor: '#e2e8f0',
+            borderwidth: 1,
+            font: { size: 10 }
+        };
         Plotly.react(id, traces, layout, { displayModeBar: false, responsive: true });
         renderComparisonFooter(view, id);
     }

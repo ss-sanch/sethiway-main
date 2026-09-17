@@ -1150,6 +1150,34 @@
         footer.innerHTML = items.map(([label, value]) => comparisonFooterItem(label, value)).join('');
     }
 
+    function comparisonRelationship(id, row) {
+        if (id === 'comp-rev-net') {
+            return ['Net Margin', comparisonPct(row.first ? row.second / row.first * 100 : null)];
+        }
+        if (id === 'comp-cash-debt') {
+            return ['Net Debt', comparisonMoney(row.second - row.first)];
+        }
+        if (id === 'comp-fcf-ocf') {
+            return ['FCF Conversion', comparisonPct(row.first ? row.second / row.first * 100 : null)];
+        }
+        const ratio = row.first ? row.second / row.first * 100 : null;
+        const retained = row.first - row.second;
+        return ['CapEx / OCF', `${comparisonPct(ratio)} · Retained ${comparisonMoney(retained)}`];
+    }
+
+    function comparisonDarkenColour(hex, factor = 0.76) {
+        const match = String(hex || '').match(/^#([0-9a-f]{6})$/i);
+        if (!match) return hex;
+        const value = match[1];
+        const channel = offset => Math.max(0, Math.min(255, Math.round(parseInt(value.slice(offset, offset + 2), 16) * factor)));
+        return `#${[0, 2, 4].map(offset => channel(offset).toString(16).padStart(2, '0')).join('')}`;
+    }
+
+    function comparisonBarColours(colour, count) {
+        const latest = comparisonDarkenColour(colour);
+        return Array.from({ length: count }, (_, index) => index === count - 1 ? latest : colour);
+    }
+
     function drawComparison(view, id, first, second) {
         const rows = comparisonRows(view, first.key, second.key);
         if (!rows.length) {
@@ -1158,15 +1186,36 @@
             return;
         }
         if (!preparePlotContainer(id)) return;
-        const custom = rows.map(row => [
-            metricDisplayValue(first.key, row.first),
-            metricDisplayValue(second.key, row.second),
-            row.first !== 0 ? `${(row.second / row.first * 100).toFixed(1)}%` : 'N/A'
-        ]);
-        const hover = `%{x}<br>${first.name}: %{customdata[0]}<br>${second.name}: %{customdata[1]}<br>${second.name} / ${first.name}: %{customdata[2]}<extra></extra>`;
+        const custom = rows.map(row => {
+            const [relationshipLabel, relationshipValue] = comparisonRelationship(id, row);
+            return [
+                metricDisplayValue(first.key, row.first),
+                metricDisplayValue(second.key, row.second),
+                relationshipLabel,
+                relationshipValue
+            ];
+        });
+        const firstHover = `<b>%{x}</b><br>${first.name}: %{customdata[0]}<br>%{customdata[2]}: %{customdata[3]}<extra></extra>`;
+        const secondHover = `<b>%{x}</b><br>${second.name}: %{customdata[1]}<extra></extra>`;
         const traces = [
-            { x: rows.map(row => row.year), y: rows.map(row => row.first), type: 'bar', name: first.name, marker: { color: first.colour, line: { width: 0 } }, customdata: custom, hovertemplate: hover },
-            { x: rows.map(row => row.year), y: rows.map(row => row.second), type: 'bar', name: second.name, marker: { color: second.colour, line: { width: 0 } }, customdata: custom, hovertemplate: hover }
+            {
+                x: rows.map(row => row.year),
+                y: rows.map(row => row.first),
+                type: 'bar',
+                name: first.name,
+                marker: { color: comparisonBarColours(first.colour, rows.length), line: { width: 0 } },
+                customdata: custom,
+                hovertemplate: firstHover
+            },
+            {
+                x: rows.map(row => row.year),
+                y: rows.map(row => row.second),
+                type: 'bar',
+                name: second.name,
+                marker: { color: comparisonBarColours(second.colour, rows.length), line: { width: 0 } },
+                customdata: custom,
+                hovertemplate: secondHover
+            }
         ];
         const layout = chartLayout({ period: 'annual' }, true);
         layout.barmode = 'group';

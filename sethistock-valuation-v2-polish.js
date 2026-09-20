@@ -4,7 +4,7 @@
     if (window.__sethiStockValuationV2PolishInstalled) return;
     window.__sethiStockValuationV2PolishInstalled = true;
 
-    const VERSION = '4d12';
+    const VERSION = '4d18';
     const VIEW_KEY = 'sethistockValuationView';
     let timer = null;
     let view = 'standard';
@@ -188,7 +188,8 @@
             if (title) title.textContent = 'DCF Calculator';
         }
         if (scenarios) {
-            scenarios.classList.add('xl:col-span-2');
+            if (scenarios.closest('[data-lbo-right-stack]')) scenarios.classList.remove('xl:col-span-2');
+            else scenarios.classList.add('xl:col-span-2');
             const copy = scenarios.querySelector('p.text-xs');
             if (copy) copy.textContent = 'A quick Bear, Base and Bull range around the assumptions you have set.';
         }
@@ -222,6 +223,7 @@
             if (title) title.textContent = 'DCF Workbench';
         }
         if (scenarios) {
+            if (scenarios.closest('[data-lbo-right-stack]')) scenarios.classList.remove('xl:col-span-2');
             const copy = scenarios.querySelector('p.text-xs');
             if (copy) copy.textContent = 'Bear, Base and Bull flex growth, discount rate and terminal assumptions coherently.';
         }

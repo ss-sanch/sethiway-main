@@ -4,7 +4,7 @@
     if (window.__sethiStockValuationV2VisualPolishInstalled) return;
     window.__sethiStockValuationV2VisualPolishInstalled = true;
 
-    const VERSION = '4d14';
+    const VERSION = '4d15';
     let timer = null;
 
     const root = () => document.getElementById('valuation');
@@ -28,20 +28,51 @@
         const grid = workbench?.parentElement;
         if (!workbench || !scenarios || !grid) return;
 
-        // Keep the top valuation cards content-sized in both views. The LBO launcher
-        // now sits under Scenario Valuation, so stretching either card creates dead space
-        // and can push the launcher below the visible row.
-        grid.classList.add('items-start');
-        grid.style.alignItems = 'start';
-        workbench.style.alignSelf = 'start';
-        scenarios.style.alignSelf = 'start';
-        workbench.classList.remove('h-full');
-        scenarios.classList.remove('h-full');
-
         const rightStack = scenarios.closest('[data-lbo-right-stack]');
-        if (rightStack) {
-            rightStack.style.alignSelf = 'start';
-            rightStack.style.height = 'auto';
+
+        if (standardViewActive() && rightStack) {
+            // Make the DCF card define the row height, then let the right stack fill it.
+            // The compact LBO launcher keeps the right column naturally shorter, so the
+            // left card no longer gains blank space while both column bottoms line up.
+            grid.classList.remove('items-start');
+            grid.style.alignItems = 'stretch';
+            workbench.style.alignSelf = 'stretch';
+            workbench.classList.remove('h-full');
+            scenarios.style.alignSelf = 'start';
+
+            rightStack.style.alignSelf = 'stretch';
+            rightStack.style.height = '100%';
+            rightStack.style.display = 'grid';
+            rightStack.style.gridTemplateRows = 'auto minmax(0, 1fr)';
+            rightStack.style.gap = '12px';
+
+            const launcher = rightStack.querySelector('[data-lbo-launcher]');
+            if (launcher) {
+                launcher.style.height = '100%';
+                launcher.style.display = 'flex';
+                launcher.style.alignItems = 'center';
+            }
+        } else {
+            grid.classList.add('items-start');
+            grid.style.alignItems = 'start';
+            workbench.style.alignSelf = 'start';
+            scenarios.style.alignSelf = 'start';
+            workbench.classList.remove('h-full');
+            scenarios.classList.remove('h-full');
+
+            if (rightStack) {
+                rightStack.style.alignSelf = 'start';
+                rightStack.style.height = 'auto';
+                rightStack.style.display = 'grid';
+                rightStack.style.gridTemplateRows = '';
+                rightStack.style.gap = '16px';
+            }
+            const launcher = rightStack?.querySelector('[data-lbo-launcher]');
+            if (launcher) {
+                launcher.style.height = 'auto';
+                launcher.style.display = '';
+                launcher.style.alignItems = '';
+            }
         }
     }
 
@@ -85,9 +116,8 @@
 
         if (launcher) {
             launcher.style.padding = standard ? '10px 12px' : '';
-            const previewGrid = launcher.lastElementChild;
+            const previewGrid = launcher.querySelector('[data-lbo-launcher-metrics]');
             if (previewGrid) {
-                previewGrid.style.marginTop = standard ? '8px' : '';
                 [...previewGrid.children].forEach(card => {
                     card.style.padding = standard ? '7px 10px' : '';
                 });

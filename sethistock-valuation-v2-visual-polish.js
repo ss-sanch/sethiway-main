@@ -4,7 +4,7 @@
     if (window.__sethiStockValuationV2VisualPolishInstalled) return;
     window.__sethiStockValuationV2VisualPolishInstalled = true;
 
-    const VERSION = '4d17';
+    const VERSION = '4d18';
     let timer = null;
 
     const root = () => document.getElementById('valuation');
@@ -51,14 +51,23 @@
         rightStack.style.width = '100%';
         rightStack.style.boxSizing = 'border-box';
         rightStack.style.display = 'grid';
+        rightStack.style.gridTemplateColumns = 'minmax(0, 1fr)';
         rightStack.style.gridTemplateRows = 'auto auto';
         rightStack.style.gap = gap + 'px';
 
+        // Scenario used to be a direct child of the 5-column parent and could retain
+        // xl:col-span-2. Inside this one-column stack that creates implicit columns,
+        // making the LBO launcher appear narrower. Pin both cards to the same column.
+        scenarios.classList.remove('xl:col-span-2');
+        scenarios.style.gridColumn = '1 / -1';
+        scenarios.style.justifySelf = 'stretch';
         scenarios.style.width = '100%';
         scenarios.style.maxWidth = 'none';
         scenarios.style.margin = '0';
         scenarios.style.boxSizing = 'border-box';
 
+        launcher.style.gridColumn = '1 / -1';
+        launcher.style.justifySelf = 'stretch';
         launcher.style.width = '100%';
         launcher.style.maxWidth = 'none';
         launcher.style.margin = '0';

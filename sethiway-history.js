@@ -167,7 +167,7 @@
         function loadValuationInfoFix() {
             if (window.SethiStockValuationV2InfoFix || document.querySelector('script[data-sethistock-valuation-v2-info-fix]')) return;
             const infoScript = document.createElement('script');
-            infoScript.src = 'sethistock-valuation-v2-info-fix.js?v=4d8';
+            infoScript.src = 'sethistock-valuation-v2-info-fix.js?v=4d9';
             infoScript.dataset.sethistockValuationV2InfoFix = '1';
             infoScript.addEventListener('error', error => console.warn('Advanced Valuation info modal fix failed to load:', error), { once: true });
             document.body.appendChild(infoScript);

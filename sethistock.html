@@ -759,10 +759,10 @@
         const CHART_MEMORY_MAX = 48;
         const FULL_ANALYSIS_TIMEOUT_MS = 30000;
 
-        // Wake Render immediately and retain the timing/state so load telemetry can
-        // distinguish host cold starts from an uncached ticker analysis.
-        const renderWakeProbeStartedAt = performance.now();
-        window.__sethiStockWakeProbe = (async () => {
+        // Wake Render immediately and retain timing so load telemetry can separate
+        // host cold starts from ticker-analysis cold starts.
+        async function probeRenderState() {
+            const startedAt = performance.now();
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), 90000);
             try {
@@ -771,24 +771,28 @@
                     signal: controller.signal
                 });
                 const payload = response.ok ? await response.json() : {};
-                const wakeMs = Math.round(performance.now() - renderWakeProbeStartedAt);
+                const wakeMs = Math.round(performance.now() - startedAt);
                 const uptime = Number(payload?.process_uptime_seconds);
                 const uptimeSeconds = Number.isFinite(uptime) && uptime >= 0 ? Math.round(uptime) : null;
+                const genuinelyCold = uptimeSeconds !== null && uptimeSeconds < 120 && wakeMs >= 3000;
                 return {
                     server_wake_ms: wakeMs,
                     server_uptime_s: uptimeSeconds,
-                    server_state: uptimeSeconds !== null && uptimeSeconds < 120 ? 'cold' : 'warm'
+                    server_state: genuinelyCold ? 'cold' : 'warm'
                 };
             } catch (_) {
                 return {
-                    server_wake_ms: Math.round(performance.now() - renderWakeProbeStartedAt),
+                    server_wake_ms: Math.round(performance.now() - startedAt),
                     server_uptime_s: null,
                     server_state: 'unknown'
                 };
             } finally {
                 clearTimeout(timeout);
             }
-        })();
+        }
+
+        window.__sethiStockWakeProbeStartedAt = Date.now();
+        window.__sethiStockWakeProbe = probeRenderState();
 
         const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -1039,7 +1043,14 @@
             let loadTimingRecorded = false;
             let resolvedBackendMeta = null;
 
-            const submitWakeProbe = window.__sethiStockWakeProbe;
+            const prewarmAgeMs = Date.now() - Number(window.__sethiStockWakeProbeStartedAt || 0);
+            const submitWakeProbe = window.__sethiStockWakeProbe && prewarmAgeMs < 60000
+                ? window.__sethiStockWakeProbe
+                : probeRenderState();
+            // Consume the page-open probe once; later ticker searches get a fresh server-state measurement.
+            window.__sethiStockWakeProbe = null;
+            window.__sethiStockWakeProbeStartedAt = 0;
+
             const recordLoadTiming = (status, extra = {}) => {
                 if (loadTimingRecorded) return;
                 loadTimingRecorded = true;
@@ -1139,8 +1150,11 @@
                 });
 
                 const errorEl = _originalGetElementById.call(document, 'error-message');
+                const basicsReady = quoteHydrated || Number(state.price) > 0 || Boolean(state.chartData?.closes?.length);
                 if (errorEl) {
-                    errorEl.innerText = 'Live market data is available, but some detailed financial analytics are taking too long. Retry to refresh the remaining sections.';
+                    errorEl.innerText = basicsReady
+                        ? 'Live market data is available, but some detailed financial analytics are taking too long. Retry to refresh the remaining sections.'
+                        : 'The data service is taking longer than expected to start. Please retry in a moment.';
                     errorEl.className = 'mt-4 font-semibold text-amber-600';
                     errorEl.classList.remove('hidden');
                 }
@@ -1211,6 +1225,15 @@
                 fullAnalysisReady = true;
                 clearTimeout(hardUiWatchdog);
                 resolvedBackendMeta = data?._meta || null;
+
+                if (resolvedBackendMeta?.analysis_degraded && quoteHydrated) {
+                    const fullPrice = Number(data?.current_price);
+                    if (!Number.isFinite(fullPrice) || fullPrice <= 0) data.current_price = state.price;
+                    if (data?.stats && (!data.stats.mkt_cap || data.stats.mkt_cap === 'N/A')) {
+                        const currentMkt = _originalGetElementById.call(document, 'stat-mkt')?.textContent;
+                        if (currentMkt && currentMkt !== '--' && currentMkt !== 'N/A') data.stats.mkt_cap = currentMkt;
+                    }
+                }
 
                 // Smart Search: Update input to show the actual verified ticker found
                 state.ticker = String(data.ticker || state.ticker).toUpperCase();
@@ -2399,6 +2422,6 @@
 
     </script>
     <script src="sethistock-financial-history.js"></script>
-    <script src="sethiway-history.js?v=stock4f1"></script>
+    <script src="sethiway-history.js?v=stock4f2"></script>
 </body>
 </html>

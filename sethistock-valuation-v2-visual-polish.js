@@ -4,7 +4,7 @@
     if (window.__sethiStockValuationV2VisualPolishInstalled) return;
     window.__sethiStockValuationV2VisualPolishInstalled = true;
 
-    const VERSION = '4d16';
+    const VERSION = '4d17';
     let timer = null;
 
     const root = () => document.getElementById('valuation');
@@ -30,30 +30,65 @@
         const launcher = rightStack?.querySelector('[data-lbo-launcher]');
         if (!workbench || !scenarios || !grid || !rightStack || !launcher) return;
 
-        // Both Standard and Advanced use one aligned top row:
-        // the DCF panel determines the natural row height, while the right stack
-        // fills that row with Scenario Valuation + the LBO launcher.
+        const gap = standardViewActive() ? 12 : 16;
+
+        // Reset previous measurements before reading the natural sizes.
+        workbench.style.height = 'auto';
+        workbench.style.minHeight = '0';
+        rightStack.style.height = 'auto';
+        rightStack.style.minHeight = '0';
+        launcher.style.height = 'auto';
+        launcher.style.minHeight = '0';
+
         grid.classList.remove('items-start');
-        grid.style.alignItems = 'stretch';
+        grid.style.alignItems = 'start';
 
-        workbench.style.alignSelf = 'stretch';
-        workbench.classList.remove('h-full');
+        workbench.style.alignSelf = 'start';
+        workbench.style.width = '100%';
+        workbench.style.boxSizing = 'border-box';
 
-        rightStack.style.alignSelf = 'stretch';
-        rightStack.style.height = '100%';
+        rightStack.style.alignSelf = 'start';
         rightStack.style.width = '100%';
+        rightStack.style.boxSizing = 'border-box';
         rightStack.style.display = 'grid';
-        rightStack.style.gridTemplateRows = 'auto minmax(0, 1fr)';
-        rightStack.style.gap = standardViewActive() ? '12px' : '16px';
+        rightStack.style.gridTemplateRows = 'auto auto';
+        rightStack.style.gap = gap + 'px';
 
-        scenarios.style.alignSelf = 'start';
         scenarios.style.width = '100%';
+        scenarios.style.maxWidth = 'none';
+        scenarios.style.margin = '0';
+        scenarios.style.boxSizing = 'border-box';
 
         launcher.style.width = '100%';
-        launcher.style.height = '100%';
+        launcher.style.maxWidth = 'none';
+        launcher.style.margin = '0';
         launcher.style.boxSizing = 'border-box';
         launcher.style.display = 'block';
-        launcher.style.alignSelf = 'stretch';
+
+        // Measure after the browser has laid out the current mode. Use the taller
+        // column as the row height, then give the LBO launcher the exact remainder.
+        requestAnimationFrame(() => {
+            const workbenchHeight = workbench.getBoundingClientRect().height;
+            const scenarioHeight = scenarios.getBoundingClientRect().height;
+            const launcherNaturalHeight = launcher.getBoundingClientRect().height;
+            const rightNaturalHeight = scenarioHeight + gap + launcherNaturalHeight;
+            const targetHeight = Math.ceil(Math.max(workbenchHeight, rightNaturalHeight));
+            const launcherHeight = Math.max(
+                Math.ceil(launcherNaturalHeight),
+                Math.floor(targetHeight - scenarioHeight - gap)
+            );
+
+            workbench.style.height = targetHeight + 'px';
+            rightStack.style.height = targetHeight + 'px';
+            rightStack.style.gridTemplateRows = 'auto ' + launcherHeight + 'px';
+            launcher.style.height = launcherHeight + 'px';
+
+            const inner = launcher.querySelector('[data-lbo-launcher-inner]');
+            if (inner) {
+                inner.style.height = '100%';
+                inner.style.width = '100%';
+            }
+        });
     }
 
     function compactStandardRightColumn() {
@@ -96,6 +131,14 @@
         }
     }
 
+    function normaliseRealYieldDisplay() {
+        const input = document.querySelector('#val-real-yield');
+        const value = Number(input?.value);
+        if (input && Number.isFinite(value) && document.activeElement !== input) {
+            input.value = value.toFixed(1);
+        }
+    }
+
     function liftSmallTypography() {
         const valuation = root();
         if (!valuation) return;
@@ -114,8 +157,9 @@
     }
 
     function apply() {
-        balanceTopCards();
         compactStandardRightColumn();
+        balanceTopCards();
+        normaliseRealYieldDisplay();
         liftSmallTypography();
     }
 

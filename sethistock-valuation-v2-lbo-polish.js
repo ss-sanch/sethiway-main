@@ -4,7 +4,7 @@
     if (window.__sethiStockValuationV2LboPolishInstalled) return;
     window.__sethiStockValuationV2LboPolishInstalled = true;
 
-    const VERSION = '4d12';
+    const VERSION = '4d15';
     let previousBodyOverflow = '';
 
     const valuationRoot = () => document.querySelector('#valuation');
@@ -198,25 +198,25 @@
             launcher.dataset.lboLauncher = '1';
             launcher.className = 'rounded-2xl border border-gray-200 bg-white shadow-sm p-4';
             launcher.innerHTML = `
-                <div class="flex items-center justify-between gap-3">
-                    <div class="min-w-0">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="px-2 py-1 rounded-md bg-indigo-50 border border-indigo-100 text-[10px] font-black text-indigo-700 uppercase tracking-widest">LBO tool</span>
                             <h4 class="text-base font-black text-gray-900">LBO Lab <span class="text-blue-600">→</span></h4>
                         </div>
                         <p class="text-[11px] text-gray-500 mt-1">Sponsor-return lens using entry/exit multiples, leverage and cash-sweep debt paydown.</p>
                     </div>
+                    <div data-lbo-launcher-metrics class="grid grid-cols-2 gap-2 shrink-0 sm:w-[174px]">
+                        <div class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-center">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">IRR</p>
+                            <p data-lbo-preview-irr class="text-sm font-black text-gray-900">--</p>
+                        </div>
+                        <div class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-center">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">MoM</p>
+                            <p data-lbo-preview-mom class="text-sm font-black text-gray-900">--</p>
+                        </div>
+                    </div>
                     <button type="button" data-open-lbo-modal class="shrink-0 px-3 py-2 rounded-lg border border-blue-100 bg-blue-50 text-[11px] font-black uppercase tracking-widest text-blue-700 hover:bg-blue-100 transition">Open Lab</button>
-                </div>
-                <div class="grid grid-cols-2 gap-2 mt-3">
-                    <div class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-center">
-                        <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">IRR</p>
-                        <p data-lbo-preview-irr class="text-base font-black text-gray-900">--</p>
-                    </div>
-                    <div class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-center">
-                        <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">MoM</p>
-                        <p data-lbo-preview-mom class="text-base font-black text-gray-900">--</p>
-                    </div>
                 </div>
             `;
             stack.appendChild(launcher);
@@ -273,6 +273,13 @@
         details.open = true;
         window.calculateLBO?.();
         updatePreview();
+
+        // The visual-polish module loads before this module. Re-run it after the
+        // launcher is actually in the DOM so Standard view is aligned on first paint.
+        requestAnimationFrame(() => {
+            window.SethiStockValuationV2VisualPolish?.apply?.();
+            requestAnimationFrame(() => window.SethiStockValuationV2VisualPolish?.apply?.());
+        });
     }
 
     document.addEventListener('click', event => {

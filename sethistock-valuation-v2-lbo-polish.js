@@ -4,15 +4,11 @@
     if (window.__sethiStockValuationV2LboPolishInstalled) return;
     window.__sethiStockValuationV2LboPolishInstalled = true;
 
-    const VERSION = '4d11';
+    const VERSION = '4d12';
     let previousBodyOverflow = '';
 
     const valuationRoot = () => document.querySelector('#valuation');
     const detailsNode = () => document.querySelector('#valuation-lbo-details');
-
-    function isAdvancedView() {
-        return valuationRoot()?.querySelector('[data-valuation-view="advanced"]')?.classList.contains('bg-blue-600') === true;
-    }
 
     function outputText(selector) {
         const text = document.querySelector(selector)?.textContent?.trim();
@@ -157,7 +153,7 @@
                     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:20px 24px 16px;border-bottom:1px solid #f3f4f6;">
                         <div>
                             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                                <span style="padding:4px 8px;border-radius:6px;border:1px solid #e0e7ff;background:#eef2ff;color:#4338ca;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;">Advanced tool</span>
+                                <span style="padding:4px 8px;border-radius:6px;border:1px solid #e0e7ff;background:#eef2ff;color:#4338ca;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;">LBO tool</span>
                                 <h2 id="valuation-lbo-title" style="font-size:22px;line-height:1.2;font-weight:900;color:#111827;margin:0;">LBO Lab</h2>
                             </div>
                             <p style="font-size:13px;line-height:1.5;color:#6b7280;margin:6px 0 0;">Sponsor-return model using leverage, operating assumptions and exit multiples.</p>
@@ -205,7 +201,7 @@
                 <div class="flex items-center justify-between gap-3">
                     <div class="min-w-0">
                         <div class="flex items-center gap-2 flex-wrap">
-                            <span class="px-2 py-1 rounded-md bg-indigo-50 border border-indigo-100 text-[10px] font-black text-indigo-700 uppercase tracking-widest">Advanced tool</span>
+                            <span class="px-2 py-1 rounded-md bg-indigo-50 border border-indigo-100 text-[10px] font-black text-indigo-700 uppercase tracking-widest">LBO tool</span>
                             <h4 class="text-base font-black text-gray-900">LBO Lab <span class="text-blue-600">→</span></h4>
                         </div>
                         <p class="text-[11px] text-gray-500 mt-1">Sponsor-return lens using entry/exit multiples, leverage and cash-sweep debt paydown.</p>
@@ -238,7 +234,6 @@
     }
 
     function openModal() {
-        if (!isAdvancedView()) return;
         const details = detailsNode();
         const modal = ensureModal(details);
         if (!details || !modal) return;
@@ -272,10 +267,9 @@
         ensureModal(details);
         const launcher = ensureLauncher();
 
-        const advanced = isAdvancedView();
-        if (launcher) launcher.style.display = advanced ? '' : 'none';
-        if (!advanced) closeModal();
+        if (launcher) launcher.style.display = '';
 
+        details.style.display = '';
         details.open = true;
         window.calculateLBO?.();
         updatePreview();

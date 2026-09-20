@@ -164,11 +164,29 @@
             });
         };
 
+        function loadValuationLboPolish() {
+            if (window.SethiStockValuationV2LboPolish || document.querySelector('script[data-sethistock-valuation-v2-lbo-polish]')) return;
+            const lboScript = document.createElement('script');
+            lboScript.src = 'sethistock-valuation-v2-lbo-polish.js?v=4d10';
+            lboScript.dataset.sethistockValuationV2LboPolish = '1';
+            lboScript.addEventListener('error', error => console.warn('Advanced Valuation LBO polish failed to load:', error), { once: true });
+            document.body.appendChild(lboScript);
+        }
+
         function loadValuationInfoFix() {
-            if (window.SethiStockValuationV2InfoFix || document.querySelector('script[data-sethistock-valuation-v2-info-fix]')) return;
+            if (window.SethiStockValuationV2InfoFix) {
+                loadValuationLboPolish();
+                return;
+            }
+            const existing = document.querySelector('script[data-sethistock-valuation-v2-info-fix]');
+            if (existing) {
+                existing.addEventListener('load', loadValuationLboPolish, { once: true });
+                return;
+            }
             const infoScript = document.createElement('script');
             infoScript.src = 'sethistock-valuation-v2-info-fix.js?v=4d9';
             infoScript.dataset.sethistockValuationV2InfoFix = '1';
+            infoScript.addEventListener('load', loadValuationLboPolish, { once: true });
             infoScript.addEventListener('error', error => console.warn('Advanced Valuation info modal fix failed to load:', error), { once: true });
             document.body.appendChild(infoScript);
         }

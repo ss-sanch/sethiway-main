@@ -1180,7 +1180,8 @@
                 );
                 const quoteHydrationPromise = fetchJsonWithRetry(`${API_URL}/api/quote/${encodeURIComponent(requestedTicker)}`, { signal: analysisController.signal }, 1)
                     .then((quoteData) => {
-                        if (!quoteData || fullAnalysisReady || analysisSequence !== window.__sethiStockAnalysisSequence) return;
+                        if (!quoteData || analysisSequence !== window.__sethiStockAnalysisSequence) return;
+                        if (fullAnalysisReady && !resolvedBackendMeta?.analysis_degraded) return;
 
                         state.ticker = String(quoteData.ticker || requestedTicker).toUpperCase();
                         state.price = Number(quoteData.current_price || 0);

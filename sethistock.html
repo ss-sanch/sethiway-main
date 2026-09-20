@@ -757,6 +757,11 @@
         const chartMemoryCache = new Map();
         const CHART_MEMORY_TTL_MS = 5 * 60 * 1000;
         const CHART_MEMORY_MAX = 48;
+        const FULL_ANALYSIS_TIMEOUT_MS = 30000;
+
+        // Wake the Render service as soon as the page opens instead of waiting for the
+        // first ticker submission to pay the entire cold-start cost.
+        fetch(`${API_URL}/api/runtime/status`, { cache: 'no-store' }).catch(() => null);
 
         const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -784,6 +789,41 @@
                 await sleep(600 * (attempt + 1));
             }
             throw lastError || new Error('Request failed');
+        }
+
+        async function fetchJsonWithDeadline(url, options = {}, timeoutMs = FULL_ANALYSIS_TIMEOUT_MS) {
+            const controller = new AbortController();
+            const upstreamSignal = options.signal;
+            let timedOut = false;
+            let upstreamAborted = false;
+
+            const relayAbort = () => {
+                upstreamAborted = true;
+                controller.abort();
+            };
+            if (upstreamSignal) {
+                if (upstreamSignal.aborted) relayAbort();
+                else upstreamSignal.addEventListener('abort', relayAbort, { once: true });
+            }
+
+            const timeout = setTimeout(() => {
+                timedOut = true;
+                controller.abort();
+            }, timeoutMs);
+
+            try {
+                return await fetchJsonWithRetry(url, { ...options, signal: controller.signal }, 0);
+            } catch (error) {
+                if (timedOut && !upstreamAborted) {
+                    const timeoutError = new Error('Detailed analytics exceeded the 30-second first-load budget.');
+                    timeoutError.code = 'ANALYSIS_TIMEOUT';
+                    throw timeoutError;
+                }
+                throw error;
+            } finally {
+                clearTimeout(timeout);
+                upstreamSignal?.removeEventListener?.('abort', relayAbort);
+            }
         }
 
         function normaliseChartData(data) {
@@ -982,7 +1022,7 @@
             if (progContainer) { progContainer.classList.remove("opacity-0"); progBar.style.width = "0%"; }
             if (loadingBubble) { loadingBubble.classList.remove("hidden"); }
 
-            const loadingPhrases = ["Connecting to market data...", "Crunching Reverse DCF...", "Evaluating SEC Insider trades...", "Calculating SethiScore...", "Benchmarking peers..."];
+            const loadingPhrases = ["Connecting to market data...", "Loading financial statements...", "Calculating valuation inputs...", "Computing risk metrics...", "Preparing comparisons..."];
             let phraseIndex = 0;
             let progress = 0;
             
@@ -1002,8 +1042,15 @@
                 // Stage 1 starts immediately: chart + lightweight quote.
                 // The full analysis continues in parallel and hydrates the heavier sections when ready.
                 const chartPromise = fetchChart().catch(() => null);
-                const fullDataPromise = fetchJsonWithRetry(`${API_URL}/api/stock/${encodeURIComponent(requestedTicker)}`, { signal: analysisController.signal }, 1);
+                // Heavy analysis gets one bounded attempt. Retrying a timed-out first load
+                // doubles backend work and is exactly the behaviour that made cold loads feel endless.
+                const fullDataPromise = fetchJsonWithDeadline(
+                    `${API_URL}/api/stock/${encodeURIComponent(requestedTicker)}`,
+                    { signal: analysisController.signal },
+                    FULL_ANALYSIS_TIMEOUT_MS
+                );
                 let fullAnalysisReady = false;
+                let quoteHydrated = false;
                 const quoteHydrationPromise = fetchJsonWithRetry(`${API_URL}/api/quote/${encodeURIComponent(requestedTicker)}`, { signal: analysisController.signal }, 1)
                     .then((quoteData) => {
                         if (!quoteData || fullAnalysisReady || analysisSequence !== window.__sethiStockAnalysisSequence) return;
@@ -1026,8 +1073,22 @@
 
                         progress = Math.max(progress, 35);
                         if (progBar) progBar.style.width = `${progress}%`;
-                        if (loadingBubbleText) loadingBubbleText.innerText = 'Price loaded — building full analysis...';
+                        if (loadingBubbleText) loadingBubbleText.innerText = 'Price loaded — building detailed analytics...';
+                        quoteHydrated = true;
+
+                        // First useful paint: once the lightweight quote arrives, make the
+                        // dashboard fully readable even while heavy analytics continue.
+                        dash.classList.remove('opacity-50');
+                        dash.classList.add('opacity-100');
+                        btn.innerHTML = 'Loading details…';
+                        const summary = _originalGetElementById.call(document, 'company-summary');
+                        if (summary && (!summary.textContent || summary.textContent === 'Loading profile...')) {
+                            summary.textContent = 'Live market data loaded. Detailed financial analytics are still building…';
+                        }
                         updateWatchlistBtn();
+                        window.dispatchEvent(new CustomEvent('sethistock:quote-ready', {
+                            detail: { ticker: state.ticker, sequence: analysisSequence }
+                        }));
                     })
                     .catch(() => null);
 
@@ -1324,16 +1385,38 @@
                 if (err?.name === 'AbortError') return;
                 dash.classList.remove('opacity-50');
                 dash.classList.add('opacity-100');
-                if(loadingBubbleText) loadingBubbleText.innerText = "Data Sync Failed.";
+
+                const errorEl = _originalGetElementById.call(document, 'error-message');
+                const partialReady = quoteHydrated || Number(state.price) > 0 || Boolean(state.chartData?.closes?.length);
+
+                if (err?.code === 'ANALYSIS_TIMEOUT' && partialReady) {
+                    // Never leave the public UI spinning forever. Keep the useful quote/chart
+                    // visible and fail only the heavy layer after a strict budget.
+                    if (loadingBubbleText) loadingBubbleText.innerText = 'Live data ready — detailed analytics timed out.';
+                    if (errorEl) {
+                        errorEl.innerText = 'Live price data is available. Detailed analytics took too long on this first load; retry to refresh the remaining sections.';
+                        errorEl.className = 'mt-4 font-semibold text-amber-600';
+                        errorEl.classList.remove('hidden');
+                    }
+                    window.dispatchEvent(new CustomEvent('sethistock:analysis-partial', {
+                        detail: { ticker: state.ticker, sequence: analysisSequence, reason: 'timeout' }
+                    }));
+                } else {
+                    if (loadingBubbleText) loadingBubbleText.innerText = "Data Sync Failed.";
+                    const message = err?.message === 'Failed to fetch'
+                        ? 'Detailed analysis could not reach the data server. Please retry.'
+                        : (err?.message || 'Detailed analysis temporarily unavailable.');
+                    if (errorEl) {
+                        errorEl.innerText = message;
+                        errorEl.className = 'text-red-500 mt-4 font-semibold';
+                        errorEl.classList.remove('hidden');
+                    }
+                }
+
                 setTimeout(() => {
                     if (progContainer) progContainer.classList.add('opacity-0');
                     if (loadingBubble) loadingBubble.classList.add('hidden');
                 }, 1500);
-                const message = err?.message === 'Failed to fetch'
-                    ? 'Detailed analysis could not reach the data server. Please retry.'
-                    : (err?.message || 'Detailed analysis temporarily unavailable.');
-                document.getElementById('error-message').innerText = message;
-                document.getElementById('error-message').classList.remove('hidden');
             } finally {
                 if (analysisAbortController === analysisController) analysisAbortController = null;
                 if (analysisSequence === window.__sethiStockAnalysisSequence) {
@@ -2178,6 +2261,6 @@
 
     </script>
     <script src="sethistock-financial-history.js"></script>
-    <script src="sethiway-history.js?v=stock3e18"></script>
+    <script src="sethiway-history.js?v=stock4e1"></script>
 </body>
 </html>

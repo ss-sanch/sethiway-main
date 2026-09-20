@@ -4,7 +4,7 @@
     if (window.__sethiStockValuationV2PolishInstalled) return;
     window.__sethiStockValuationV2PolishInstalled = true;
 
-    const VERSION = '4d5';
+    const VERSION = '4d12';
     const VIEW_KEY = 'sethistockValuationView';
     let timer = null;
     let view = 'standard';
@@ -166,14 +166,12 @@
         const scenarios = findSection(/^Scenario Valuation$/);
         const sensitivity = findSection(/^Sensitivity Analysis$/);
         const fairRange = findSection(/^Fair Value Range$/);
-        const lbo = document.getElementById('valuation-lbo-details');
         const discountEngine = [...workbench?.querySelectorAll('p') || []].find(node => node.textContent.trim().toLowerCase() === 'discount-rate engine')?.closest('.rounded-xl');
         const innerGrid = discountEngine?.parentElement;
         const modeToggle = valuation.querySelector('[data-valuation-mode]')?.parentElement;
         const sensitivityToggle = sensitivity?.querySelector('[data-sensitivity]')?.parentElement;
 
         setDisplay(scenarios, true);
-        setDisplay(lbo, false);
         setDisplay(sensitivity, true);
         setDisplay(fairRange, true);
         setDisplay(discountEngine, false);
@@ -208,13 +206,12 @@
         const scenarios = findSection(/^Scenario Valuation$/);
         const sensitivity = findSection(/^Sensitivity Analysis$/);
         const fairRange = findSection(/^Fair Value Range$/);
-        const lbo = document.getElementById('valuation-lbo-details');
         const discountEngine = [...workbench?.querySelectorAll('p') || []].find(node => node.textContent.trim().toLowerCase() === 'discount-rate engine')?.closest('.rounded-xl');
         const innerGrid = discountEngine?.parentElement;
         const modeToggle = valuation.querySelector('[data-valuation-mode]')?.parentElement;
         const sensitivityToggle = sensitivity?.querySelector('[data-sensitivity]')?.parentElement;
 
-        [scenarios, sensitivity, fairRange, lbo, discountEngine, modeToggle, sensitivityToggle, terminalMethodWrap()].forEach(node => setDisplay(node, true));
+        [scenarios, sensitivity, fairRange, discountEngine, modeToggle, sensitivityToggle, terminalMethodWrap()].forEach(node => setDisplay(node, true));
         setDisplay(valuation.querySelector('#val-standard-rate-wrap'), false);
 
         if (innerGrid) innerGrid.style.gridTemplateColumns = '';

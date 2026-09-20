@@ -4,7 +4,7 @@
     if (window.__sethiStockValuationV2VisualPolishInstalled) return;
     window.__sethiStockValuationV2VisualPolishInstalled = true;
 
-    const VERSION = '4d13';
+    const VERSION = '4d14';
     let timer = null;
 
     const root = () => document.getElementById('valuation');
@@ -45,6 +45,56 @@
         }
     }
 
+    function compactStandardRightColumn() {
+        const valuation = root();
+        if (!valuation) return;
+
+        const scenarios = findSection(/^Scenario Valuation$/);
+        const launcher = valuation.querySelector('[data-lbo-launcher]');
+        const rightStack = scenarios?.closest('[data-lbo-right-stack]');
+        const scenarioList = scenarios?.querySelector('#valuation-scenarios');
+        const scenarioHeader = scenarios?.firstElementChild;
+        const scenarioFooter = scenarioList?.nextElementSibling;
+        const standard = standardViewActive();
+
+        if (rightStack) {
+            rightStack.classList.remove('space-y-4');
+            rightStack.style.display = 'grid';
+            rightStack.style.gap = standard ? '12px' : '16px';
+        }
+
+        if (scenarios) {
+            scenarios.style.padding = standard ? '16px' : '';
+        }
+        if (scenarioHeader) {
+            scenarioHeader.style.marginBottom = standard ? '10px' : '';
+        }
+        if (scenarioList) {
+            scenarioList.classList.remove('space-y-3', 'space-y-2');
+            scenarioList.classList.add(standard ? 'space-y-2' : 'space-y-3');
+            [...scenarioList.children].forEach(card => {
+                card.style.padding = standard ? '10px 12px' : '';
+                const meta = card.lastElementChild;
+                if (meta) meta.style.marginTop = standard ? '8px' : '';
+            });
+        }
+        if (scenarioFooter) {
+            scenarioFooter.style.marginTop = standard ? '12px' : '';
+            scenarioFooter.style.paddingTop = standard ? '10px' : '';
+        }
+
+        if (launcher) {
+            launcher.style.padding = standard ? '10px 12px' : '';
+            const previewGrid = launcher.lastElementChild;
+            if (previewGrid) {
+                previewGrid.style.marginTop = standard ? '8px' : '';
+                [...previewGrid.children].forEach(card => {
+                    card.style.padding = standard ? '7px 10px' : '';
+                });
+            }
+        }
+    }
+
     function liftSmallTypography() {
         const valuation = root();
         if (!valuation) return;
@@ -64,6 +114,7 @@
 
     function apply() {
         balanceTopCards();
+        compactStandardRightColumn();
         liftSmallTypography();
     }
 

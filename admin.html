@@ -99,6 +99,98 @@
             </div>
         </div>
 
+        <!-- SETHISTOCK LOAD PERFORMANCE -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-gray-100 pb-4 mb-5">
+                <div>
+                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">Performance Telemetry</p>
+                    <h3 class="text-xl font-black text-gray-900 mt-1">SethiStock Load Performance</h3>
+                    <p class="text-xs text-gray-400 mt-1">Actual browser time from pressing Analyse to quote paint and completed analytics.</p>
+                </div>
+                <span id="load-sample-count" class="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-full uppercase tracking-wider">
+                    0 Samples
+                </span>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-6">
+                <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Avg Quote</p>
+                    <p id="load-avg-quote" class="text-2xl font-black text-blue-600 mt-1">--</p>
+                </div>
+                <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Avg Full Load</p>
+                    <p id="load-avg-full" class="text-2xl font-black text-gray-900 mt-1">--</p>
+                </div>
+                <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">P95 Full Load</p>
+                    <p id="load-p95-full" class="text-2xl font-black text-gray-900 mt-1">--</p>
+                </div>
+                <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Timeout Rate</p>
+                    <p id="load-timeout-rate" class="text-2xl font-black text-gray-900 mt-1">--</p>
+                </div>
+                <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Avg Cold Load</p>
+                    <p id="load-avg-cold" class="text-2xl font-black text-orange-600 mt-1">--</p>
+                </div>
+                <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Avg Cached Load</p>
+                    <p id="load-avg-cached" class="text-2xl font-black text-emerald-600 mt-1">--</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div class="xl:col-span-2 border border-gray-200 rounded-xl overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                        <div>
+                            <h4 class="text-sm font-black text-gray-900">Recent Ticker Loads</h4>
+                            <p class="text-[10px] text-gray-400 uppercase tracking-widest mt-0.5">Latest 50 browser sessions</p>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto max-h-[420px] overflow-y-auto">
+                        <table class="w-full text-left border-collapse min-w-[760px]">
+                            <thead class="sticky top-0 bg-white z-10">
+                                <tr class="border-b border-gray-100">
+                                    <th class="py-2.5 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Time</th>
+                                    <th class="py-2.5 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Ticker</th>
+                                    <th class="py-2.5 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Quote</th>
+                                    <th class="py-2.5 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Full Load</th>
+                                    <th class="py-2.5 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Backend</th>
+                                    <th class="py-2.5 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Source</th>
+                                    <th class="py-2.5 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stock-loads-body" class="divide-y divide-gray-100 text-xs">
+                                <tr><td colspan="7" class="text-center py-8 text-gray-400 italic">No load telemetry yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-xl overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                        <h4 class="text-sm font-black text-gray-900">By Ticker</h4>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-widest mt-0.5">Average across recorded loads</p>
+                    </div>
+                    <div class="overflow-x-auto max-h-[420px] overflow-y-auto">
+                        <table class="w-full text-left border-collapse min-w-[390px]">
+                            <thead class="sticky top-0 bg-white z-10">
+                                <tr class="border-b border-gray-100">
+                                    <th class="py-2.5 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Ticker</th>
+                                    <th class="py-2.5 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Loads</th>
+                                    <th class="py-2.5 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Avg Quote</th>
+                                    <th class="py-2.5 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Avg Full</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ticker-loads-body" class="divide-y divide-gray-100 text-xs">
+                                <tr><td colspan="4" class="text-center py-8 text-gray-400 italic">No ticker timing data yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- SIDE-BY-SIDE TELEMETRY TABLES -->
         <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mt-10">
 
@@ -319,9 +411,68 @@
             window.location.href = 'index.html';
         }
 
+        function formatLoadMs(value) {
+            const ms = Number(value);
+            if (!Number.isFinite(ms) || ms < 0) return '--';
+            if (ms < 1000) return `${Math.round(ms)}ms`;
+            if (ms < 10000) return `${(ms / 1000).toFixed(2)}s`;
+            return `${(ms / 1000).toFixed(1)}s`;
+        }
+
+        function loadStatusBadge(status) {
+            if (status === 'full') return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+            if (status === 'partial') return 'bg-amber-50 text-amber-700 border-amber-100';
+            return 'bg-red-50 text-red-700 border-red-100';
+        }
+
         function renderDashboard(data) {
             document.getElementById('unique-visitors').innerText = (data.unique_visitors || 0).toLocaleString();
             document.getElementById('total-events').innerText = (data.total_events || 0).toLocaleString();
+
+            const perf = data.load_performance || {};
+            document.getElementById('load-sample-count').innerText = `${Number(perf.samples || 0).toLocaleString()} Samples`;
+            document.getElementById('load-avg-quote').innerText = formatLoadMs(perf.avg_quote_ms);
+            document.getElementById('load-avg-full').innerText = formatLoadMs(perf.avg_full_ms);
+            document.getElementById('load-p95-full').innerText = formatLoadMs(perf.p95_full_ms);
+            document.getElementById('load-timeout-rate').innerText = `${Number(perf.timeout_rate_pct || 0).toFixed(1)}%`;
+            document.getElementById('load-avg-cold').innerText = formatLoadMs(perf.avg_cold_full_ms);
+            document.getElementById('load-avg-cached').innerText = formatLoadMs(perf.avg_cached_full_ms);
+
+            const stockLoadsBody = document.getElementById('stock-loads-body');
+            const recentLoads = Array.isArray(data.recent_stock_loads) ? data.recent_stock_loads : [];
+            if (stockLoadsBody) {
+                stockLoadsBody.innerHTML = recentLoads.length ? recentLoads.map(log => {
+                    const when = new Date(log.created_at);
+                    const timeStr = when.toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    const source = log.cache_hit === true ? 'Cache' : log.cache_hit === false ? 'Cold' : '--';
+                    const sourceClass = log.cache_hit === true ? 'text-emerald-700 bg-emerald-50' : log.cache_hit === false ? 'text-orange-700 bg-orange-50' : 'text-gray-500 bg-gray-100';
+                    const status = String(log.status || 'error');
+                    return `
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="py-2.5 px-3 font-mono text-[10px] text-gray-500 whitespace-nowrap">${timeStr}</td>
+                            <td class="py-2.5 px-3 font-black text-blue-700">${log.ticker || '--'}</td>
+                            <td class="py-2.5 px-3 font-bold text-gray-700">${formatLoadMs(log.quote_ms)}</td>
+                            <td class="py-2.5 px-3 font-black text-gray-900">${formatLoadMs(log.full_ms)}</td>
+                            <td class="py-2.5 px-3 font-semibold text-gray-500">${formatLoadMs(log.backend_ms)}</td>
+                            <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${sourceClass}">${source}</span></td>
+                            <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${loadStatusBadge(status)}">${status}</span></td>
+                        </tr>
+                    `;
+                }).join('') : '<tr><td colspan="7" class="text-center py-8 text-gray-400 italic">No load telemetry yet.</td></tr>';
+            }
+
+            const tickerLoadsBody = document.getElementById('ticker-loads-body');
+            const tickerLoads = Array.isArray(data.ticker_loads) ? data.ticker_loads : [];
+            if (tickerLoadsBody) {
+                tickerLoadsBody.innerHTML = tickerLoads.length ? tickerLoads.map(row => `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="py-2.5 px-3 font-black text-blue-700">${row.ticker}</td>
+                        <td class="py-2.5 px-3 font-bold text-gray-700">${Number(row.loads || 0)}</td>
+                        <td class="py-2.5 px-3 font-semibold text-gray-600">${formatLoadMs(row.avg_quote_ms)}</td>
+                        <td class="py-2.5 px-3 font-black text-gray-900">${formatLoadMs(row.avg_full_ms)}</td>
+                    </tr>
+                `).join('') : '<tr><td colspan="4" class="text-center py-8 text-gray-400 italic">No ticker timing data yet.</td></tr>';
+            }
             
             const layoutBase = {
                 paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',

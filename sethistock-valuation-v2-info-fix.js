@@ -4,11 +4,11 @@
     if (window.__sethiStockValuationV2InfoFixInstalled) return;
     window.__sethiStockValuationV2InfoFixInstalled = true;
 
-    const VERSION = '4d8';
+    const VERSION = '4d9';
     let previousBodyOverflow = '';
 
     function buildModal() {
-        document.getElementById('valuation-v2-info-modal')?.remove();
+        document.querySelector('#valuation-v2-info-modal')?.remove();
 
         const modal = document.createElement('div');
         modal.id = 'valuation-v2-info-modal';
@@ -52,7 +52,7 @@
     }
 
     function ensureModal() {
-        return document.getElementById('valuation-v2-info-modal') || buildModal();
+        return document.querySelector('#valuation-v2-info-modal') || buildModal();
     }
 
     function openModal() {
@@ -65,13 +65,13 @@
     }
 
     function closeModal() {
-        const modal = document.getElementById('valuation-v2-info-modal');
+        const modal = document.querySelector('#valuation-v2-info-modal');
         if (!modal) return;
         modal.style.display = 'none';
         modal.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = previousBodyOverflow;
         document.body.classList.remove('modal-active');
-        document.getElementById('valuation-info-btn')?.focus();
+        document.querySelector('#valuation-info-btn')?.focus();
     }
 
     document.addEventListener('click', event => {
@@ -91,7 +91,7 @@
             return;
         }
 
-        const modal = document.getElementById('valuation-v2-info-modal');
+        const modal = document.querySelector('#valuation-v2-info-modal');
         if (modal && event.target === modal) {
             event.preventDefault();
             closeModal();
@@ -99,7 +99,7 @@
     }, true);
 
     document.addEventListener('keydown', event => {
-        const modal = document.getElementById('valuation-v2-info-modal');
+        const modal = document.querySelector('#valuation-v2-info-modal');
         if (event.key === 'Escape' && modal?.getAttribute('aria-hidden') === 'false') {
             event.preventDefault();
             closeModal();

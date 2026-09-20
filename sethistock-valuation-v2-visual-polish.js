@@ -4,7 +4,7 @@
     if (window.__sethiStockValuationV2VisualPolishInstalled) return;
     window.__sethiStockValuationV2VisualPolishInstalled = true;
 
-    const VERSION = '4d6';
+    const VERSION = '4d13';
     let timer = null;
 
     const root = () => document.getElementById('valuation');
@@ -28,20 +28,20 @@
         const grid = workbench?.parentElement;
         if (!workbench || !scenarios || !grid) return;
 
-        if (standardViewActive()) {
-            grid.classList.remove('items-start');
-            grid.style.alignItems = 'stretch';
-            workbench.style.alignSelf = 'stretch';
-            scenarios.style.alignSelf = 'stretch';
-            workbench.classList.add('h-full');
-            scenarios.classList.add('h-full');
-        } else {
-            grid.classList.add('items-start');
-            grid.style.alignItems = 'start';
-            workbench.style.alignSelf = 'start';
-            scenarios.style.alignSelf = 'start';
-            workbench.classList.remove('h-full');
-            scenarios.classList.remove('h-full');
+        // Keep the top valuation cards content-sized in both views. The LBO launcher
+        // now sits under Scenario Valuation, so stretching either card creates dead space
+        // and can push the launcher below the visible row.
+        grid.classList.add('items-start');
+        grid.style.alignItems = 'start';
+        workbench.style.alignSelf = 'start';
+        scenarios.style.alignSelf = 'start';
+        workbench.classList.remove('h-full');
+        scenarios.classList.remove('h-full');
+
+        const rightStack = scenarios.closest('[data-lbo-right-stack]');
+        if (rightStack) {
+            rightStack.style.alignSelf = 'start';
+            rightStack.style.height = 'auto';
         }
     }
 

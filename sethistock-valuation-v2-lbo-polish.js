@@ -4,55 +4,25 @@
     if (window.__sethiStockValuationV2LboPolishInstalled) return;
     window.__sethiStockValuationV2LboPolishInstalled = true;
 
-    const VERSION = '4d10';
+    const VERSION = '4d11';
+    let previousBodyOverflow = '';
 
-    function ensureStyles() {
-        if (document.querySelector('#sethistock-lbo-polish-styles')) return;
-        const style = document.createElement('style');
-        style.id = 'sethistock-lbo-polish-styles';
-        style.textContent = `
-            #valuation-lbo-details {
-                max-width: 1120px;
-                margin-left: auto;
-                margin-right: auto;
-                overflow: hidden;
-            }
-            #valuation-lbo-details > summary {
-                padding: 16px 20px !important;
-            }
-            #valuation-lbo-details .lbo-polish-main {
-                display: grid;
-                grid-template-columns: minmax(0, 1fr);
-                gap: 20px;
-            }
-            #valuation-lbo-details .lbo-input-card,
-            #valuation-lbo-details .lbo-output-card {
-                min-width: 0;
-            }
-            @media (min-width: 1024px) {
-                #valuation-lbo-details .lbo-polish-main {
-                    grid-template-columns: minmax(0, 1.55fr) minmax(290px, .85fr);
-                }
-            }
-        `;
-        document.head.appendChild(style);
+    const valuationRoot = () => document.querySelector('#valuation');
+    const detailsNode = () => document.querySelector('#valuation-lbo-details');
+
+    function isAdvancedView() {
+        return valuationRoot()?.querySelector('[data-valuation-view="advanced"]')?.classList.contains('bg-blue-600') === true;
     }
 
     function outputText(selector) {
-        const node = document.querySelector(selector);
-        const text = node?.textContent?.trim();
+        const text = document.querySelector(selector)?.textContent?.trim();
         return text && text !== '--' ? text : '--';
     }
 
-    function updateSummary(details) {
-        const state = details.open ? 'Close lab' : 'Open lab';
-        const stateNode = details.querySelector('[data-lbo-state]');
-        if (stateNode) stateNode.textContent = state;
-
-        const irr = details.querySelector('#lbo-preview-irr');
-        const mom = details.querySelector('#lbo-preview-mom');
-        if (irr) irr.textContent = outputText('#lbo-irr');
-        if (mom) mom.textContent = outputText('#lbo-mom');
+    function findScenarioSection() {
+        return [...valuationRoot()?.querySelectorAll('section') || []].find(section =>
+            section.querySelector('h4')?.textContent?.trim() === 'Scenario Valuation'
+        ) || null;
     }
 
     function fieldById(id) {
@@ -73,6 +43,7 @@
         grid.style.gridTemplateColumns = columns === 3
             ? 'repeat(3, minmax(0, 1fr))'
             : 'repeat(2, minmax(0, 1fr))';
+
         ids.forEach(id => {
             const field = fieldById(id);
             if (field) grid.appendChild(field);
@@ -81,7 +52,8 @@
     }
 
     function polishOutputs(container) {
-        if (!container) return;
+        if (!container || container.dataset.lboOutputPolished === VERSION) return;
+        container.dataset.lboOutputPolished = VERSION;
 
         const irrCard = document.querySelector('#lbo-irr')?.closest('div.rounded-xl');
         const momCard = document.querySelector('#lbo-mom')?.closest('div.rounded-xl');
@@ -113,44 +85,8 @@
         });
     }
 
-    function polishLbo() {
-        ensureStyles();
-
-        const details = document.querySelector('#valuation-lbo-details');
-        if (!details || details.dataset.lboPolished === VERSION) {
-            if (details) updateSummary(details);
-            return;
-        }
-
-        details.dataset.lboPolished = VERSION;
-        details.className = 'mt-6 bg-white rounded-2xl border border-gray-200 shadow-sm group';
-
-        const summary = details.querySelector(':scope > summary');
-        if (summary) {
-            summary.className = 'cursor-pointer list-none flex items-center justify-between gap-4';
-            summary.innerHTML = `
-                <div class="min-w-0">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <span class="px-2 py-1 rounded-md bg-indigo-50 border border-indigo-100 text-[10px] font-black text-indigo-700 uppercase tracking-widest">Advanced tool</span>
-                        <h4 class="text-lg font-black text-gray-900">LBO Lab <span class="text-blue-600">→</span></h4>
-                    </div>
-                    <p class="text-xs text-gray-500 mt-1">Compact sponsor-return model using entry/exit multiples, leverage and cash-sweep debt paydown.</p>
-                </div>
-                <div class="flex items-center gap-3 shrink-0">
-                    <div class="hidden sm:flex items-center gap-2">
-                        <div class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-center min-w-[82px]">
-                            <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">IRR</p>
-                            <p id="lbo-preview-irr" class="text-sm font-black text-gray-900">--</p>
-                        </div>
-                        <div class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-center min-w-[82px]">
-                            <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">MoM</p>
-                            <p id="lbo-preview-mom" class="text-sm font-black text-gray-900">--</p>
-                        </div>
-                    </div>
-                    <span data-lbo-state class="text-xs font-black text-blue-600 uppercase tracking-widest">Open lab</span>
-                </div>
-            `;
-        }
+    function compactLab(details) {
+        if (!details || details.dataset.lboModalPolished === VERSION) return;
 
         const body = details.querySelector(':scope > div');
         const oldGrid = body?.querySelector(':scope > .grid');
@@ -158,8 +94,6 @@
         const oldOutputs = oldGrid?.children?.[1];
 
         if (body && oldGrid && oldInputs && oldOutputs) {
-            body.className = 'border-t border-gray-100 p-5 md:p-6';
-
             const left = document.createElement('div');
             left.className = 'space-y-4';
             left.appendChild(makeInputGroup(
@@ -175,7 +109,8 @@
                 3
             ));
 
-            oldGrid.className = 'lbo-polish-main';
+            body.className = 'p-5 md:p-6';
+            oldGrid.className = 'grid grid-cols-1 lg:grid-cols-[minmax(0,1.55fr)_minmax(290px,.85fr)] gap-5';
             oldGrid.innerHTML = '';
             oldGrid.appendChild(left);
             oldGrid.appendChild(oldOutputs);
@@ -187,30 +122,217 @@
             }
         }
 
-        details.addEventListener('toggle', () => {
-            setTimeout(() => updateSummary(details), 0);
-        });
+        const summary = details.querySelector(':scope > summary');
+        if (summary) summary.style.display = 'none';
 
-        details.addEventListener('input', () => {
-            setTimeout(() => updateSummary(details), 0);
-        });
+        details.className = 'bg-white';
+        details.open = true;
+        details.dataset.lboModalPolished = VERSION;
+    }
 
-        updateSummary(details);
+    function ensureModal(details) {
+        let modal = document.querySelector('#valuation-lbo-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'valuation-lbo-modal';
+            modal.setAttribute('role', 'dialog');
+            modal.setAttribute('aria-modal', 'true');
+            modal.setAttribute('aria-labelledby', 'valuation-lbo-title');
+            modal.setAttribute('aria-hidden', 'true');
+            modal.style.cssText = [
+                'display:none',
+                'position:fixed',
+                'inset:0',
+                'z-index:2147482900',
+                'align-items:center',
+                'justify-content:center',
+                'padding:24px',
+                'background:rgba(15,23,42,.62)',
+                'backdrop-filter:blur(4px)',
+                '-webkit-backdrop-filter:blur(4px)'
+            ].join(';');
+
+            modal.innerHTML = `
+                <div data-lbo-modal-card style="background:#fff;border:1px solid #e5e7eb;border-radius:18px;box-shadow:0 25px 60px rgba(15,23,42,.28);max-width:1080px;width:100%;max-height:90vh;overflow-y:auto;">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:20px 24px 16px;border-bottom:1px solid #f3f4f6;">
+                        <div>
+                            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                <span style="padding:4px 8px;border-radius:6px;border:1px solid #e0e7ff;background:#eef2ff;color:#4338ca;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;">Advanced tool</span>
+                                <h2 id="valuation-lbo-title" style="font-size:22px;line-height:1.2;font-weight:900;color:#111827;margin:0;">LBO Lab</h2>
+                            </div>
+                            <p style="font-size:13px;line-height:1.5;color:#6b7280;margin:6px 0 0;">Sponsor-return model using leverage, operating assumptions and exit multiples.</p>
+                        </div>
+                        <button type="button" id="valuation-lbo-close" aria-label="Close LBO Lab" style="border:0;background:transparent;color:#9ca3af;font-size:32px;line-height:1;cursor:pointer;padding:0 4px;">&times;</button>
+                    </div>
+                    <div data-lbo-modal-mount></div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        const mount = modal.querySelector('[data-lbo-modal-mount]');
+        if (details && mount && details.parentElement !== mount) mount.appendChild(details);
+        return modal;
+    }
+
+    function ensureRightStack() {
+        const scenario = findScenarioSection();
+        if (!scenario) return null;
+
+        let stack = scenario.closest('[data-lbo-right-stack]');
+        if (!stack) {
+            const parent = scenario.parentElement;
+            stack = document.createElement('div');
+            stack.dataset.lboRightStack = '1';
+            stack.className = 'xl:col-span-2 space-y-4 min-w-0';
+            parent?.insertBefore(stack, scenario);
+            stack.appendChild(scenario);
+            scenario.classList.remove('xl:col-span-2');
+        }
+        return stack;
+    }
+
+    function ensureLauncher() {
+        const stack = ensureRightStack();
+        if (!stack) return null;
+
+        let launcher = stack.querySelector('[data-lbo-launcher]');
+        if (!launcher) {
+            launcher = document.createElement('section');
+            launcher.dataset.lboLauncher = '1';
+            launcher.className = 'rounded-2xl border border-gray-200 bg-white shadow-sm p-4';
+            launcher.innerHTML = `
+                <div class="flex items-center justify-between gap-3">
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="px-2 py-1 rounded-md bg-indigo-50 border border-indigo-100 text-[10px] font-black text-indigo-700 uppercase tracking-widest">Advanced tool</span>
+                            <h4 class="text-base font-black text-gray-900">LBO Lab <span class="text-blue-600">→</span></h4>
+                        </div>
+                        <p class="text-[11px] text-gray-500 mt-1">Sponsor-return lens using entry/exit multiples, leverage and cash-sweep debt paydown.</p>
+                    </div>
+                    <button type="button" data-open-lbo-modal class="shrink-0 px-3 py-2 rounded-lg border border-blue-100 bg-blue-50 text-[11px] font-black uppercase tracking-widest text-blue-700 hover:bg-blue-100 transition">Open Lab</button>
+                </div>
+                <div class="grid grid-cols-2 gap-2 mt-3">
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-center">
+                        <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">IRR</p>
+                        <p data-lbo-preview-irr class="text-base font-black text-gray-900">--</p>
+                    </div>
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-center">
+                        <p class="text-[9px] font-black uppercase tracking-widest text-gray-400">MoM</p>
+                        <p data-lbo-preview-mom class="text-base font-black text-gray-900">--</p>
+                    </div>
+                </div>
+            `;
+            stack.appendChild(launcher);
+        }
+        return launcher;
+    }
+
+    function updatePreview() {
+        const launcher = document.querySelector('[data-lbo-launcher]');
+        if (!launcher) return;
+        const irr = launcher.querySelector('[data-lbo-preview-irr]');
+        const mom = launcher.querySelector('[data-lbo-preview-mom]');
+        if (irr) irr.textContent = outputText('#lbo-irr');
+        if (mom) mom.textContent = outputText('#lbo-mom');
+    }
+
+    function openModal() {
+        if (!isAdvancedView()) return;
+        const details = detailsNode();
+        const modal = ensureModal(details);
+        if (!details || !modal) return;
+
+        details.style.display = '';
+        details.open = true;
+        window.calculateLBO?.();
+        updatePreview();
+
+        previousBodyOverflow = document.body.style.overflow;
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        requestAnimationFrame(() => modal.querySelector('#valuation-lbo-close')?.focus());
+    }
+
+    function closeModal() {
+        const modal = document.querySelector('#valuation-lbo-modal');
+        if (!modal) return;
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = previousBodyOverflow;
+        document.querySelector('[data-open-lbo-modal]')?.focus();
+    }
+
+    function syncLayout() {
+        const details = detailsNode();
+        if (!details) return;
+
+        compactLab(details);
+        ensureModal(details);
+        const launcher = ensureLauncher();
+
+        const advanced = isAdvancedView();
+        if (launcher) launcher.style.display = advanced ? '' : 'none';
+        if (!advanced) closeModal();
+
+        details.open = true;
+        window.calculateLBO?.();
+        updatePreview();
     }
 
     document.addEventListener('click', event => {
-        if (event.target.closest?.('#valuation')) setTimeout(polishLbo, 40);
-    });
+        if (event.target.closest?.('[data-open-lbo-modal]')) {
+            event.preventDefault();
+            event.stopPropagation();
+            openModal();
+            return;
+        }
+        if (event.target.closest?.('#valuation-lbo-close')) {
+            event.preventDefault();
+            closeModal();
+            return;
+        }
+
+        const modal = document.querySelector('#valuation-lbo-modal');
+        if (modal && event.target === modal) {
+            event.preventDefault();
+            closeModal();
+            return;
+        }
+
+        if (event.target.closest?.('#valuation')) setTimeout(syncLayout, 40);
+    }, true);
+
     document.addEventListener('input', event => {
-        if (event.target.closest?.('#valuation-lbo-details')) setTimeout(polishLbo, 40);
+        if (event.target.closest?.('#valuation-lbo-details')) {
+            setTimeout(() => {
+                window.calculateLBO?.();
+                updatePreview();
+            }, 0);
+            return;
+        }
+        if (event.target.closest?.('#valuation')) setTimeout(syncLayout, 40);
     });
 
-    window.addEventListener('sethistock:analysis-ready', () => setTimeout(polishLbo, 180));
-    window.addEventListener('sethistock:financial-history-ready', () => setTimeout(polishLbo, 140));
-    window.addEventListener('resize', () => setTimeout(polishLbo, 100));
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && document.querySelector('#valuation-lbo-modal')?.getAttribute('aria-hidden') === 'false') {
+            event.preventDefault();
+            closeModal();
+        }
+    }, true);
 
-    setTimeout(polishLbo, 80);
-    setTimeout(polishLbo, 240);
+    window.addEventListener('sethistock:analysis-ready', () => setTimeout(syncLayout, 180));
+    window.addEventListener('sethistock:financial-history-ready', () => setTimeout(syncLayout, 140));
+    window.addEventListener('resize', () => setTimeout(syncLayout, 100));
 
-    window.SethiStockValuationV2LboPolish = { apply: polishLbo, version: VERSION };
+    setTimeout(syncLayout, 80);
+    setTimeout(syncLayout, 260);
+
+    window.SethiStockValuationV2LboPolish = {
+        apply: syncLayout,
+        open: openModal,
+        close: closeModal,
+        version: VERSION
+    };
 })();

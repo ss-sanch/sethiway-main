@@ -68,9 +68,6 @@
             document.body.appendChild(stabilityScript);
         }
 
-        // A single upstream Yahoo/yfinance stall must never leave SethiStock in an
-        // endless "Analysing..." state. Only the heavy full-analysis route gets a
-        // deadline; lightweight quote/chart/driver requests keep their own logic.
         if (!window.__sethiStockAnalysisDeadlineInstalled && typeof window.fetch === 'function') {
             window.__sethiStockAnalysisDeadlineInstalled = true;
             const nativeFetch = window.fetch.bind(window);
@@ -153,8 +150,6 @@
             return driverModulePromise;
         }
 
-        // Phase 4B: Company Drivers no longer occupy the normal SethiStock page and
-        // are not preloaded during every flagship analysis. Revenue opens them on demand.
         window.SethiStockLoadCompanyDriversModule = loadCompanyDriversModule;
         window.SethiStockHasRevenueDrivers = ticker => SUPPORTED_DRIVER_TICKERS.has(normaliseDriverTicker(ticker));
         window.SethiStockOpenRevenueDrivers = ticker => {
@@ -168,5 +163,81 @@
                 return false;
             });
         };
+
+        function loadValuationLboPolish() {
+            if (window.SethiStockValuationV2LboPolish || document.querySelector('script[data-sethistock-valuation-v2-lbo-polish]')) return;
+            const lboScript = document.createElement('script');
+            lboScript.src = 'sethistock-valuation-v2-lbo-polish.js?v=4d16';
+            lboScript.dataset.sethistockValuationV2LboPolish = '1';
+            lboScript.addEventListener('error', error => console.warn('Advanced Valuation LBO polish failed to load:', error), { once: true });
+            document.body.appendChild(lboScript);
+        }
+
+        function loadValuationInfoFix() {
+            if (window.SethiStockValuationV2InfoFix) {
+                loadValuationLboPolish();
+                return;
+            }
+            const existing = document.querySelector('script[data-sethistock-valuation-v2-info-fix]');
+            if (existing) {
+                existing.addEventListener('load', loadValuationLboPolish, { once: true });
+                return;
+            }
+            const infoScript = document.createElement('script');
+            infoScript.src = 'sethistock-valuation-v2-info-fix.js?v=4d9';
+            infoScript.dataset.sethistockValuationV2InfoFix = '1';
+            infoScript.addEventListener('load', loadValuationLboPolish, { once: true });
+            infoScript.addEventListener('error', error => console.warn('Advanced Valuation info modal fix failed to load:', error), { once: true });
+            document.body.appendChild(infoScript);
+        }
+
+        function loadValuationVisualPolish() {
+            if (window.SethiStockValuationV2VisualPolish) {
+                loadValuationInfoFix();
+                return;
+            }
+            const existing = document.querySelector('script[data-sethistock-valuation-v2-visual-polish]');
+            if (existing) {
+                existing.addEventListener('load', loadValuationInfoFix, { once: true });
+                return;
+            }
+            const visualScript = document.createElement('script');
+            visualScript.src = 'sethistock-valuation-v2-visual-polish.js?v=4d18';
+            visualScript.dataset.sethistockValuationV2VisualPolish = '1';
+            visualScript.addEventListener('load', loadValuationInfoFix, { once: true });
+            visualScript.addEventListener('error', error => console.warn('Advanced Valuation visual polish failed to load:', error), { once: true });
+            document.body.appendChild(visualScript);
+        }
+
+        function loadValuationPolish() {
+            if (window.SethiStockValuationV2Polish) {
+                loadValuationVisualPolish();
+                return;
+            }
+            const existing = document.querySelector('script[data-sethistock-valuation-v2-polish]');
+            if (existing) {
+                existing.addEventListener('load', loadValuationVisualPolish, { once: true });
+                return;
+            }
+            const polishScript = document.createElement('script');
+            polishScript.src = 'sethistock-valuation-v2-polish.js?v=4d18';
+            polishScript.dataset.sethistockValuationV2Polish = '1';
+            polishScript.addEventListener('load', loadValuationVisualPolish, { once: true });
+            polishScript.addEventListener('error', error => console.warn('Advanced Valuation 2.0 polish failed to load:', error), { once: true });
+            document.body.appendChild(polishScript);
+        }
+
+        if (!document.querySelector('script[data-sethistock-valuation-v2]')) {
+            const valuationScript = document.createElement('script');
+            valuationScript.src = 'sethistock-valuation-v2.js?v=4d1';
+            valuationScript.dataset.sethistockValuationV2 = '1';
+            valuationScript.addEventListener('load', loadValuationPolish, { once: true });
+            valuationScript.addEventListener('error', error => console.warn('Advanced Valuation 2.0 failed to load:', error), { once: true });
+            document.body.appendChild(valuationScript);
+        } else if (window.SethiStockValuationV2) {
+            loadValuationPolish();
+        } else {
+            document.querySelector('script[data-sethistock-valuation-v2]')?.addEventListener('load', loadValuationPolish, { once: true });
+        }
     }
 })();

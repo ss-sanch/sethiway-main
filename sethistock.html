@@ -826,6 +826,27 @@
             }
         }
 
+        function getSethiStockVisitorId() {
+            let visitorId = localStorage.getItem('sethiway_visitor_id');
+            if (!visitorId) {
+                visitorId = (crypto?.randomUUID?.() || `visitor-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+                localStorage.setItem('sethiway_visitor_id', visitorId);
+            }
+            return visitorId;
+        }
+
+        function logSethiStockLoadTiming(payload) {
+            fetch(`${API_URL}/api/telemetry/sethistock-load`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...payload,
+                    visitor_id: getSethiStockVisitorId()
+                }),
+                keepalive: true
+            }).catch(() => {});
+        }
+
         function normaliseChartData(data) {
             const empty = { dates: [], opens: [], highs: [], lows: [], closes: [] };
             if (!data || typeof data !== 'object') return empty;
@@ -986,6 +1007,25 @@
 
         document.getElementById('search-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const loadStartedAt = performance.now();
+            let quoteLoadMs = null;
+            let loadTimingRecorded = false;
+            let resolvedBackendMeta = null;
+
+            const recordLoadTiming = (status, extra = {}) => {
+                if (loadTimingRecorded) return;
+                loadTimingRecorded = true;
+                logSethiStockLoadTiming({
+                    ticker: String(state.ticker || document.getElementById('ticker-input').value || '').trim().toUpperCase(),
+                    quote_ms: quoteLoadMs,
+                    full_ms: Math.round(performance.now() - loadStartedAt),
+                    backend_ms: resolvedBackendMeta?.request_ms ?? resolvedBackendMeta?.analysis_ms ?? null,
+                    cache_hit: typeof resolvedBackendMeta?.served_from_cache === 'boolean' ? resolvedBackendMeta.served_from_cache : null,
+                    status,
+                    ...extra
+                });
+            };
+
             const analysisSequence = (Number(window.__sethiStockAnalysisSequence) || 0) + 1;
             window.__sethiStockAnalysisSequence = analysisSequence;
             state.ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
@@ -1075,6 +1115,7 @@
                         if (progBar) progBar.style.width = `${progress}%`;
                         if (loadingBubbleText) loadingBubbleText.innerText = 'Price loaded — building detailed analytics...';
                         quoteHydrated = true;
+                        if (quoteLoadMs === null) quoteLoadMs = Math.round(performance.now() - loadStartedAt);
 
                         // First useful paint: once the lightweight quote arrives, make the
                         // dashboard fully readable even while heavy analytics continue.
@@ -1095,6 +1136,7 @@
                 const data = await fullDataPromise;
                 if (analysisSequence !== window.__sethiStockAnalysisSequence) return;
                 fullAnalysisReady = true;
+                resolvedBackendMeta = data?._meta || null;
 
                 // Smart Search: Update input to show the actual verified ticker found
                 state.ticker = String(data.ticker || state.ticker).toUpperCase();
@@ -1374,6 +1416,7 @@
                     loadPeers(data.peers);
                     loadInsiders(data.insiders);
                     dash.classList.add('opacity-100');
+                    recordLoadTiming('full');
 
                     chartPromise.then(() => {
                         if (!state.chartData) fetchChart().catch(() => null);
@@ -1401,6 +1444,7 @@
                     window.dispatchEvent(new CustomEvent('sethistock:analysis-partial', {
                         detail: { ticker: state.ticker, sequence: analysisSequence, reason: 'timeout' }
                     }));
+                    recordLoadTiming('partial', { error_code: 'ANALYSIS_TIMEOUT' });
                 } else {
                     if (loadingBubbleText) loadingBubbleText.innerText = "Data Sync Failed.";
                     const message = err?.message === 'Failed to fetch'
@@ -1411,6 +1455,7 @@
                         errorEl.className = 'text-red-500 mt-4 font-semibold';
                         errorEl.classList.remove('hidden');
                     }
+                    recordLoadTiming('error', { error_code: String(err?.code || err?.status || err?.name || 'LOAD_ERROR').slice(0, 80) });
                 }
 
                 setTimeout(() => {

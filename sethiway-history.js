@@ -167,7 +167,7 @@
         function loadValuationLboPolish() {
             if (window.SethiStockValuationV2LboPolish || document.querySelector('script[data-sethistock-valuation-v2-lbo-polish]')) return;
             const lboScript = document.createElement('script');
-            lboScript.src = 'sethistock-valuation-v2-lbo-polish.js?v=4d15';
+            lboScript.src = 'sethistock-valuation-v2-lbo-polish.js?v=4d16';
             lboScript.dataset.sethistockValuationV2LboPolish = '1';
             lboScript.addEventListener('error', error => console.warn('Advanced Valuation LBO polish failed to load:', error), { once: true });
             document.body.appendChild(lboScript);
@@ -202,7 +202,7 @@
                 return;
             }
             const visualScript = document.createElement('script');
-            visualScript.src = 'sethistock-valuation-v2-visual-polish.js?v=4d15';
+            visualScript.src = 'sethistock-valuation-v2-visual-polish.js?v=4d16';
             visualScript.dataset.sethistockValuationV2VisualPolish = '1';
             visualScript.addEventListener('load', loadValuationInfoFix, { once: true });
             visualScript.addEventListener('error', error => console.warn('Advanced Valuation visual polish failed to load:', error), { once: true });

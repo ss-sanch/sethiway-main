@@ -202,7 +202,7 @@
                 return;
             }
             const visualScript = document.createElement('script');
-            visualScript.src = 'sethistock-valuation-v2-visual-polish.js?v=4d13';
+            visualScript.src = 'sethistock-valuation-v2-visual-polish.js?v=4d14';
             visualScript.dataset.sethistockValuationV2VisualPolish = '1';
             visualScript.addEventListener('load', loadValuationInfoFix, { once: true });
             visualScript.addEventListener('error', error => console.warn('Advanced Valuation visual polish failed to load:', error), { once: true });

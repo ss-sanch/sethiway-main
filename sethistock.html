@@ -759,9 +759,36 @@
         const CHART_MEMORY_MAX = 48;
         const FULL_ANALYSIS_TIMEOUT_MS = 30000;
 
-        // Wake the Render service as soon as the page opens instead of waiting for the
-        // first ticker submission to pay the entire cold-start cost.
-        fetch(`${API_URL}/api/runtime/status`, { cache: 'no-store' }).catch(() => null);
+        // Wake Render immediately and retain the timing/state so load telemetry can
+        // distinguish host cold starts from an uncached ticker analysis.
+        const renderWakeProbeStartedAt = performance.now();
+        window.__sethiStockWakeProbe = (async () => {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 90000);
+            try {
+                const response = await fetch(`${API_URL}/api/runtime/status`, {
+                    cache: 'no-store',
+                    signal: controller.signal
+                });
+                const payload = response.ok ? await response.json() : {};
+                const wakeMs = Math.round(performance.now() - renderWakeProbeStartedAt);
+                const uptime = Number(payload?.process_uptime_seconds);
+                const uptimeSeconds = Number.isFinite(uptime) && uptime >= 0 ? Math.round(uptime) : null;
+                return {
+                    server_wake_ms: wakeMs,
+                    server_uptime_s: uptimeSeconds,
+                    server_state: uptimeSeconds !== null && uptimeSeconds < 120 ? 'cold' : 'warm'
+                };
+            } catch (_) {
+                return {
+                    server_wake_ms: Math.round(performance.now() - renderWakeProbeStartedAt),
+                    server_uptime_s: null,
+                    server_state: 'unknown'
+                };
+            } finally {
+                clearTimeout(timeout);
+            }
+        })();
 
         const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -1012,18 +1039,26 @@
             let loadTimingRecorded = false;
             let resolvedBackendMeta = null;
 
+            const submitWakeProbe = window.__sethiStockWakeProbe;
             const recordLoadTiming = (status, extra = {}) => {
                 if (loadTimingRecorded) return;
                 loadTimingRecorded = true;
-                logSethiStockLoadTiming({
-                    ticker: String(state.ticker || document.getElementById('ticker-input').value || '').trim().toUpperCase(),
-                    quote_ms: quoteLoadMs,
-                    full_ms: Math.round(performance.now() - loadStartedAt),
-                    backend_ms: resolvedBackendMeta?.request_ms ?? resolvedBackendMeta?.analysis_ms ?? null,
-                    cache_hit: typeof resolvedBackendMeta?.served_from_cache === 'boolean' ? resolvedBackendMeta.served_from_cache : null,
-                    status,
-                    ...extra
-                });
+                Promise.resolve(submitWakeProbe)
+                    .catch(() => ({ server_wake_ms: null, server_uptime_s: null, server_state: 'unknown' }))
+                    .then((wake) => {
+                        logSethiStockLoadTiming({
+                            ticker: String(state.ticker || document.getElementById('ticker-input').value || '').trim().toUpperCase(),
+                            quote_ms: quoteLoadMs,
+                            full_ms: Math.round(performance.now() - loadStartedAt),
+                            backend_ms: resolvedBackendMeta?.request_ms ?? resolvedBackendMeta?.analysis_ms ?? null,
+                            cache_hit: typeof resolvedBackendMeta?.served_from_cache === 'boolean' ? resolvedBackendMeta.served_from_cache : null,
+                            server_wake_ms: wake?.server_wake_ms ?? null,
+                            server_uptime_s: wake?.server_uptime_s ?? null,
+                            server_state: wake?.server_state || 'unknown',
+                            status,
+                            ...extra
+                        });
+                    });
             };
 
             const analysisSequence = (Number(window.__sethiStockAnalysisSequence) || 0) + 1;
@@ -1065,16 +1100,56 @@
             const loadingPhrases = ["Connecting to market data...", "Loading financial statements...", "Calculating valuation inputs...", "Computing risk metrics...", "Preparing comparisons..."];
             let phraseIndex = 0;
             let progress = 0;
+            let fullAnalysisReady = false;
+            let quoteHydrated = false;
+            let uiWatchdogFired = false;
             
             const loadingInterval = setInterval(() => {
                 phraseIndex = (phraseIndex + 1) % loadingPhrases.length;
-                if(loadingBubbleText) loadingBubbleText.innerText = loadingPhrases[phraseIndex];
+                if (loadingBubbleText) {
+                    loadingBubbleText.innerText = quoteHydrated
+                        ? 'Live data ready — detailed analytics are still building...'
+                        : loadingPhrases[phraseIndex];
+                }
                 
                 if (progress < 90) {
                     progress += Math.random() * 15;
                     if(progBar) progBar.style.width = `${progress}%`;
                 }
             }, 1500);
+
+            // Independent UI watchdog: even if a browser/network abort edge case prevents
+            // the analysis promise from settling, the public page must never spin forever.
+            const hardUiWatchdog = setTimeout(() => {
+                if (analysisSequence !== window.__sethiStockAnalysisSequence || fullAnalysisReady) return;
+                uiWatchdogFired = true;
+                clearInterval(loadingInterval);
+                clearTimeout(hardUiWatchdog);
+                if (progBar) progBar.style.width = '100%';
+                if (progContainer) progContainer.classList.add('opacity-0');
+                if (loadingBubble) loadingBubble.classList.add('hidden');
+                dash.classList.remove('opacity-50');
+                dash.classList.add('opacity-100');
+                btn.innerHTML = 'Analyse';
+                btn.disabled = false;
+
+                statBoxes.forEach(id => {
+                    const element = _originalGetElementById.call(document, id);
+                    if (element?.querySelector?.('.animate-pulse')) element.textContent = '--';
+                });
+
+                const errorEl = _originalGetElementById.call(document, 'error-message');
+                if (errorEl) {
+                    errorEl.innerText = 'Live market data is available, but some detailed financial analytics are taking too long. Retry to refresh the remaining sections.';
+                    errorEl.className = 'mt-4 font-semibold text-amber-600';
+                    errorEl.classList.remove('hidden');
+                }
+                window.dispatchEvent(new CustomEvent('sethistock:analysis-partial', {
+                    detail: { ticker: state.ticker, sequence: analysisSequence, reason: 'ui_watchdog' }
+                }));
+                recordLoadTiming('partial', { error_code: 'UI_WATCHDOG_TIMEOUT' });
+                analysisController.abort();
+            }, FULL_ANALYSIS_TIMEOUT_MS + 1500);
 
             try {
                 const requestedTicker = state.ticker;
@@ -1089,8 +1164,6 @@
                     { signal: analysisController.signal },
                     FULL_ANALYSIS_TIMEOUT_MS
                 );
-                let fullAnalysisReady = false;
-                let quoteHydrated = false;
                 const quoteHydrationPromise = fetchJsonWithRetry(`${API_URL}/api/quote/${encodeURIComponent(requestedTicker)}`, { signal: analysisController.signal }, 1)
                     .then((quoteData) => {
                         if (!quoteData || fullAnalysisReady || analysisSequence !== window.__sethiStockAnalysisSequence) return;
@@ -1136,6 +1209,7 @@
                 const data = await fullDataPromise;
                 if (analysisSequence !== window.__sethiStockAnalysisSequence) return;
                 fullAnalysisReady = true;
+                clearTimeout(hardUiWatchdog);
                 resolvedBackendMeta = data?._meta || null;
 
                 // Smart Search: Update input to show the actual verified ticker found
@@ -1416,7 +1490,21 @@
                     loadPeers(data.peers);
                     loadInsiders(data.insiders);
                     dash.classList.add('opacity-100');
-                    recordLoadTiming('full');
+
+                    if (resolvedBackendMeta?.analysis_degraded) {
+                        const errorEl = _originalGetElementById.call(document, 'error-message');
+                        if (errorEl) {
+                            errorEl.innerText = 'Core market data loaded. Some detailed financial fields are temporarily unavailable; retry to refresh them.';
+                            errorEl.className = 'mt-4 font-semibold text-amber-600';
+                            errorEl.classList.remove('hidden');
+                        }
+                        window.dispatchEvent(new CustomEvent('sethistock:analysis-partial', {
+                            detail: { ticker: state.ticker, sequence: analysisSequence, reason: 'upstream_source_timeout' }
+                        }));
+                        recordLoadTiming('partial', { error_code: 'UPSTREAM_SOURCE_TIMEOUT' });
+                    } else {
+                        recordLoadTiming('full');
+                    }
 
                     chartPromise.then(() => {
                         if (!state.chartData) fetchChart().catch(() => null);
@@ -1425,7 +1513,11 @@
 
             } catch (err) {
                 clearInterval(loadingInterval);
-                if (err?.name === 'AbortError') return;
+                clearTimeout(hardUiWatchdog);
+                if (err?.name === 'AbortError') {
+                    if (uiWatchdogFired) return;
+                    return;
+                }
                 dash.classList.remove('opacity-50');
                 dash.classList.add('opacity-100');
 
@@ -1463,6 +1555,7 @@
                     if (loadingBubble) loadingBubble.classList.add('hidden');
                 }, 1500);
             } finally {
+                clearTimeout(hardUiWatchdog);
                 if (analysisAbortController === analysisController) analysisAbortController = null;
                 if (analysisSequence === window.__sethiStockAnalysisSequence) {
                     btn.innerHTML = 'Analyse'; btn.disabled = false;
@@ -2306,6 +2399,6 @@
 
     </script>
     <script src="sethistock-financial-history.js"></script>
-    <script src="sethiway-history.js?v=stock4e1"></script>
+    <script src="sethiway-history.js?v=stock4f1"></script>
 </body>
 </html>

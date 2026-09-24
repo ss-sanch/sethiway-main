@@ -98,7 +98,7 @@
                         </div>
                         <div class="flex items-center gap-2 mt-1 flex-wrap">
                             <p id="market-data-label" class="text-sm font-bold text-gray-400 uppercase tracking-widest">Live Market Data</p>
-                            <span id="market-data-status" class="hidden px-2 py-1 rounded-full border text-[9px] font-black uppercase tracking-wider"></span>
+                            <span id="market-data-status" class="hidden inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[9px] font-black uppercase tracking-wider"></span>
                         </div>
                     </div>
                     <div class="text-right mt-6 md:mt-0 flex items-center space-x-6">
@@ -782,6 +782,9 @@
             const chip = document.getElementById('market-data-status');
             if (!label || !chip) return;
 
+            const spinner = '<span class="w-2.5 h-2.5 rounded-full border border-current border-t-transparent animate-spin" aria-hidden="true"></span>';
+
+            label.textContent = 'Live Market Data';
             chip.classList.remove(
                 'hidden',
                 'bg-amber-50', 'text-amber-700', 'border-amber-200',
@@ -791,19 +794,16 @@
 
             if (mode === 'cached') {
                 const age = formatSnapshotAge(timestamp);
-                label.textContent = 'Cached Market Data';
-                chip.textContent = `Cached${age ? ' · ' + age : ''} · updating live…`;
+                chip.innerHTML = `${spinner}<span>Cached${age ? ' · ' + age : ''} · updating</span>`;
                 chip.classList.add('bg-amber-50', 'text-amber-700', 'border-amber-200');
             } else if (mode === 'price-live') {
-                label.textContent = 'Live Market Data';
-                chip.textContent = 'Live price · analytics updating…';
+                chip.innerHTML = `${spinner}<span>Live price · analytics updating</span>`;
                 chip.classList.add('bg-blue-50', 'text-blue-700', 'border-blue-200');
             } else if (mode === 'live') {
-                label.textContent = 'Live Market Data';
-                chip.textContent = 'Live';
+                chip.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden="true"></span><span>Live</span>';
                 chip.classList.add('bg-emerald-50', 'text-emerald-700', 'border-emerald-200');
             } else {
-                label.textContent = 'Live Market Data';
+                chip.innerHTML = '';
                 chip.classList.add('hidden');
             }
         }
@@ -1423,18 +1423,21 @@
                     if (snapshotHydrated) {
                         snapshotHit = true;
                         snapshotLoadMs = Math.round(performance.now() - loadStartedAt);
+
+                        // Cached content is already useful, so retire the full-page loading
+                        // treatment and leave only the small status pill beside Live Market Data.
+                        clearInterval(loadingInterval);
+                        if (progBar) progBar.style.width = '100%';
+                        if (progContainer) progContainer.classList.add('opacity-0');
+                        if (loadingBubble) loadingBubble.classList.add('hidden');
+
                         btn.innerHTML = shouldGateForServer ? 'Starting service…' : 'Updating live…';
-                        if (loadingBubbleText) {
-                            loadingBubbleText.innerText = shouldGateForServer
-                                ? 'Cached analysis loaded — starting live data service...'
-                                : 'Cached analysis loaded — updating live data...';
-                        }
                     }
                 }
 
                 if (shouldGateForServer) {
                     btn.innerHTML = 'Starting service…';
-                    if (loadingBubbleText) loadingBubbleText.innerText = 'Starting data service — first load may take longer...';
+                    if (loadingBubbleText && !snapshotHydrated) loadingBubbleText.innerText = 'Starting data service — first load may take longer...';
                     const wakeState = await submitWakeProbe;
                     if (analysisSequence !== window.__sethiStockAnalysisSequence) return;
 
@@ -1445,7 +1448,7 @@
                     }
                     waitingForServer = false;
                     btn.innerHTML = 'Analysing...';
-                    if (loadingBubbleText) loadingBubbleText.innerText = wakeState?.server_state === 'cold'
+                    if (loadingBubbleText && !snapshotHydrated) loadingBubbleText.innerText = wakeState?.server_state === 'cold'
                         ? 'Data service started — loading market data...'
                         : 'Connecting to market data...';
                 } else {
@@ -1487,7 +1490,7 @@
 
                         progress = Math.max(progress, 35);
                         if (progBar) progBar.style.width = `${progress}%`;
-                        if (loadingBubbleText) loadingBubbleText.innerText = 'Price loaded — building detailed analytics...';
+                        if (loadingBubbleText && !snapshotHydrated) loadingBubbleText.innerText = 'Price loaded — building detailed analytics...';
                         quoteHydrated = true;
                         setMarketDataStatus('price-live');
                         window.__sethiStockLastServerReadyAt = Date.now();
@@ -2715,6 +2718,6 @@
 
     </script>
     <script src="sethistock-financial-history.js"></script>
-    <script src="sethiway-history.js?v=stock4h2"></script>
+    <script src="sethiway-history.js?v=stock4h3"></script>
 </body>
 </html>

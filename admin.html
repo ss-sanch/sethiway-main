@@ -112,7 +112,7 @@
                 </span>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-4 gap-3 mb-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-3 mb-6">
                 <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
                     <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Avg Quote</p>
                     <p id="load-avg-quote" class="text-2xl font-black text-blue-600 mt-1">--</p>
@@ -145,6 +145,14 @@
                     <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Render Cold Rate</p>
                     <p id="load-server-cold-rate" class="text-2xl font-black text-purple-600 mt-1">--</p>
                 </div>
+                <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Avg Snapshot Paint</p>
+                    <p id="load-avg-snapshot" class="text-2xl font-black text-cyan-600 mt-1">--</p>
+                </div>
+                <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Snapshot Hit Rate</p>
+                    <p id="load-snapshot-hit-rate" class="text-2xl font-black text-cyan-700 mt-1">--</p>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -156,11 +164,12 @@
                         </div>
                     </div>
                     <div class="overflow-x-auto max-h-[420px] overflow-y-auto">
-                        <table class="w-full text-left border-collapse min-w-[860px]">
+                        <table class="w-full text-left border-collapse min-w-[940px]">
                             <thead class="sticky top-0 bg-white z-10">
                                 <tr class="border-b border-gray-100">
                                     <th class="py-2.5 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Time</th>
                                     <th class="py-2.5 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Ticker</th>
+                                    <th class="py-2.5 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Snapshot</th>
                                     <th class="py-2.5 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Quote</th>
                                     <th class="py-2.5 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Full Load</th>
                                     <th class="py-2.5 px-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Backend</th>
@@ -170,7 +179,7 @@
                                 </tr>
                             </thead>
                             <tbody id="stock-loads-body" class="divide-y divide-gray-100 text-xs">
-                                <tr><td colspan="8" class="text-center py-8 text-gray-400 italic">No load telemetry yet.</td></tr>
+                                <tr><td colspan="9" class="text-center py-8 text-gray-400 italic">No load telemetry yet.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -448,6 +457,8 @@
             document.getElementById('load-avg-cached').innerText = formatLoadMs(perf.avg_cached_full_ms);
             document.getElementById('load-avg-server-wake').innerText = formatLoadMs(perf.avg_server_wake_ms);
             document.getElementById('load-server-cold-rate').innerText = `${Number(perf.server_cold_rate_pct || 0).toFixed(1)}%`;
+            document.getElementById('load-avg-snapshot').innerText = formatLoadMs(perf.avg_snapshot_ms);
+            document.getElementById('load-snapshot-hit-rate').innerText = `${Number(perf.snapshot_hit_rate_pct || 0).toFixed(1)}%`;
 
             const stockLoadsBody = document.getElementById('stock-loads-body');
             const recentLoads = Array.isArray(data.recent_stock_loads) ? data.recent_stock_loads : [];
@@ -466,6 +477,11 @@
                         <tr class="hover:bg-gray-50 transition">
                             <td class="py-2.5 px-3 font-mono text-[10px] text-gray-500 whitespace-nowrap">${timeStr}</td>
                             <td class="py-2.5 px-3 font-black text-blue-700">${log.ticker || '--'}</td>
+                            <td class="py-2.5 px-3 whitespace-nowrap">
+                                ${log.snapshot_hit === true
+                                    ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold text-cyan-700 bg-cyan-50">Hit</span><span class="block text-[9px] text-gray-400 mt-1">${formatLoadMs(log.snapshot_ms)}</span>`
+                                    : '<span class="text-gray-300">--</span>'}
+                            </td>
                             <td class="py-2.5 px-3 font-bold text-gray-700">${formatLoadMs(log.quote_ms)}</td>
                             <td class="py-2.5 px-3 font-black text-gray-900">${formatLoadMs(log.full_ms)}</td>
                             <td class="py-2.5 px-3 font-semibold text-gray-500">${formatLoadMs(log.backend_ms)}</td>
@@ -477,7 +493,7 @@
                             <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${loadStatusBadge(status)}">${status}</span></td>
                         </tr>
                     `;
-                }).join('') : '<tr><td colspan="8" class="text-center py-8 text-gray-400 italic">No load telemetry yet.</td></tr>';
+                }).join('') : '<tr><td colspan="9" class="text-center py-8 text-gray-400 italic">No load telemetry yet.</td></tr>';
             }
 
             const tickerLoadsBody = document.getElementById('ticker-loads-body');

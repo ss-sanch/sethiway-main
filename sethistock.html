@@ -764,7 +764,7 @@
         async function probeRenderState() {
             const startedAt = performance.now();
             const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 90000);
+            const timeout = setTimeout(() => controller.abort(), 65000);
             try {
                 const response = await fetch(`${API_URL}/api/runtime/status`, {
                     cache: 'no-store',
@@ -775,6 +775,7 @@
                 const uptime = Number(payload?.process_uptime_seconds);
                 const uptimeSeconds = Number.isFinite(uptime) && uptime >= 0 ? Math.round(uptime) : null;
                 const genuinelyCold = uptimeSeconds !== null && uptimeSeconds < 120 && wakeMs >= 3000;
+                window.__sethiStockLastServerReadyAt = Date.now();
                 return {
                     server_wake_ms: wakeMs,
                     server_uptime_s: uptimeSeconds,
@@ -1044,10 +1045,17 @@
             let resolvedBackendMeta = null;
 
             const prewarmAgeMs = Date.now() - Number(window.__sethiStockWakeProbeStartedAt || 0);
-            const submitWakeProbe = window.__sethiStockWakeProbe && prewarmAgeMs < 60000
+            const existingPrewarm = window.__sethiStockWakeProbe && prewarmAgeMs < 65000
                 ? window.__sethiStockWakeProbe
-                : probeRenderState();
-            // Consume the page-open probe once; later ticker searches get a fresh server-state measurement.
+                : null;
+            const submitWakeProbe = existingPrewarm || probeRenderState();
+            const lastServerReadyAt = Number(window.__sethiStockLastServerReadyAt || 0);
+            const serverIdleMs = lastServerReadyAt ? (Date.now() - lastServerReadyAt) : Infinity;
+            // Render Free sleeps after prolonged inactivity. On a fresh page or after a long
+            // idle, wait for the runtime probe before spending the separate 30s analysis budget.
+            const shouldGateForServer = Boolean(existingPrewarm) || serverIdleMs > (12 * 60 * 1000);
+
+            // Consume the page-open probe once; later searches can measure server state afresh.
             window.__sethiStockWakeProbe = null;
             window.__sethiStockWakeProbeStartedAt = 0;
 
@@ -1114,13 +1122,16 @@
             let fullAnalysisReady = false;
             let quoteHydrated = false;
             let uiWatchdogFired = false;
+            let waitingForServer = shouldGateForServer;
             
             const loadingInterval = setInterval(() => {
                 phraseIndex = (phraseIndex + 1) % loadingPhrases.length;
                 if (loadingBubbleText) {
-                    loadingBubbleText.innerText = quoteHydrated
-                        ? 'Live data ready — detailed analytics are still building...'
-                        : loadingPhrases[phraseIndex];
+                    loadingBubbleText.innerText = waitingForServer
+                        ? 'Starting data service — first load may take longer...'
+                        : (quoteHydrated
+                            ? 'Live data ready — detailed analytics are still building...'
+                            : loadingPhrases[phraseIndex]);
                 }
                 
                 if (progress < 90) {
@@ -1129,9 +1140,12 @@
                 }
             }, 1500);
 
-            // Independent UI watchdog: even if a browser/network abort edge case prevents
-            // the analysis promise from settling, the public page must never spin forever.
-            const hardUiWatchdog = setTimeout(() => {
+            // The analysis budget is separate from a Render cold start. Arm this only
+            // once the runtime probe says the service is actually accepting requests.
+            let hardUiWatchdog = null;
+            const armAnalysisWatchdog = () => {
+                if (hardUiWatchdog) clearTimeout(hardUiWatchdog);
+                hardUiWatchdog = setTimeout(() => {
                 if (analysisSequence !== window.__sethiStockAnalysisSequence || fullAnalysisReady) return;
                 uiWatchdogFired = true;
                 clearInterval(loadingInterval);
@@ -1164,11 +1178,34 @@
                 recordLoadTiming('partial', { error_code: 'UI_WATCHDOG_TIMEOUT' });
                 analysisController.abort();
             }, FULL_ANALYSIS_TIMEOUT_MS + 1500);
+            };
 
             try {
                 const requestedTicker = state.ticker;
 
-                // Stage 1 starts immediately: chart + lightweight quote.
+                if (shouldGateForServer) {
+                    btn.innerHTML = 'Starting service…';
+                    if (loadingBubbleText) loadingBubbleText.innerText = 'Starting data service — first load may take longer...';
+                    const wakeState = await submitWakeProbe;
+                    if (analysisSequence !== window.__sethiStockAnalysisSequence) return;
+
+                    if (wakeState?.server_state === 'unknown' && Number(wakeState?.server_wake_ms) >= 64000) {
+                        const wakeError = new Error('The data service did not start within the expected window. Please retry in a moment.');
+                        wakeError.code = 'SERVER_WAKE_TIMEOUT';
+                        throw wakeError;
+                    }
+                    waitingForServer = false;
+                    btn.innerHTML = 'Analysing...';
+                    if (loadingBubbleText) loadingBubbleText.innerText = wakeState?.server_state === 'cold'
+                        ? 'Data service started — loading market data...'
+                        : 'Connecting to market data...';
+                } else {
+                    waitingForServer = false;
+                }
+
+                armAnalysisWatchdog();
+
+                // Stage 1 starts once the backend is confirmed ready: chart + lightweight quote.
                 // The full analysis continues in parallel and hydrates the heavier sections when ready.
                 const chartPromise = fetchChart().catch(() => null);
                 // Heavy analysis gets one bounded attempt. Retrying a timed-out first load
@@ -1203,6 +1240,7 @@
                         if (progBar) progBar.style.width = `${progress}%`;
                         if (loadingBubbleText) loadingBubbleText.innerText = 'Price loaded — building detailed analytics...';
                         quoteHydrated = true;
+                        window.__sethiStockLastServerReadyAt = Date.now();
                         if (quoteLoadMs === null) quoteLoadMs = Math.round(performance.now() - loadStartedAt);
 
                         // First useful paint: once the lightweight quote arrives, make the
@@ -1224,6 +1262,7 @@
                 const data = await fullDataPromise;
                 if (analysisSequence !== window.__sethiStockAnalysisSequence) return;
                 fullAnalysisReady = true;
+                window.__sethiStockLastServerReadyAt = Date.now();
                 clearTimeout(hardUiWatchdog);
                 resolvedBackendMeta = data?._meta || null;
 
@@ -1563,9 +1602,11 @@
                     recordLoadTiming('partial', { error_code: 'ANALYSIS_TIMEOUT' });
                 } else {
                     if (loadingBubbleText) loadingBubbleText.innerText = "Data Sync Failed.";
-                    const message = err?.message === 'Failed to fetch'
-                        ? 'Detailed analysis could not reach the data server. Please retry.'
-                        : (err?.message || 'Detailed analysis temporarily unavailable.');
+                    const message = err?.code === 'SERVER_WAKE_TIMEOUT'
+                        ? 'The data service is still starting. Please retry in a moment.'
+                        : (err?.message === 'Failed to fetch'
+                            ? 'Detailed analysis could not reach the data server. Please retry.'
+                            : (err?.message || 'Detailed analysis temporarily unavailable.'));
                     if (errorEl) {
                         errorEl.innerText = message;
                         errorEl.className = 'text-red-500 mt-4 font-semibold';
@@ -2423,6 +2464,6 @@
 
     </script>
     <script src="sethistock-financial-history.js"></script>
-    <script src="sethiway-history.js?v=stock4f2"></script>
+    <script src="sethiway-history.js?v=stock4g1"></script>
 </body>
 </html>

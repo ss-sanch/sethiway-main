@@ -1263,7 +1263,7 @@
             }
 
             // 5. PILLAR 3: GDP
-            if(gdp.US_GDP && gdp.UK_GDP && gdp.EU_GDP) {
+            if(gdp.US_GDP?.length && gdp.UK_GDP?.length && gdp.EU_GDP?.length) {
                 let usG = [...gdp.US_GDP].reverse();
                 let ukG = [...gdp.UK_GDP].reverse();
                 let euG = [...gdp.EU_GDP].reverse();
@@ -1293,7 +1293,7 @@
             }
 
             // THE FIX: Explicitly draw the Industrial Production Chart
-            if(gdp.IndPro) {
+            if(gdp.IndPro?.length) {
                 const indpro = [...gdp.IndPro].reverse();
                 const indColors = indpro.map(d => d.value >= 0 ? '#1f2937' : '#ef4444');
                 Plotly.newPlot('chart-indpro', [
@@ -1301,7 +1301,7 @@
                 ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 }, showlegend: false }, {displayModeBar: false});
             }
 
-            if(gdp.Retail_Sales) {
+            if(gdp.Retail_Sales?.length) {
                 const retail = [...gdp.Retail_Sales].reverse();
                 const retailColors = retail.map(d => d.value >= 0 ? '#10b981' : '#ef4444');
                 Plotly.newPlot('chart-retail', [
@@ -1309,7 +1309,7 @@
                 ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 }, showlegend: false }, {displayModeBar: false});
             }
 
-            if(gdp.Sentiment) {
+            if(gdp.Sentiment?.length) {
                 const sentiment = [...gdp.Sentiment].reverse();
                 Plotly.newPlot('chart-sentiment', [
                     {x: sentiment.map(d=>d.date), y: sentiment.map(d=>d.value), name: 'Consumer Sentiment', type: 'scatter', line: {color: '#f59e0b', width: 2}, fill: 'tozeroy', fillcolor: 'rgba(245, 158, 11, 0.1)'}

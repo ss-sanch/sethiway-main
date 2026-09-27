@@ -167,6 +167,89 @@
 
         </div>
 
+        <!-- PHASE 2A: MACRO REGIME + MOMENTUM -->
+        <div class="max-w-[1600px] px-4 lg:px-8 mx-auto grid grid-cols-1 xl:grid-cols-2 gap-5 mb-5">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6">
+                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-5">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600 mb-1">Growth × Inflation</p>
+                        <h2 class="text-xl font-black text-gray-900">Macro Regime</h2>
+                        <p class="text-xs text-gray-500 mt-1">Directional breadth across observable US growth and inflation indicators.</p>
+                    </div>
+                    <span id="regime-label" class="inline-flex self-start px-3 py-1.5 rounded-full border border-gray-200 bg-gray-50 text-[11px] font-black text-gray-600">Calculating</span>
+                </div>
+
+                <div class="relative h-64 sm:h-72 rounded-2xl overflow-hidden border border-gray-200 bg-gray-50">
+                    <div class="absolute inset-0 grid grid-cols-2 grid-rows-2">
+                        <div class="border-r border-b border-gray-200 bg-rose-50/40 p-3 flex items-start">
+                            <span class="text-[10px] sm:text-xs font-bold text-rose-700">Growth slowing<br>Inflation heating</span>
+                        </div>
+                        <div class="border-b border-gray-200 bg-amber-50/50 p-3 flex items-start justify-end text-right">
+                            <span class="text-[10px] sm:text-xs font-bold text-amber-700">Growth improving<br>Inflation heating</span>
+                        </div>
+                        <div class="border-r border-gray-200 bg-blue-50/40 p-3 flex items-end">
+                            <span class="text-[10px] sm:text-xs font-bold text-blue-700">Growth slowing<br>Inflation cooling</span>
+                        </div>
+                        <div class="bg-emerald-50/50 p-3 flex items-end justify-end text-right">
+                            <span class="text-[10px] sm:text-xs font-bold text-emerald-700">Growth improving<br>Inflation cooling</span>
+                        </div>
+                    </div>
+                    <div class="absolute left-1/2 top-0 bottom-0 w-px bg-gray-300"></div>
+                    <div class="absolute top-1/2 left-0 right-0 h-px bg-gray-300"></div>
+                    <div id="regime-dot" class="absolute w-5 h-5 rounded-full bg-gray-900 border-[3px] border-white shadow-lg -translate-x-1/2 -translate-y-1/2 transition-all duration-700" style="left:50%;top:50%"></div>
+                    <span class="absolute left-2 top-1/2 -translate-y-1/2 -rotate-90 origin-left text-[9px] font-black uppercase tracking-widest text-gray-400">Inflation</span>
+                    <span class="absolute bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-black uppercase tracking-widest text-gray-400">Growth momentum</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mt-4">
+                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                        <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Growth breadth</p>
+                        <div class="flex items-end gap-2 mt-1">
+                            <span id="regime-growth-score" class="text-xl font-black text-gray-900">--</span>
+                            <span id="regime-growth-state" class="text-[11px] font-bold text-gray-500 mb-0.5">Awaiting data</span>
+                        </div>
+                    </div>
+                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                        <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Inflation breadth</p>
+                        <div class="flex items-end gap-2 mt-1">
+                            <span id="regime-inflation-score" class="text-xl font-black text-gray-900">--</span>
+                            <span id="regime-inflation-state" class="text-[11px] font-bold text-gray-500 mb-0.5">Awaiting data</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="mt-3 text-[10px] leading-relaxed text-gray-400">Breadth scores range from -100 to +100 and measure the direction of the underlying indicators, not forecast probabilities.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6">
+                <div class="flex items-start justify-between gap-3 mb-4">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-indigo-600 mb-1">What changed?</p>
+                        <h2 class="text-xl font-black text-gray-900">Macro Momentum</h2>
+                        <p class="text-xs text-gray-500 mt-1">Latest levels and recent directional changes used in the regime framework.</p>
+                    </div>
+                    <span id="regime-coverage" class="text-[10px] font-black uppercase tracking-wider text-gray-400"></span>
+                </div>
+                <div id="regime-components" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div class="rounded-xl border border-gray-200 p-3 text-xs text-gray-400">Awaiting macro inputs…</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PHASE 2A: CROSS-ASSET MACRO PULSE -->
+        <div class="max-w-[1600px] px-4 lg:px-8 mx-auto bg-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6 mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-4">
+                <div>
+                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-sky-600 mb-1">Markets</p>
+                    <h2 class="text-xl font-black text-gray-900">Cross-Asset Macro Pulse</h2>
+                    <p class="text-xs text-gray-500 mt-1">A compact read of dollar, rates, commodities and credit over the latest monthly interval.</p>
+                </div>
+                <span class="text-[10px] font-semibold text-gray-400">Direction is descriptive, not a positive/negative market judgement.</span>
+            </div>
+            <div id="cross-asset-pulse-grid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+                <div class="rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-400 col-span-2">Awaiting market data…</div>
+            </div>
+        </div>
+
         <!-- TOP EXECUTIVE AI SUMMARY CONTAINER -->
         <div class="bg-blue-50/80 border border-blue-200 rounded-2xl p-6 mb-12 shadow-sm relative overflow-hidden">
             <div class="flex items-center justify-between mb-3">
@@ -1009,6 +1092,413 @@
         };
         const layoutMini = { ...layoutBase, margin: { t: 5, r: 5, l: 30, b: 20 }, showlegend: false };
 
+        function sortedMacroSeries(rows) {
+            if (!Array.isArray(rows)) return [];
+            return rows
+                .filter(row => row?.date && Number.isFinite(Number(row?.value)))
+                .map(row => ({ date: String(row.date), value: Number(row.value) }))
+                .sort((a, b) => a.date.localeCompare(b.date));
+        }
+
+        function macroSeriesStats(rows, lookback = 1) {
+            const clean = sortedMacroSeries(rows);
+            if (!clean.length) return null;
+            const latest = clean[clean.length - 1];
+            const previous = clean[Math.max(0, clean.length - 1 - lookback)];
+            const delta = latest.value - previous.value;
+            const pct = previous.value !== 0 ? (delta / Math.abs(previous.value)) * 100 : null;
+            return {
+                latest: latest.value,
+                latestDate: latest.date,
+                previous: previous.value,
+                delta,
+                pct,
+                observations: clean.length
+            };
+        }
+
+        function average(values) {
+            const clean = values.filter(Number.isFinite);
+            return clean.length ? clean.reduce((sum, value) => sum + value, 0) / clean.length : null;
+        }
+
+        function signedText(value, decimals = 1, suffix = "") {
+            if (!Number.isFinite(value)) return "N/A";
+            const rounded = value.toFixed(decimals);
+            if (Math.abs(value) < Math.pow(10, -decimals) / 2) return `→ 0${suffix}`;
+            return value > 0 ? `↑ +${rounded}${suffix}` : `↓ ${rounded}${suffix}`;
+        }
+
+        function levelText(value, decimals = 1, prefix = "", suffix = "") {
+            return Number.isFinite(value) ? `${prefix}${value.toFixed(decimals)}${suffix}` : "N/A";
+        }
+
+        function directionSignal(delta, deadband = 0, invert = false) {
+            if (!Number.isFinite(delta)) return null;
+            let signal = Math.abs(delta) <= deadband ? 0 : (delta > 0 ? 1 : -1);
+            return invert ? -signal : signal;
+        }
+
+        function deriveMacroRegime(data) {
+            const jobs = data.jobs || {};
+            const rates = data.rates || {};
+            const gdp = data.gdp || {};
+
+            const growth = [];
+            const inflation = [];
+            const addComponent = (target, name, stats, unit, signal, window, latestOverride = null, changeOverride = null) => {
+                if (!stats && !Number.isFinite(latestOverride)) return;
+                target.push({
+                    name,
+                    latest: Number.isFinite(latestOverride) ? latestOverride : stats.latest,
+                    change: Number.isFinite(changeOverride) ? changeOverride : stats.delta,
+                    unit,
+                    signal,
+                    window
+                });
+            };
+
+            const unemp = macroSeriesStats(jobs.US_Unemp, 3);
+            if (unemp) addComponent(growth, "US unemployment", unemp, "pp", directionSignal(unemp.delta, 0.05, true), "3M");
+
+            const retail = macroSeriesStats(gdp.Retail_Sales, 3);
+            if (retail) addComponent(growth, "Retail sales YoY", retail, "pp", directionSignal(retail.delta, 0.10), "3M");
+
+            const indpro = macroSeriesStats(gdp.IndPro, 3);
+            if (indpro) addComponent(growth, "Industrial production YoY", indpro, "pp", directionSignal(indpro.delta, 0.10), "3M");
+
+            const nfp = sortedMacroSeries(jobs.US_NFP);
+            if (nfp.length >= 6) {
+                const recent = average(nfp.slice(-3).map(row => row.value));
+                const prior = average(nfp.slice(-6, -3).map(row => row.value));
+                const delta = Number.isFinite(recent) && Number.isFinite(prior) ? recent - prior : null;
+                addComponent(growth, "Payrolls 3M avg", null, "k", directionSignal(delta, 10), "vs prior 3M", recent, delta);
+            }
+
+            [
+                ["Headline CPI YoY", rates.CPI],
+                ["Core PCE YoY", rates.PCE],
+                ["PPI YoY", rates.PPI]
+            ].forEach(([name, rows]) => {
+                const stats = macroSeriesStats(rows, 3);
+                if (stats) addComponent(inflation, name, stats, "pp", directionSignal(stats.delta, 0.10), "3M");
+            });
+
+            const breadth = (items) => {
+                const scores = items.map(item => item.signal).filter(value => value === -1 || value === 0 || value === 1);
+                return scores.length ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 100) : null;
+            };
+
+            const growthScore = breadth(growth);
+            const inflationScore = breadth(inflation);
+            const growthState = Number.isFinite(growthScore)
+                ? (growthScore > 0 ? "Improving" : growthScore < 0 ? "Slowing" : "Broadly stable")
+                : "Insufficient data";
+            const inflationState = Number.isFinite(inflationScore)
+                ? (inflationScore > 0 ? "Heating" : inflationScore < 0 ? "Cooling" : "Broadly stable")
+                : "Insufficient data";
+
+            let key = "partial";
+            let label = "Partial data";
+            if (Number.isFinite(growthScore) && Number.isFinite(inflationScore)) {
+                if (growthScore >= 0 && inflationScore <= 0) {
+                    key = "growth_up_inflation_down";
+                    label = "Growth improving · Inflation cooling";
+                } else if (growthScore >= 0 && inflationScore > 0) {
+                    key = "growth_up_inflation_up";
+                    label = "Growth improving · Inflation heating";
+                } else if (growthScore < 0 && inflationScore <= 0) {
+                    key = "growth_down_inflation_down";
+                    label = "Growth slowing · Inflation cooling";
+                } else {
+                    key = "growth_down_inflation_up";
+                    label = "Growth slowing · Inflation heating";
+                }
+            }
+
+            return {
+                key,
+                label,
+                growth_score: growthScore,
+                inflation_score: inflationScore,
+                growth_state: growthState,
+                inflation_state: inflationState,
+                growth_components: growth,
+                inflation_components: inflation,
+                available_growth_signals: growth.length,
+                available_inflation_signals: inflation.length,
+                partial: growth.length < 3 || inflation.length < 2
+            };
+        }
+
+        function renderMacroRegime(data) {
+            const sig = data.sig || {};
+            const regime = sig.Macro_Regime || deriveMacroRegime(data);
+            if (!regime) return;
+
+            const growth = regime.growth_score === null || regime.growth_score === undefined ? null : Number(regime.growth_score);
+            const inflation = regime.inflation_score === null || regime.inflation_score === undefined ? null : Number(regime.inflation_score);
+            const label = document.getElementById("regime-label");
+            const dot = document.getElementById("regime-dot");
+            const growthScore = document.getElementById("regime-growth-score");
+            const inflationScore = document.getElementById("regime-inflation-score");
+            const growthState = document.getElementById("regime-growth-state");
+            const inflationState = document.getElementById("regime-inflation-state");
+            const coverage = document.getElementById("regime-coverage");
+            const componentGrid = document.getElementById("regime-components");
+
+            const styles = {
+                growth_up_inflation_down: "border-emerald-200 bg-emerald-50 text-emerald-800",
+                growth_up_inflation_up: "border-amber-200 bg-amber-50 text-amber-800",
+                growth_down_inflation_down: "border-blue-200 bg-blue-50 text-blue-800",
+                growth_down_inflation_up: "border-rose-200 bg-rose-50 text-rose-800",
+                partial: "border-gray-200 bg-gray-50 text-gray-600"
+            };
+
+            if (label) {
+                label.innerText = regime.label || "Partial data";
+                label.className = `inline-flex self-start px-3 py-1.5 rounded-full border text-[11px] font-black ${styles[regime.key] || styles.partial}`;
+            }
+            if (dot && Number.isFinite(growth) && Number.isFinite(inflation)) {
+                const left = Math.max(5, Math.min(95, (growth + 100) / 2));
+                const top = Math.max(5, Math.min(95, (100 - inflation) / 2));
+                dot.style.left = `${left}%`;
+                dot.style.top = `${top}%`;
+                dot.classList.remove("bg-gray-900", "bg-gray-700", "bg-emerald-600", "bg-amber-500", "bg-blue-600", "bg-rose-600");
+                dot.classList.add(
+                    regime.key === "growth_up_inflation_down" ? "bg-emerald-600" :
+                    regime.key === "growth_up_inflation_up" ? "bg-amber-500" :
+                    regime.key === "growth_down_inflation_down" ? "bg-blue-600" :
+                    regime.key === "growth_down_inflation_up" ? "bg-rose-600" : "bg-gray-700"
+                );
+            }
+
+            if (growthScore) growthScore.innerText = Number.isFinite(growth) ? `${growth > 0 ? "+" : ""}${growth}` : "--";
+            if (inflationScore) inflationScore.innerText = Number.isFinite(inflation) ? `${inflation > 0 ? "+" : ""}${inflation}` : "--";
+            if (growthState) growthState.innerText = regime.growth_state || "Insufficient data";
+            if (inflationState) inflationState.innerText = regime.inflation_state || "Insufficient data";
+            if (coverage) coverage.innerText = `${regime.available_growth_signals || 0} growth · ${regime.available_inflation_signals || 0} inflation`;
+
+            const groups = [
+                ...(regime.growth_components || []).map(item => ({ ...item, group: "growth" })),
+                ...(regime.inflation_components || []).map(item => ({ ...item, group: "inflation" }))
+            ];
+
+            if (componentGrid && groups.length) {
+                componentGrid.innerHTML = groups.map(item => {
+                    const latest = item.unit === "k"
+                        ? levelText(Number(item.latest), 0, "", "k")
+                        : levelText(Number(item.latest), 2, "", "%");
+                    const change = item.unit === "k"
+                        ? signedText(Number(item.change), 0, "k")
+                        : signedText(Number(item.change), 2, "pp");
+
+                    let signalText = "Stable";
+                    let signalClass = "bg-gray-100 text-gray-600";
+                    if (item.group === "growth") {
+                        if (item.signal > 0) { signalText = "Strengthening"; signalClass = "bg-emerald-50 text-emerald-700"; }
+                        if (item.signal < 0) { signalText = "Softening"; signalClass = "bg-rose-50 text-rose-700"; }
+                    } else {
+                        if (item.signal > 0) { signalText = "Heating"; signalClass = "bg-amber-50 text-amber-700"; }
+                        if (item.signal < 0) { signalText = "Cooling"; signalClass = "bg-blue-50 text-blue-700"; }
+                    }
+
+                    return `
+                        <div class="rounded-xl border border-gray-200 bg-gray-50/70 p-3">
+                            <div class="flex items-start justify-between gap-2">
+                                <p class="text-[11px] font-bold text-gray-700 leading-tight">${item.name}</p>
+                                <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wide ${signalClass}">${signalText}</span>
+                            </div>
+                            <div class="flex items-end justify-between gap-2 mt-2">
+                                <span class="text-lg font-black text-gray-900">${latest}</span>
+                                <span class="text-[10px] font-bold text-gray-500">${change} · ${item.window || ""}</span>
+                            </div>
+                        </div>`;
+                }).join("");
+            }
+        }
+
+        function pulseCard(label, value, change, dateLabel = "") {
+            return `
+                <div class="rounded-xl border border-gray-200 bg-gray-50/70 p-3 min-w-0">
+                    <p class="text-[10px] font-black uppercase tracking-wider text-gray-400 truncate">${label}</p>
+                    <div class="flex items-end justify-between gap-2 mt-2">
+                        <span class="text-lg font-black text-gray-900 whitespace-nowrap">${value}</span>
+                        <span class="text-[10px] font-bold text-gray-600 whitespace-nowrap">${change}</span>
+                    </div>
+                    <p class="text-[9px] text-gray-400 mt-1 truncate">${dateLabel}</p>
+                </div>`;
+        }
+
+        function renderCrossAssetPulse(data) {
+            const rates = data.rates || {};
+            const fx = data.fx || {};
+            const comm = data.commData || {};
+            const grid = document.getElementById("cross-asset-pulse-grid");
+            if (!grid) return;
+
+            const broadUsd = macroSeriesStats(fx.broad_usd || fx.dxy, 1);
+            const gold = macroSeriesStats(comm.Gold, 1);
+            const oil = macroSeriesStats(comm.Oil, 1);
+            const credit = macroSeriesStats(comm.Credit_Spread, 1);
+            const us10 = macroSeriesStats(rates.US_10Y, 1);
+            const realYield = macroSeriesStats(rates.Real_Yield, 1);
+
+            const monthLabel = (date) => date
+                ? new Date(`${String(date).slice(0, 10)}T00:00:00Z`).toLocaleDateString("en-GB", { month: "short", year: "numeric" })
+                : "";
+
+            const cards = [
+                broadUsd && pulseCard("Broad USD", levelText(broadUsd.latest, 1), signedText(broadUsd.pct, 1, "%"), monthLabel(broadUsd.latestDate)),
+                gold && pulseCard("Gold", levelText(gold.latest, 0, "$"), signedText(gold.pct, 1, "%"), monthLabel(gold.latestDate)),
+                oil && pulseCard("WTI crude", levelText(oil.latest, 1, "$"), signedText(oil.pct, 1, "%"), monthLabel(oil.latestDate)),
+                credit && pulseCard("HY OAS", levelText(credit.latest, 2, "", "%"), signedText(credit.delta * 100, 0, "bp"), monthLabel(credit.latestDate)),
+                us10 && pulseCard("US 10Y", levelText(us10.latest, 2, "", "%"), signedText(us10.delta * 100, 0, "bp"), monthLabel(us10.latestDate)),
+                realYield && pulseCard("10Y real yield", levelText(realYield.latest, 2, "", "%"), signedText(realYield.delta * 100, 0, "bp"), monthLabel(realYield.latestDate))
+            ].filter(Boolean);
+
+            grid.innerHTML = cards.length ? cards.join("") : '<div class="rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-400 col-span-2">Market pulse unavailable.</div>';
+        }
+
+        function upsertMetricStrip(chartId, items) {
+            const chart = document.getElementById(chartId);
+            if (!chart || !Array.isArray(items) || !items.length) return;
+            const id = `${chartId}-metric-strip`;
+            let strip = document.getElementById(id);
+            if (!strip) {
+                strip = document.createElement("div");
+                strip.id = id;
+                strip.className = "flex flex-wrap gap-2 mb-3";
+                chart.insertAdjacentElement("beforebegin", strip);
+            }
+
+            strip.innerHTML = items.filter(Boolean).map(item => `
+                <div class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-gray-400">${item.label}</span>
+                    <span class="text-[11px] font-black text-gray-800">${item.value}</span>
+                    ${item.change ? `<span class="text-[10px] font-bold text-gray-500">${item.change}</span>` : ""}
+                </div>
+            `).join("");
+        }
+
+        function renderChartMetricStrips(data) {
+            const jobs = data.jobs || {};
+            const rates = data.rates || {};
+            const gdp = data.gdp || {};
+            const fx = data.fx || {};
+            const yieldCurve = data.yieldCurveData || {};
+            const comm = data.commData || {};
+
+            const stat = (rows, lookback = 1) => macroSeriesStats(rows, lookback);
+            const pp = (s, digits = 1) => s ? signedText(s.delta, digits, "pp") : "";
+            const bp = (s) => s ? signedText(s.delta * 100, 0, "bp") : "";
+            const pct = (s) => s ? signedText(s.pct, 1, "%") : "";
+
+            const unemploymentRows = [jobs.US_Unemp, jobs.UK_Unemp, jobs.DE_Unemp || jobs.EU_Unemp];
+            const unemploymentMaps = unemploymentRows.map(rows => new Map(
+                sortedMacroSeries(rows).map(row => [row.date.slice(0, 7), row.value])
+            ));
+            const commonUnemploymentMonths = unemploymentMaps[0]
+                ? [...unemploymentMaps[0].keys()].filter(month => unemploymentMaps.slice(1).every(map => map.has(month))).sort()
+                : [];
+            const commonUnemploymentStat = (map) => {
+                if (!map || !commonUnemploymentMonths.length) return null;
+                const latestMonth = commonUnemploymentMonths[commonUnemploymentMonths.length - 1];
+                const priorMonth = commonUnemploymentMonths[Math.max(0, commonUnemploymentMonths.length - 4)];
+                const latest = map.get(latestMonth);
+                const previous = map.get(priorMonth);
+                return Number.isFinite(latest) && Number.isFinite(previous)
+                    ? { latest, delta: latest - previous }
+                    : null;
+            };
+            const usU = commonUnemploymentStat(unemploymentMaps[0]);
+            const ukU = commonUnemploymentStat(unemploymentMaps[1]);
+            const deU = commonUnemploymentStat(unemploymentMaps[2]);
+            upsertMetricStrip("chart-unemp", [
+                usU && { label: "US · aligned", value: levelText(usU.latest, 1, "", "%"), change: `${pp(usU)} · 3M` },
+                ukU && { label: "UK · aligned", value: levelText(ukU.latest, 1, "", "%"), change: `${pp(ukU)} · 3M` },
+                deU && { label: "Germany · aligned", value: levelText(deU.latest, 1, "", "%"), change: `${pp(deU)} · 3M` }
+            ]);
+
+            const wages = stat(jobs.US_Wages, 3);
+            upsertMetricStrip("chart-wages", [wages && { label: "Wages", value: levelText(wages.latest, 2, "", "%"), change: `${pp(wages, 2)} · 3M` }]);
+
+            const jolts = stat(jobs.US_JOLTS, 3);
+            upsertMetricStrip("chart-jolts", [jolts && { label: "Openings", value: levelText(jolts.latest / 1000, 2, "", "m"), change: `${pct(jolts)} · 3M` }]);
+
+            const nfpClean = sortedMacroSeries(jobs.US_NFP);
+            const nfpLatest = nfpClean.length ? nfpClean[nfpClean.length - 1].value : null;
+            const nfp3m = nfpClean.length >= 3 ? average(nfpClean.slice(-3).map(row => row.value)) : null;
+            upsertMetricStrip("chart-nfp", [
+                Number.isFinite(nfpLatest) && { label: "Latest", value: levelText(nfpLatest, 0, "", "k"), change: "" },
+                Number.isFinite(nfp3m) && { label: "3M avg", value: levelText(nfp3m, 0, "", "k"), change: "" }
+            ]);
+
+            const fed = stat(rates.Fed_Funds, 3), ecb = stat(rates.ECB_Rate, 3);
+            upsertMetricStrip("chart-cb-rates", [
+                fed && { label: "Fed", value: levelText(fed.latest, 2, "", "%"), change: `${pp(fed, 2)} · 3M` },
+                ecb && { label: "ECB", value: levelText(ecb.latest, 2, "", "%"), change: `${pp(ecb, 2)} · 3M` }
+            ]);
+
+            const us10 = stat(rates.US_10Y, 1), uk10 = stat(rates.UK_10Y, 1), de10 = stat(rates.GER_10Y, 1);
+            upsertMetricStrip("chart-spreads", [
+                us10 && { label: "US 10Y", value: levelText(us10.latest, 2, "", "%"), change: `${bp(us10)} · 1M` },
+                uk10 && { label: "UK 10Y", value: levelText(uk10.latest, 2, "", "%"), change: `${bp(uk10)} · 1M` },
+                de10 && { label: "Germany 10Y", value: levelText(de10.latest, 2, "", "%"), change: `${bp(de10)} · 1M` }
+            ]);
+
+            const cpi = stat(rates.CPI, 3), pce = stat(rates.PCE, 3), ppi = stat(rates.PPI, 3);
+            upsertMetricStrip("chart-inflation", [
+                cpi && { label: "CPI", value: levelText(cpi.latest, 2, "", "%"), change: `${pp(cpi, 2)} · 3M` },
+                pce && { label: "Core PCE", value: levelText(pce.latest, 2, "", "%"), change: `${pp(pce, 2)} · 3M` },
+                ppi && { label: "PPI", value: levelText(ppi.latest, 2, "", "%"), change: `${pp(ppi, 2)} · 3M` }
+            ]);
+
+            const real = stat(rates.Real_Yield, 1), breakeven = stat(rates.Breakeven, 1);
+            upsertMetricStrip("chart-real-yields", [
+                real && { label: "Real yield", value: levelText(real.latest, 2, "", "%"), change: `${bp(real)} · 1M` },
+                breakeven && { label: "Breakeven", value: levelText(breakeven.latest, 2, "", "%"), change: `${bp(breakeven)} · 1M` }
+            ]);
+
+            const spread = stat(yieldCurve.Inversion_Spread, 3);
+            upsertMetricStrip("chart-yield-spread", [spread && { label: "10Y–2Y", value: levelText(spread.latest, 2, "", "%"), change: `${bp(spread)} · 3M` }]);
+
+            const term = yieldCurve.Term_Structure || {};
+            const term2 = stat(term["2Y"], 1), term10 = stat(term["10Y"], 1), term30 = stat(term["30Y"], 1);
+            upsertMetricStrip("chart-term-structure", [
+                term2 && { label: "2Y", value: levelText(term2.latest, 2, "", "%"), change: "" },
+                term10 && { label: "10Y", value: levelText(term10.latest, 2, "", "%"), change: "" },
+                term30 && { label: "30Y", value: levelText(term30.latest, 2, "", "%"), change: "" }
+            ]);
+
+            const usGdp = stat(gdp.US_GDP, 1), ukGdp = stat(gdp.UK_GDP, 1), euGdp = stat(gdp.EU_GDP, 1);
+            upsertMetricStrip("chart-gdp", [
+                usGdp && { label: "US", value: levelText(usGdp.latest, 2, "", "%"), change: `${pp(usGdp, 2)} · 1Q` },
+                ukGdp && { label: "UK", value: levelText(ukGdp.latest, 2, "", "%"), change: `${pp(ukGdp, 2)} · 1Q` },
+                euGdp && { label: "Euro area", value: levelText(euGdp.latest, 2, "", "%"), change: `${pp(euGdp, 2)} · 1Q` }
+            ]);
+
+            const indpro = stat(gdp.IndPro, 3), retail = stat(gdp.Retail_Sales, 3), sentiment = stat(gdp.Sentiment, 3);
+            upsertMetricStrip("chart-indpro", [indpro && { label: "YoY", value: levelText(indpro.latest, 2, "", "%"), change: `${pp(indpro, 2)} · 3M` }]);
+            upsertMetricStrip("chart-retail", [retail && { label: "YoY", value: levelText(retail.latest, 2, "", "%"), change: `${pp(retail, 2)} · 3M` }]);
+            upsertMetricStrip("chart-sentiment", [sentiment && { label: "Index", value: levelText(sentiment.latest, 1), change: `${signedText(sentiment.delta, 1)} · 3M` }]);
+
+            [
+                ["chart-dxy", "Broad USD", fx.broad_usd || fx.dxy, 1],
+                ["chart-gbp", "GBP/USD", fx.gbp_usd, 3],
+                ["chart-eur", "EUR/USD", fx.eur_usd, 3],
+                ["chart-jpy", "USD/JPY", fx.usd_jpy, 2]
+            ].forEach(([id, label, rows, decimals]) => {
+                const s = stat(rows, 1);
+                upsertMetricStrip(id, [s && { label, value: levelText(s.latest, decimals), change: `${pct(s)} · 1M` }]);
+            });
+
+            const oil = stat(comm.Oil, 1), gold = stat(comm.Gold, 1), credit = stat(comm.Credit_Spread, 1);
+            upsertMetricStrip("chart-oil", [oil && { label: "WTI", value: levelText(oil.latest, 1, "$"), change: `${pct(oil)} · 1M` }]);
+            upsertMetricStrip("chart-gold", [gold && { label: "Gold", value: levelText(gold.latest, 0, "$"), change: `${pct(gold)} · 1M` }]);
+            upsertMetricStrip("chart-credit", [credit && { label: "HY OAS", value: levelText(credit.latest, 2, "", "%"), change: `${bp(credit)} · 1M` }]);
+        }
+
         function renderMacroData(data = {}, source = "live", timestamp = null) {
             const jobs = data.jobs || {};
             const rates = data.rates || {};
@@ -1018,6 +1508,10 @@
             const cal = data.cal || { past: [], future: [] };
             const yieldCurveData = data.yieldCurveData || {};
             const commData = data.commData || {};
+
+            renderMacroRegime(data);
+            renderCrossAssetPulse(data);
+            renderChartMetricStrips(data);
 
             // 1. POPULATE KPI BAR
             if(sig.Sahm_Rule) {
@@ -1172,7 +1666,7 @@
                 
                 // JOLTS Chart (Line with shaded area)
                 Plotly.newPlot('chart-jolts', [
-                    {x: jolts.map(d=>d.date), y: jolts.map(d=>d.value), name: 'Job Openings (M)', type: 'scatter', line: {color: '#8b5cf6', width: 2}, fill: 'tozeroy', fillcolor: 'rgba(139, 92, 246, 0.1)'}
+                    {x: jolts.map(d=>d.date), y: jolts.map(d=>Number(d.value) / 1000), name: 'Job Openings (M)', type: 'scatter', line: {color: '#8b5cf6', width: 2}, fill: 'tozeroy', fillcolor: 'rgba(139, 92, 246, 0.1)'}
                 ], { ...layoutBase, showlegend: false, margin: { t: 10, r: 20, l: 40, b: 40 } }, {displayModeBar: false});
 
                 // NFP Chart (Color-coded Bars)

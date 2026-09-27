@@ -1112,13 +1112,36 @@
 
             // 3. PILLAR 1: JOBS
             if(jobs.US_Unemp?.length && jobs.UK_Unemp?.length && (jobs.DE_Unemp?.length || jobs.EU_Unemp?.length)) {
-                const usU = [...jobs.US_Unemp].reverse();
-                const ukU = [...jobs.UK_Unemp].reverse();
-                const deU = [...(jobs.DE_Unemp || jobs.EU_Unemp)].reverse();
+                const usRaw = jobs.US_Unemp;
+                const ukRaw = jobs.UK_Unemp;
+                const deRaw = jobs.DE_Unemp || jobs.EU_Unemp;
+
+                // Align all three countries to the exact same monthly observation window.
+                // This prevents one line visually starting earlier or ending later simply because
+                // its statistical agency has published more recent observations.
+                const toMonthMap = (rows) => new Map(
+                    rows
+                        .filter(d => d?.date && Number.isFinite(Number(d?.value)))
+                        .map(d => [String(d.date).slice(0, 7), Number(d.value)])
+                );
+
+                const usMap = toMonthMap(usRaw);
+                const ukMap = toMonthMap(ukRaw);
+                const deMap = toMonthMap(deRaw);
+
+                const commonMonths = [...usMap.keys()]
+                    .filter(month => ukMap.has(month) && deMap.has(month))
+                    .sort();
+
+                const xAligned = commonMonths.map(month => `${month}-01`);
+                const usAligned = commonMonths.map(month => usMap.get(month));
+                const ukAligned = commonMonths.map(month => ukMap.get(month));
+                const deAligned = commonMonths.map(month => deMap.get(month));
+
                 Plotly.newPlot('chart-unemp', [
-                    {x: usU.map(d=>d.date), y: usU.map(d=>d.value), name: 'US', line: {color: '#2563eb'}},
-                    {x: ukU.map(d=>d.date), y: ukU.map(d=>d.value), name: 'UK', line: {color: '#dc2626'}},
-                    {x: deU.map(d=>d.date), y: deU.map(d=>d.value), name: 'Germany', line: {color: '#10b981'}}
+                    {x: xAligned, y: usAligned, name: 'US', line: {color: '#2563eb'}},
+                    {x: xAligned, y: ukAligned, name: 'UK', line: {color: '#dc2626'}},
+                    {x: xAligned, y: deAligned, name: 'Germany', line: {color: '#10b981'}}
                 ], layoutBase, {displayModeBar: false});
 
                 const meta = jobs.Unemployment_Metadata || {};
@@ -1128,9 +1151,19 @@
                         const row = meta[k];
                         return row?.latest_date ? `${row.label || k}: ${new Date(row.latest_date + 'T00:00:00Z').toLocaleDateString('en-GB', {month:'short', year:'numeric'})}` : null;
                     }).filter(Boolean);
+
+                    const firstCommon = commonMonths[0];
+                    const lastCommon = commonMonths[commonMonths.length - 1];
+                    const formatMonth = (month) => month
+                        ? new Date(`${month}-01T00:00:00Z`).toLocaleDateString('en-GB', {month:'short', year:'numeric'})
+                        : null;
+                    const commonWindow = firstCommon && lastCommon
+                        ? `Aligned comparison window: ${formatMonth(firstCommon)}–${formatMonth(lastCommon)}.`
+                        : '';
+
                     freshness.innerText = parts.length
-                        ? `Latest observations — ${parts.join(' · ')}. Monthly seasonally adjusted; publication lags differ by country.`
-                        : 'Monthly seasonally adjusted data; publication dates vary by country.';
+                        ? `${commonWindow} Latest available — ${parts.join(' · ')}. Publication lags differ by country.`
+                        : `${commonWindow} Monthly seasonally adjusted data; publication dates vary by country.`;
                 }
             }
             

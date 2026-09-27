@@ -167,6 +167,89 @@
 
         </div>
 
+        <!-- PHASE 2A: MACRO REGIME + MOMENTUM -->
+        <div class="max-w-[1600px] px-4 lg:px-8 mx-auto grid grid-cols-1 xl:grid-cols-2 gap-5 mb-5">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6">
+                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-5">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600 mb-1">Growth × Inflation</p>
+                        <h2 class="text-xl font-black text-gray-900">Macro Regime</h2>
+                        <p class="text-xs text-gray-500 mt-1">Directional breadth across observable US growth and inflation indicators.</p>
+                    </div>
+                    <span id="regime-label" class="inline-flex self-start px-3 py-1.5 rounded-full border border-gray-200 bg-gray-50 text-[11px] font-black text-gray-600">Calculating</span>
+                </div>
+
+                <div class="relative h-64 sm:h-72 rounded-2xl overflow-hidden border border-gray-200 bg-gray-50">
+                    <div class="absolute inset-0 grid grid-cols-2 grid-rows-2">
+                        <div class="border-r border-b border-gray-200 bg-rose-50/40 p-3 flex items-start">
+                            <span class="text-[10px] sm:text-xs font-bold text-rose-700">Growth slowing<br>Inflation heating</span>
+                        </div>
+                        <div class="border-b border-gray-200 bg-amber-50/50 p-3 flex items-start justify-end text-right">
+                            <span class="text-[10px] sm:text-xs font-bold text-amber-700">Growth improving<br>Inflation heating</span>
+                        </div>
+                        <div class="border-r border-gray-200 bg-blue-50/40 p-3 flex items-end">
+                            <span class="text-[10px] sm:text-xs font-bold text-blue-700">Growth slowing<br>Inflation cooling</span>
+                        </div>
+                        <div class="bg-emerald-50/50 p-3 flex items-end justify-end text-right">
+                            <span class="text-[10px] sm:text-xs font-bold text-emerald-700">Growth improving<br>Inflation cooling</span>
+                        </div>
+                    </div>
+                    <div class="absolute left-1/2 top-0 bottom-0 w-px bg-gray-300"></div>
+                    <div class="absolute top-1/2 left-0 right-0 h-px bg-gray-300"></div>
+                    <div id="regime-dot" class="absolute w-5 h-5 rounded-full bg-gray-900 border-[3px] border-white shadow-lg -translate-x-1/2 -translate-y-1/2 transition-all duration-700" style="left:50%;top:50%"></div>
+                    <span class="absolute left-2 top-1/2 -translate-y-1/2 -rotate-90 origin-left text-[9px] font-black uppercase tracking-widest text-gray-400">Inflation</span>
+                    <span class="absolute bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-black uppercase tracking-widest text-gray-400">Growth momentum</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mt-4">
+                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                        <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Growth breadth</p>
+                        <div class="flex items-end gap-2 mt-1">
+                            <span id="regime-growth-score" class="text-xl font-black text-gray-900">--</span>
+                            <span id="regime-growth-state" class="text-[11px] font-bold text-gray-500 mb-0.5">Awaiting data</span>
+                        </div>
+                    </div>
+                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                        <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Inflation breadth</p>
+                        <div class="flex items-end gap-2 mt-1">
+                            <span id="regime-inflation-score" class="text-xl font-black text-gray-900">--</span>
+                            <span id="regime-inflation-state" class="text-[11px] font-bold text-gray-500 mb-0.5">Awaiting data</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="mt-3 text-[10px] leading-relaxed text-gray-400">Breadth scores range from -100 to +100 and measure the direction of the underlying indicators, not forecast probabilities.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6">
+                <div class="flex items-start justify-between gap-3 mb-4">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-indigo-600 mb-1">What changed?</p>
+                        <h2 class="text-xl font-black text-gray-900">Macro Momentum</h2>
+                        <p class="text-xs text-gray-500 mt-1">Latest levels and recent directional changes used in the regime framework.</p>
+                    </div>
+                    <span id="regime-coverage" class="text-[10px] font-black uppercase tracking-wider text-gray-400"></span>
+                </div>
+                <div id="regime-components" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div class="rounded-xl border border-gray-200 p-3 text-xs text-gray-400">Awaiting macro inputs…</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PHASE 2A: CROSS-ASSET MACRO PULSE -->
+        <div class="max-w-[1600px] px-4 lg:px-8 mx-auto bg-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6 mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-4">
+                <div>
+                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-sky-600 mb-1">Markets</p>
+                    <h2 class="text-xl font-black text-gray-900">Cross-Asset Macro Pulse</h2>
+                    <p class="text-xs text-gray-500 mt-1">A compact read of dollar, rates, commodities and credit over the latest monthly interval.</p>
+                </div>
+                <span class="text-[10px] font-semibold text-gray-400">Direction is descriptive, not a positive/negative market judgement.</span>
+            </div>
+            <div id="cross-asset-pulse-grid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+                <div class="rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-400 col-span-2">Awaiting market data…</div>
+            </div>
+        </div>
+
         <!-- TOP EXECUTIVE AI SUMMARY CONTAINER -->
         <div class="bg-blue-50/80 border border-blue-200 rounded-2xl p-6 mb-12 shadow-sm relative overflow-hidden">
             <div class="flex items-center justify-between mb-3">

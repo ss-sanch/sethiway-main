@@ -1236,8 +1236,8 @@
             const regime = sig.Macro_Regime || deriveMacroRegime(data);
             if (!regime) return;
 
-            const growth = Number(regime.growth_score);
-            const inflation = Number(regime.inflation_score);
+            const growth = regime.growth_score === null || regime.growth_score === undefined ? null : Number(regime.growth_score);
+            const inflation = regime.inflation_score === null || regime.inflation_score === undefined ? null : Number(regime.inflation_score);
             const label = document.getElementById("regime-label");
             const dot = document.getElementById("regime-dot");
             const growthScore = document.getElementById("regime-growth-score");
@@ -1264,7 +1264,7 @@
                 const top = Math.max(5, Math.min(95, (100 - inflation) / 2));
                 dot.style.left = `${left}%`;
                 dot.style.top = `${top}%`;
-                dot.classList.remove("bg-gray-900");
+                dot.classList.remove("bg-gray-900", "bg-gray-700", "bg-emerald-600", "bg-amber-500", "bg-blue-600", "bg-rose-600");
                 dot.classList.add(
                     regime.key === "growth_up_inflation_down" ? "bg-emerald-600" :
                     regime.key === "growth_up_inflation_up" ? "bg-amber-500" :
@@ -1394,11 +1394,30 @@
             const bp = (s) => s ? signedText(s.delta * 100, 0, "bp") : "";
             const pct = (s) => s ? signedText(s.pct, 1, "%") : "";
 
-            const usU = stat(jobs.US_Unemp, 3), ukU = stat(jobs.UK_Unemp, 3), deU = stat(jobs.DE_Unemp || jobs.EU_Unemp, 3);
+            const unemploymentRows = [jobs.US_Unemp, jobs.UK_Unemp, jobs.DE_Unemp || jobs.EU_Unemp];
+            const unemploymentMaps = unemploymentRows.map(rows => new Map(
+                sortedMacroSeries(rows).map(row => [row.date.slice(0, 7), row.value])
+            ));
+            const commonUnemploymentMonths = unemploymentMaps[0]
+                ? [...unemploymentMaps[0].keys()].filter(month => unemploymentMaps.slice(1).every(map => map.has(month))).sort()
+                : [];
+            const commonUnemploymentStat = (map) => {
+                if (!map || !commonUnemploymentMonths.length) return null;
+                const latestMonth = commonUnemploymentMonths[commonUnemploymentMonths.length - 1];
+                const priorMonth = commonUnemploymentMonths[Math.max(0, commonUnemploymentMonths.length - 4)];
+                const latest = map.get(latestMonth);
+                const previous = map.get(priorMonth);
+                return Number.isFinite(latest) && Number.isFinite(previous)
+                    ? { latest, delta: latest - previous }
+                    : null;
+            };
+            const usU = commonUnemploymentStat(unemploymentMaps[0]);
+            const ukU = commonUnemploymentStat(unemploymentMaps[1]);
+            const deU = commonUnemploymentStat(unemploymentMaps[2]);
             upsertMetricStrip("chart-unemp", [
-                usU && { label: "US", value: levelText(usU.latest, 1, "", "%"), change: `${pp(usU)} · 3M` },
-                ukU && { label: "UK", value: levelText(ukU.latest, 1, "", "%"), change: `${pp(ukU)} · 3M` },
-                deU && { label: "Germany", value: levelText(deU.latest, 1, "", "%"), change: `${pp(deU)} · 3M` }
+                usU && { label: "US · aligned", value: levelText(usU.latest, 1, "", "%"), change: `${pp(usU)} · 3M` },
+                ukU && { label: "UK · aligned", value: levelText(ukU.latest, 1, "", "%"), change: `${pp(ukU)} · 3M` },
+                deU && { label: "Germany · aligned", value: levelText(deU.latest, 1, "", "%"), change: `${pp(deU)} · 3M` }
             ]);
 
             const wages = stat(jobs.US_Wages, 3);

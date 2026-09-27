@@ -1490,6 +1490,10 @@
             const yieldCurveData = data.yieldCurveData || {};
             const commData = data.commData || {};
 
+            renderMacroRegime(data);
+            renderCrossAssetPulse(data);
+            renderChartMetricStrips(data);
+
             // 1. POPULATE KPI BAR
             if(sig.Sahm_Rule) {
                 document.getElementById('kpi-sahm-val').innerText = sig.Sahm_Rule.value !== "N/A" ? `${sig.Sahm_Rule.value}%` : "N/A";
@@ -1643,7 +1647,7 @@
                 
                 // JOLTS Chart (Line with shaded area)
                 Plotly.newPlot('chart-jolts', [
-                    {x: jolts.map(d=>d.date), y: jolts.map(d=>d.value), name: 'Job Openings (M)', type: 'scatter', line: {color: '#8b5cf6', width: 2}, fill: 'tozeroy', fillcolor: 'rgba(139, 92, 246, 0.1)'}
+                    {x: jolts.map(d=>d.date), y: jolts.map(d=>Number(d.value) / 1000), name: 'Job Openings (M)', type: 'scatter', line: {color: '#8b5cf6', width: 2}, fill: 'tozeroy', fillcolor: 'rgba(139, 92, 246, 0.1)'}
                 ], { ...layoutBase, showlegend: false, margin: { t: 10, r: 20, l: 40, b: 40 } }, {displayModeBar: false});
 
                 // NFP Chart (Color-coded Bars)

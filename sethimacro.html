@@ -1450,40 +1450,55 @@
             await refreshMacroData(false);
         }
 
-        // FETCH AI MACRO SYNTHESIS (BULLETPROOF ROUTER)
-        fetch('https://sethimacro.onrender.com/api/macro-ai')
-            .then(response => response.json())
-            .then(data => {
-                if(data && data.executive_summary) {
-                    const execBox = document.getElementById('ai-executive');
-                    if (execBox) execBox.innerText = data.executive_summary;
-                    
-                    const jobsBox = document.getElementById('ai-jobs');
-                    if (jobsBox) jobsBox.innerText = data.jobs;
-                    
-                    const infBox = document.getElementById('ai-inflation');
-                    if (infBox) infBox.innerText = data.inflation;
-                    
-                    const gdpBox = document.getElementById('ai-gdp');
-                    if (gdpBox) gdpBox.innerText = data.gdp;
-                    
-                    const fxBox = document.getElementById('ai-fx');
-                    if (fxBox) fxBox.innerText = data.fx;
-
-                    const commBox = document.getElementById('ai-commodities');
-                    if (commBox) commBox.innerText = data.commodities;
-                } else {
-                    const execBox = document.getElementById('ai-executive');
-                    if (execBox) execBox.innerText = "AI Synthesis offline. Please check backend logs.";
-                }
-            })
-            .catch(error => {
-                console.error("AI Fetch Error:", error);
-                const execBox = document.getElementById('ai-executive');
-                if (execBox) execBox.innerText = "AI engine timeout. Utilizing raw quantitative data streams.";
+        function renderMacroAI(data) {
+            if (!data || !data.executive_summary) return false;
+            const fields = {
+                "ai-executive": data.executive_summary,
+                "ai-jobs": data.jobs,
+                "ai-inflation": data.inflation,
+                "ai-gdp": data.gdp,
+                "ai-fx": data.fx,
+                "ai-commodities": data.commodities
+            };
+            Object.entries(fields).forEach(([id, value]) => {
+                const el = document.getElementById(id);
+                if (el && value) el.innerText = value;
             });
-        
-        fetchGlobalData();
+            return true;
+        }
+
+        async function initialiseMacroAI() {
+            // AI commentary is cached independently because it only needs periodic regeneration.
+            try {
+                const params = new URLSearchParams({
+                    snapshot_key: "eq.macro-ai",
+                    select: "payload,generated_at,updated_at",
+                    limit: "1"
+                });
+                const cachedRes = await fetch(`${SNAPSHOT_API_URL}?${params.toString()}`, {
+                    headers: { apikey: SNAPSHOT_API_KEY },
+                    cache: "no-store"
+                });
+                if (cachedRes.ok) {
+                    const rows = await cachedRes.json();
+                    if (Array.isArray(rows) && rows[0]?.payload) renderMacroAI(rows[0].payload);
+                }
+            } catch (_) {}
+
+            try {
+                const live = await fetchEndpoint("macro-ai");
+                if (!renderMacroAI(live)) throw new Error("AI response unavailable");
+            } catch (error) {
+                console.warn("AI Fetch Error:", error);
+                const execBox = document.getElementById("ai-executive");
+                if (execBox && execBox.querySelector(".animate-pulse")) {
+                    execBox.innerText = "AI synthesis is temporarily unavailable; quantitative macro data remains available.";
+                }
+            }
+        }
+
+        initialiseMacro();
+        initialiseMacroAI();
 
         // ==========================================
         // TELEMETRY: ANONYMOUS VISITOR TRACKING
@@ -1507,6 +1522,6 @@
             }).catch(() => {}); // Fails silently
         }, 1000);
     </script>
-    <script src="sethiway-history.js"></script>
+    <script src="sethiway-history.js?v=macro1"></script>
 </body>
 </html>

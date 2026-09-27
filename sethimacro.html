@@ -862,6 +862,115 @@
         }
 
         const API_BASE = "https://sethimacro.sethiway.com/api";
+        const SNAPSHOT_API_URL = "https://gqqftksplktxfrilltsx.supabase.co/rest/v1/sethimacro_public_snapshots";
+        const SNAPSHOT_API_KEY = "sb_publishable_zjKjFfN1wTq9ocpje09Z1A_xgLe0UiK";
+        const SNAPSHOT_KEY_MAP = {
+            "pillar-jobs": "jobs",
+            "pillar-rates": "rates",
+            "pillar-gdp": "gdp",
+            "pillar-fx": "fx",
+            "quant-signals": "sig",
+            "calendar-timeline": "cal",
+            "pillar-yield-curve": "yieldCurveData",
+            "pillar-commodities": "commData"
+        };
+        window.__macroSnapshotData = {};
+        window.__macroSnapshotRows = [];
+
+        function formatMacroAge(timestamp) {
+            const ms = Date.parse(timestamp || "");
+            if (!Number.isFinite(ms)) return "";
+            const mins = Math.max(0, Math.floor((Date.now() - ms) / 60000));
+            if (mins < 1) return "just now";
+            if (mins < 60) return `${mins}m ago`;
+            const hours = Math.floor(mins / 60);
+            if (hours < 24) return `${hours}h ago`;
+            return `${Math.floor(hours / 24)}d ago`;
+        }
+
+        function setMacroDataStatus(mode, timestamp = null, detail = "") {
+            const chip = document.getElementById("macro-data-status");
+            if (!chip) return;
+            chip.classList.remove(
+                "hidden",
+                "bg-amber-50", "text-amber-700", "border-amber-200",
+                "bg-blue-50", "text-blue-700", "border-blue-200",
+                "bg-emerald-50", "text-emerald-700", "border-emerald-200",
+                "bg-gray-50", "text-gray-600", "border-gray-200"
+            );
+            const spinner = '<span class="w-2.5 h-2.5 rounded-full border border-current border-t-transparent animate-spin" aria-hidden="true"></span>';
+            if (mode === "cached") {
+                const age = formatMacroAge(timestamp);
+                chip.innerHTML = `${spinner}<span>Cached${age ? " · " + age : ""} · updating</span>`;
+                chip.classList.add("bg-amber-50", "text-amber-700", "border-amber-200");
+            } else if (mode === "refreshing") {
+                chip.innerHTML = `${spinner}<span>${detail || "Refreshing live macro data"}</span>`;
+                chip.classList.add("bg-blue-50", "text-blue-700", "border-blue-200");
+            } else if (mode === "live") {
+                chip.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden="true"></span><span>Live macro snapshot</span>';
+                chip.classList.add("bg-emerald-50", "text-emerald-700", "border-emerald-200");
+            } else if (mode === "partial") {
+                chip.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-gray-400" aria-hidden="true"></span><span>Partial data · cached fallback in use</span>';
+                chip.classList.add("bg-gray-50", "text-gray-600", "border-gray-200");
+            } else {
+                chip.classList.add("hidden");
+                chip.innerHTML = "";
+            }
+        }
+
+        function unlockMacroDashboard() {
+            const globalLoader = document.getElementById("global-loader");
+            const dashContent = document.getElementById("macro-dashboard-content");
+            if (progBar) progBar.style.width = "100%";
+            setTimeout(() => progContainer?.classList.add("opacity-0"), 350);
+            if (globalLoader) {
+                globalLoader.classList.add("opacity-0", "scale-95");
+                setTimeout(() => { globalLoader.style.display = "none"; }, 350);
+            }
+            if (dashContent) {
+                dashContent.classList.remove("opacity-30", "pointer-events-none");
+                dashContent.classList.add("opacity-100");
+            }
+        }
+
+        async function fetchMacroSnapshots() {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 1800);
+            try {
+                const params = new URLSearchParams({
+                    select: "snapshot_key,payload,generated_at,ttl_seconds,source_status,updated_at",
+                    snapshot_key: "neq.macro-ai"
+                });
+                const response = await fetch(`${SNAPSHOT_API_URL}?${params.toString()}`, {
+                    headers: { apikey: SNAPSHOT_API_KEY },
+                    cache: "no-store",
+                    signal: controller.signal
+                });
+                if (!response.ok) return null;
+                const rows = await response.json();
+                if (!Array.isArray(rows) || !rows.length) return null;
+
+                const data = {};
+                for (const row of rows) {
+                    const target = SNAPSHOT_KEY_MAP[row.snapshot_key];
+                    if (target && row.payload && typeof row.payload === "object") data[target] = row.payload;
+                }
+                if (!Object.keys(data).length) return null;
+
+                window.__macroSnapshotData = data;
+                window.__macroSnapshotRows = rows;
+                const timestamps = rows.map(r => Date.parse(r.generated_at || r.updated_at)).filter(Number.isFinite);
+                const oldest = timestamps.length ? new Date(Math.min(...timestamps)).toISOString() : null;
+                renderMacroData(data, "cached", oldest);
+                return data;
+            } catch (_) {
+                return null;
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+
 
         // ==========================================
         // 1. THE DYNAMIC LOADING ENGINE (PASTE HERE)
@@ -900,382 +1009,445 @@
         };
         const layoutMini = { ...layoutBase, margin: { t: 5, r: 5, l: 30, b: 20 }, showlegend: false };
 
-        async function fetchGlobalData() {
-            try {
-                // ADDED yieldCurveRes to the array
-                const [jobsRes, ratesRes, gdpRes, fxRes, sigRes, calRes, yieldCurveRes, commRes] = await Promise.all([
-                    fetch(`${API_BASE}/pillar-jobs`), fetch(`${API_BASE}/pillar-rates`),
-                    fetch(`${API_BASE}/pillar-gdp`), fetch(`${API_BASE}/pillar-fx`),
-                    fetch(`${API_BASE}/quant-signals`), fetch(`${API_BASE}/calendar-timeline`),
-                    fetch(`${API_BASE}/pillar-yield-curve`), // <-- NEW ENDPOINT
-                    fetch(`${API_BASE}/pillar-commodities`)
-                ]);
+        function renderMacroData(data = {}, source = "live", timestamp = null) {
+            const jobs = data.jobs || {};
+            const rates = data.rates || {};
+            const gdp = data.gdp || {};
+            const fx = data.fx || {};
+            const sig = data.sig || {};
+            const cal = data.cal || { past: [], future: [] };
+            const yieldCurveData = data.yieldCurveData || {};
+            const commData = data.commData || {};
 
-                const jobs = await jobsRes.json();
-                const rates = await ratesRes.json();
-                const gdp = await gdpRes.json();
-                const fx = await fxRes.json();
-                const sig = await sigRes.json();
-                const cal = await calRes.json();
-                const yieldCurveData = await yieldCurveRes.json(); // <-- NEW PARSER
-                const commData = await commRes.json();
-
-                // 1. POPULATE KPI BAR
-                if(sig.Sahm_Rule) {
-                    document.getElementById('kpi-sahm-val').innerText = sig.Sahm_Rule.value !== "N/A" ? `${sig.Sahm_Rule.value}%` : "N/A";
-                    document.getElementById('kpi-sahm-stat').innerText = sig.Sahm_Rule.status;
-                    document.getElementById('kpi-sahm-stat').className = sig.Sahm_Rule.value >= 0.5 ? "text-sm font-semibold mb-1 text-red-600" : "text-sm font-semibold mb-1 text-green-600";
-                }
-                if(sig.Yield_Spread) {
-                    document.getElementById('kpi-spread-val').innerText = sig.Yield_Spread.us_spread !== "N/A" ? `${sig.Yield_Spread.us_spread}%` : "N/A";
-                }
-                if(sig.Taylor_Rule) {
-                    document.getElementById('kpi-fed-val').innerText = sig.Taylor_Rule.actual_rate !== "N/A" ? `${sig.Taylor_Rule.actual_rate}%` : "N/A";
-                    document.getElementById('kpi-fed-stat').innerText = sig.Taylor_Rule.policy_bias;
-                    document.getElementById('kpi-fed-stat').className = sig.Taylor_Rule.policy_bias.includes("Restrictive") ? "text-sm font-semibold mb-1 text-red-600" : "text-sm font-semibold mb-1 text-blue-600";
-                }
-                if(sig.DXY_Strength) {
-                    document.getElementById('kpi-dxy-val').innerText = sig.DXY_Strength.value;
-                    document.getElementById('kpi-dxy-stat').innerText = sig.DXY_Strength.status;
-                    document.getElementById('kpi-dxy-stat').className = sig.DXY_Strength.status.includes("+") ? "text-sm font-semibold mb-1 text-green-600" : "text-sm font-semibold mb-1 text-red-600";
-                }
-                if(sig.Risk_Barometer) {
-                    const score = sig.Risk_Barometer.score;
-                    document.getElementById('kpi-risk-val').innerText = score;
-
-                    const badge = document.getElementById('kpi-risk-badge');
-                    badge.innerText = sig.Risk_Barometer.regime;
-                    badge.className = `text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${sig.Risk_Barometer.badge_color}`;
-
-                    const fillBar = document.getElementById('barometer-fill');
-                    fillBar.style.width = `${score}%`;
-                    fillBar.className = `h-full transition-all duration-500 rounded-full ${sig.Risk_Barometer.bar_color}`;
-                }
-
-                // 2. POPULATE ENDLESS CATALYST TIMELINE (Hybrid Macro + Corporate)
-                const renderTimelineNode = (event, index, isPast) => {
-                    
-                    const idMap = {
-                        // US Macro
-                        10: {name: "US CPI", color: "text-red-600", border: "border-t-red-500", tick: "bg-red-500"},
-                        50: {name: "US Payrolls", color: "text-blue-600", border: "border-t-blue-500", tick: "bg-blue-500"},
-                        53: {name: "US GDP", color: "text-emerald-600", border: "border-t-emerald-500", tick: "bg-emerald-500"},
-                        13: {name: "US Ind. Prod", color: "text-purple-600", border: "border-t-purple-500", tick: "bg-purple-500"},
-                        9:  {name: "US Retail", color: "text-orange-600", border: "border-t-orange-500", tick: "bg-orange-500"},
-                        46: {name: "US PPI", color: "text-pink-600", border: "border-t-pink-500", tick: "bg-pink-500"},
-                        // Global Macro
-                        322: {name: "ECB Rate", color: "text-indigo-600", border: "border-t-indigo-500", tick: "bg-indigo-500"},
-                        295: {name: "BOE Rate", color: "text-rose-600", border: "border-t-rose-500", tick: "bg-rose-500"},
-                        254: {name: "EU HICP", color: "text-cyan-600", border: "border-t-cyan-500", tick: "bg-cyan-500"},
-                        356: {name: "UK CPI", color: "text-fuchsia-600", border: "border-t-fuchsia-500", tick: "bg-fuchsia-500"},
-                        172: {name: "China GDP", color: "text-amber-700", border: "border-t-amber-600", tick: "bg-amber-600"},
-                        // Corporate Earnings
-                        "EARNINGS": {name: "Earnings", color: "text-amber-500", border: "border-t-amber-400", tick: "bg-amber-400"}
-                    };
-                    
-                    const config = idMap[event.release_id] || {name: "Macro Release", color: "text-gray-600", border: "border-t-gray-500", tick: "bg-gray-500"};
-                    
-                    const finalEventName = event.release_id === "EARNINGS" ? `${event.ticker} Earnings` : config.name;
-                    
-                    const isUp = index % 2 === 0;
-                    const dateObj = new Date(event.date);
-                    const dateStr = dateObj.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
-                    
-                    const opacityClass = isPast ? 'opacity-50 hover:opacity-100' : 'opacity-100';
-
-                    if (isUp) {
-                        return `
-                        <div class="relative flex items-center justify-center ${opacityClass} group flex-shrink-0 transition-all duration-300" style="width: 150px;">
-                            <div class="w-1.5 h-6 rounded-sm ${config.tick} z-10 shadow-sm border border-white"></div>
-                            <div class="absolute bottom-3 w-0.5 h-10 bg-gray-300"></div>
-                            <div class="absolute bottom-12 bg-white border ${config.border} border-x-gray-200 border-b-gray-200 px-4 py-4 rounded-xl shadow-lg text-center w-full transform transition group-hover:-translate-y-2">
-                                <span class="block text-[13px] font-black text-gray-400 uppercase tracking-widest mb-1">${dateStr}</span>
-                                <span class="block text-base font-bold ${config.color} leading-tight">${finalEventName}</span>
-                            </div>
-                        </div>`;
-                    } else {
-                        return `
-                        <div class="relative flex items-center justify-center ${opacityClass} group flex-shrink-0 transition-all duration-300" style="width: 150px;">
-                            <div class="w-1.5 h-6 rounded-sm ${config.tick} z-10 shadow-sm border border-white"></div>
-                            <div class="absolute top-3 w-0.5 h-10 bg-gray-300"></div>
-                            <div class="absolute top-12 bg-white border ${config.border} border-x-gray-200 border-b-gray-200 px-4 py-4 rounded-xl shadow-lg text-center w-full transform transition group-hover:translate-y-2">
-                                <span class="block text-[13px] font-black text-gray-400 uppercase tracking-widest mb-1">${dateStr}</span>
-                                <span class="block text-base font-bold ${config.color} leading-tight">${finalEventName}</span>
-                            </div>
-                        </div>`;
-                    }
-                };
-                
-                document.getElementById('timeline-past').innerHTML = cal.past.map((e, i) => renderTimelineNode(e, i, true)).join('');
-                document.getElementById('timeline-future').innerHTML = cal.future.map((e, i) => renderTimelineNode(e, i, false)).join('');
-
-                // 3. PILLAR 1: JOBS
-                if(jobs.US_Unemp && jobs.UK_Unemp && jobs.EU_Unemp) {
-                    const usU = [...jobs.US_Unemp].reverse(), ukU = [...jobs.UK_Unemp].reverse(), euU = [...jobs.EU_Unemp].reverse();
-                    Plotly.newPlot('chart-unemp', [
-                        {x: usU.map(d=>d.date), y: usU.map(d=>d.value), name: 'US', line: {color: '#2563eb'}},
-                        {x: ukU.map(d=>d.date), y: ukU.map(d=>d.value), name: 'UK', line: {color: '#dc2626'}},
-                        {x: euU.map(d=>d.date), y: euU.map(d=>d.value), name: 'EU (GER)', line: {color: '#10b981'}}
-                    ], layoutBase, {displayModeBar: false});
-                }
-                
-                if(jobs.US_NFP && jobs.US_JOLTS) {
-                    const nfp = [...jobs.US_NFP].reverse(), jolts = [...jobs.US_JOLTS].reverse();
-                    
-                    // JOLTS Chart (Line with shaded area)
-                    Plotly.newPlot('chart-jolts', [
-                        {x: jolts.map(d=>d.date), y: jolts.map(d=>d.value), name: 'Job Openings (M)', type: 'scatter', line: {color: '#8b5cf6', width: 2}, fill: 'tozeroy', fillcolor: 'rgba(139, 92, 246, 0.1)'}
-                    ], { ...layoutBase, showlegend: false, margin: { t: 10, r: 20, l: 40, b: 40 } }, {displayModeBar: false});
-
-                    // NFP Chart (Color-coded Bars)
-                    const nfpColors = nfp.map(d => d.value >= 0 ? '#3b82f6' : '#ef4444');
-                    Plotly.newPlot('chart-nfp', [
-                        {x: nfp.map(d=>d.date), y: nfp.map(d=>d.value), name: 'NFP Added (K)', type: 'bar', marker: {color: nfpColors}}
-                    ], { ...layoutBase, showlegend: false, margin: { t: 10, r: 20, l: 40, b: 40 } }, {displayModeBar: false});
-                }
-
-                if(jobs.US_Wages) {
-                    const wages = [...jobs.US_Wages].reverse();
-                    Plotly.newPlot('chart-wages', [
-                        {
-                            x: wages.map(d=>d.date), 
-                            y: wages.map(d=>d.value), 
-                            name: 'Wage Growth', 
-                            type: 'scatter', 
-                            line: {color: '#f59e0b', width: 2}, 
-                            fill: 'tozeroy', 
-                            fillcolor: 'rgba(245, 158, 11, 0.1)'
-                        }
-                    ], { ...layoutBase, showlegend: false, margin: { t: 10, r: 20, l: 40, b: 40 } }, {displayModeBar: false});
-                }
-
-                // 4. PILLAR 2: RATES
-                if(rates.Fed_Funds && rates.ECB_Rate) {
-                    let fed = [...rates.Fed_Funds].reverse();
-                    let ecb = [...rates.ECB_Rate].reverse();
-                    
-                    // QUANT TRICK 1: Perfect Timeline Synchronization
-                    // Creates a mathematical intersection of dates that exist in BOTH datasets
-                    const fedDates = new Set(fed.map(d => d.date));
-                    const ecbDates = new Set(ecb.map(d => d.date));
-                    fed = fed.filter(d => ecbDates.has(d.date));
-                    ecb = ecb.filter(d => fedDates.has(d.date));
-
-                    Plotly.newPlot('chart-cb-rates', [
-                        {x: fed.map(d=>d.date), y: fed.map(d=>d.value), name: 'Fed Funds', line: {shape: 'hv', color: '#059669', width: 2}},
-                        {x: ecb.map(d=>d.date), y: ecb.map(d=>d.value), name: 'ECB Rate', line: {shape: 'hv', color: '#2563eb', width: 2}}
-                    ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
-                }
-                
-                if(rates.US_10Y && rates.UK_10Y && rates.GER_10Y) {
-                    let us = [...rates.US_10Y].reverse();
-                    let uk = [...rates.UK_10Y].reverse();
-                    let ger = [...rates.GER_10Y].reverse();
-
-                    // QUANT TRICK 2: 3-Way Date Intersection
-                    // Forces all 3 global sovereign bonds to start and end on the exact same month
-                    const usDates = new Set(us.map(d => d.date));
-                    const ukDates = new Set(uk.map(d => d.date));
-                    const gerDates = new Set(ger.map(d => d.date));
-                    
-                    const commonDates = new Set([...usDates].filter(d => ukDates.has(d) && gerDates.has(d)));
-                    
-                    us = us.filter(d => commonDates.has(d.date));
-                    uk = uk.filter(d => commonDates.has(d.date));
-                    ger = ger.filter(d => commonDates.has(d.date));
-
-                    Plotly.newPlot('chart-spreads', [
-                        {x: us.map(d=>d.date), y: us.map(d=>d.value), name: 'US 10Y', line: {color: '#1f2937', width: 2}},
-                        {x: uk.map(d=>d.date), y: uk.map(d=>d.value), name: 'UK Gilt 10Y', line: {color: '#dc2626', width: 2}},
-                        {x: ger.map(d=>d.date), y: ger.map(d=>d.value), name: 'GER Bund 10Y', line: {color: '#d97706', width: 2}}
-                    ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
-                }
-
-                if(rates.CPI && rates.PCE && rates.PPI) {
-                    const cpi = [...rates.CPI].reverse();
-                    const pce = [...rates.PCE].reverse();
-                    const ppi = [...rates.PPI].reverse();
-
-                    const fedTarget = { x: [cpi[0].date, cpi[cpi.length-1].date], y: [2, 2], name: 'Fed Target (2%)', type: 'scatter', hoverinfo: 'none', line: {color: '#9ca3af', width: 2, dash: 'dash'} };
-
-                    Plotly.newPlot('chart-inflation', [
-                        {x: cpi.map(d=>d.date), y: cpi.map(d=>d.value), name: 'Headline CPI', line: {color: '#dc2626', width: 2}},
-                        {x: pce.map(d=>d.date), y: pce.map(d=>d.value), name: 'Core PCE', line: {color: '#2563eb', width: 2}},
-                        {x: ppi.map(d=>d.date), y: ppi.map(d=>d.value), name: 'PPI (Wholesale)', line: {color: '#f59e0b', width: 2, dash: 'dot'}},
-                        fedTarget
-                    ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
-                }
-
-                // New Real Yields vs Expectations
-                if(rates.Breakeven && rates.Real_Yield) {
-                    const breakeven = [...rates.Breakeven].reverse();
-                    const realYield = [...rates.Real_Yield].reverse();
-
-                    Plotly.newPlot('chart-real-yields', [
-                        {x: breakeven.map(d=>d.date), y: breakeven.map(d=>d.value), name: '10Y Breakeven (Inflation Exp.)', fill: 'tozeroy', fillcolor: 'rgba(239, 68, 68, 0.1)', line: {color: '#ef4444', width: 2}},
-                        {x: realYield.map(d=>d.date), y: realYield.map(d=>d.value), name: '10Y Real Yield', fill: 'tozeroy', fillcolor: 'rgba(59, 130, 246, 0.1)', line: {color: '#3b82f6', width: 2}}
-                    ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
-                }
-
-                if(yieldCurveData && yieldCurveData.Term_Structure) {
-                    const ts = yieldCurveData.Term_Structure;
-                    const maturities = ["3M", "2Y", "5Y", "10Y", "30Y"];
-                    
-                    // Safely extract the current value (index 0) and 1 year ago (index ~250)
-                    const getVal = (arr, idx) => arr && arr.length > idx ? arr[idx].value : null;
-                    const todayYields = maturities.map(m => getVal(ts[m], 0));
-                    const oneYearAgoYields = maturities.map(m => getVal(ts[m], ts[m].length > 250 ? 250 : ts[m].length - 1));
-
-                    Plotly.newPlot('chart-term-structure', [
-                        {x: maturities, y: todayYields, name: 'Today', type: 'scatter', mode: 'lines+markers', line: {color: '#2563eb', width: 3, shape: 'spline'}, marker: {size: 8}},
-                        {x: maturities, y: oneYearAgoYields, name: '1 Year Ago', type: 'scatter', mode: 'lines+markers', line: {color: '#9ca3af', width: 2, dash: 'dash', shape: 'spline'}}
-                    ], { 
-                        ...layoutBase, 
-                        xaxis: { ...layoutBase.xaxis, type: 'category' }, // <-- THE FIX: Forces categorical text, disables date-guessing!
-                        yaxis: { ...layoutBase.yaxis, title: 'Yield (%)' },
-                        margin: { t: 10, r: 30, l: 40, b: 40 }
-                    }, {displayModeBar: false});
-                }
-
-                if(yieldCurveData && yieldCurveData.Inversion_Spread) {
-                    const spread = [...yieldCurveData.Inversion_Spread].reverse();
-                    const zeroLine = { x: [spread[0].date, spread[spread.length-1].date], y: [0, 0], name: 'Zero Line', type: 'scatter', mode: 'lines', line: {color: '#ef4444', width: 2, dash: 'dot'}, hoverinfo: 'none'};
-
-                    Plotly.newPlot('chart-yield-spread', [
-                        {x: spread.map(d=>d.date), y: spread.map(d=>d.value), name: '10Y-2Y Spread', type: 'scatter', mode: 'lines', line: {color: '#8b5cf6', width: 2}, fill: 'tozeroy', fillcolor: 'rgba(139, 92, 246, 0.1)'},
-                        zeroLine
-                    ], { ...layoutBase, showlegend: false, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
-                }
-
-                // 5. PILLAR 3: GDP
-                if(gdp.US_GDP && gdp.UK_GDP && gdp.EU_GDP) {
-                    let usG = [...gdp.US_GDP].reverse();
-                    let ukG = [...gdp.UK_GDP].reverse();
-                    let euG = [...gdp.EU_GDP].reverse();
-
-                    // QUANT DATE INTERSECTION: Match common quarters across US, UK, and EU
-                    const usDates = new Set(usG.map(d => d.date));
-                    const ukDates = new Set(ukG.map(d => d.date));
-                    const euDates = new Set(euG.map(d => d.date));
-                    
-                    const commonDates = new Set([...usDates].filter(d => ukDates.has(d) && euDates.has(d)));
-                    
-                    if (commonDates.size > 0) {
-                        usG = usG.filter(d => commonDates.has(d.date));
-                        ukG = ukG.filter(d => commonDates.has(d.date));
-                        euG = euG.filter(d => commonDates.has(d.date));
-                    }
-
-                    Plotly.newPlot('chart-gdp', [
-                        {x: usG.map(d=>d.date), y: usG.map(d=>d.value), name: 'US GDP (YoY %)', line: {color: '#2563eb', width: 2}},
-                        {x: ukG.map(d=>d.date), y: ukG.map(d=>d.value), name: 'UK GDP (YoY %)', line: {color: '#dc2626', width: 2}},
-                        {x: euG.map(d=>d.date), y: euG.map(d=>d.value), name: 'EU GDP (YoY %)', line: {color: '#10b981', width: 2}}
-                    ], {
-                        ...layoutBase,
-                        yaxis: { ...layoutBase.yaxis, zeroline: true, zerolinecolor: '#9ca3af', zerolinewidth: 1.5 },
-                        margin: { t: 10, r: 30, l: 40, b: 40 }
-                    }, {displayModeBar: false});
-                }
-
-                // THE FIX: Explicitly draw the Industrial Production Chart
-                if(gdp.IndPro) {
-                    const indpro = [...gdp.IndPro].reverse();
-                    const indColors = indpro.map(d => d.value >= 0 ? '#1f2937' : '#ef4444');
-                    Plotly.newPlot('chart-indpro', [
-                        {x: indpro.map(d=>d.date), y: indpro.map(d=>d.value), name: 'Industrial Production', type: 'bar', marker: {color: indColors}}
-                    ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 }, showlegend: false }, {displayModeBar: false});
-                }
-
-                if(gdp.Retail_Sales) {
-                    const retail = [...gdp.Retail_Sales].reverse();
-                    const retailColors = retail.map(d => d.value >= 0 ? '#10b981' : '#ef4444');
-                    Plotly.newPlot('chart-retail', [
-                        {x: retail.map(d=>d.date), y: retail.map(d=>d.value), name: 'Retail Sales Growth', type: 'bar', marker: {color: retailColors}}
-                    ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 }, showlegend: false }, {displayModeBar: false});
-                }
-
-                if(gdp.Sentiment) {
-                    const sentiment = [...gdp.Sentiment].reverse();
-                    Plotly.newPlot('chart-sentiment', [
-                        {x: sentiment.map(d=>d.date), y: sentiment.map(d=>d.value), name: 'Consumer Sentiment', type: 'scatter', line: {color: '#f59e0b', width: 2}, fill: 'tozeroy', fillcolor: 'rgba(245, 158, 11, 0.1)'}
-                    ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 }, showlegend: false }, {displayModeBar: false});
-                }
-
-                // 6. PILLAR 4: FX
-                const renderFX = (id, dataArr, color) => {
-                    if(!dataArr) return;
-                    const clean = [...dataArr].reverse();
-                    Plotly.newPlot(id, [{x: clean.map(d=>d.date), y: clean.map(d=>d.value), line: {color: color}}], layoutMini, {displayModeBar: false});
-                };
-                renderFX('chart-dxy', fx.dxy, '#1f2937');
-                renderFX('chart-gbp', fx.gbp_usd, '#dc2626');
-                renderFX('chart-eur', fx.eur_usd, '#2563eb');
-                renderFX('chart-jpy', fx.usd_jpy, '#9333ea');
-
-                // --- END OF DATA PLOTTING: UNLOCK DASHBOARD ---
-                clearInterval(loadingInterval);
-                const globalLoader = document.getElementById('global-loader');
-                const dashContent = document.getElementById('macro-dashboard-content');
-                
-                // Shoot progress to 100% then fade out
-                if (progBar) progBar.style.width = '100%';
-                setTimeout(() => {
-                    if (progContainer) progContainer.classList.add('opacity-0');
-                }, 500);
-                
-                // Shrink and fade the spinner pill
-                if (globalLoader) {
-                    globalLoader.classList.add('opacity-0', 'scale-95'); 
-                    setTimeout(() => globalLoader.style.display = 'none', 500); 
-                }
-                
-                // Fade in the actual dashboard and restore clicking
-                if (dashContent) {
-                    dashContent.classList.remove('opacity-30', 'pointer-events-none');
-                    dashContent.classList.add('opacity-100');
-                }
-
-                // 7. COMMODITIES & CREDIT SPREADS
-                if(commData) {
-                    if(commData.Oil && commData.Oil.length > 0 && document.getElementById('chart-oil')) {
-                        const oil = [...commData.Oil].reverse();
-                        Plotly.newPlot('chart-oil', [{
-                            x: oil.map(d=>d.date), y: oil.map(d=>d.value), name: 'WTI Oil',
-                            type: 'scatter', mode: 'lines', line: {color: '#0284c7', width: 2},
-                            fill: 'tozeroy', fillcolor: 'rgba(2, 132, 199, 0.08)'
-                        }], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
-                    }
-
-                    if(commData.Gold && commData.Gold.length > 0 && document.getElementById('chart-gold')) {
-                        const gold = [...commData.Gold].reverse();
-                        Plotly.newPlot('chart-gold', [{
-                            x: gold.map(d=>d.date), y: gold.map(d=>d.value), name: 'Gold',
-                            type: 'scatter', mode: 'lines', line: {color: '#d97706', width: 2},
-                            fill: 'tozeroy', fillcolor: 'rgba(217, 119, 6, 0.08)'
-                        }], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
-                    }
-
-                    if(commData.Credit_Spread && commData.Credit_Spread.length > 0 && document.getElementById('chart-credit')) {
-                        const credit = [...commData.Credit_Spread].reverse();
-                        Plotly.newPlot('chart-credit', [{
-                            x: credit.map(d=>d.date), y: credit.map(d=>d.value), name: 'HY Spread',
-                            type: 'scatter', mode: 'lines', line: {color: '#dc2626', width: 2},
-                            fill: 'tozeroy', fillcolor: 'rgba(220, 38, 38, 0.08)'
-                        }], { ...layoutBase, yaxis: { ...layoutBase.yaxis, title: 'Spread (%)' }, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
-                    }
-                }
-
-            } catch (error) {
-                console.error("Error loading SethiMacro data:", error);
-                if(typeof loadingInterval !== 'undefined') clearInterval(loadingInterval);
-                
-                const errText = document.getElementById('loading-text');
-                // EXPOSE THE RAW JAVASCRIPT ERROR TO THE SCREEN:
-                if(errText) errText.innerText = `JS Crash: ${error.message}`; 
-                
-                const dash = document.getElementById('macro-dashboard-content');
-                if(dash) dash.classList.remove('pointer-events-none');
+            // 1. POPULATE KPI BAR
+            if(sig.Sahm_Rule) {
+                document.getElementById('kpi-sahm-val').innerText = sig.Sahm_Rule.value !== "N/A" ? `${sig.Sahm_Rule.value}%` : "N/A";
+                document.getElementById('kpi-sahm-stat').innerText = sig.Sahm_Rule.status;
+                document.getElementById('kpi-sahm-stat').className = sig.Sahm_Rule.value >= 0.5 ? "text-sm font-semibold mb-1 text-red-600" : "text-sm font-semibold mb-1 text-green-600";
             }
+            if(sig.Yield_Spread) {
+                document.getElementById('kpi-spread-val').innerText = sig.Yield_Spread.us_spread !== "N/A" ? `${sig.Yield_Spread.us_spread}%` : "N/A";
+            }
+            if(sig.Taylor_Rule) {
+                document.getElementById('kpi-fed-val').innerText = sig.Taylor_Rule.actual_rate !== "N/A" ? `${sig.Taylor_Rule.actual_rate}%` : "N/A";
+                document.getElementById('kpi-fed-stat').innerText = sig.Taylor_Rule.policy_bias;
+                document.getElementById('kpi-fed-stat').className = sig.Taylor_Rule.policy_bias.includes("Restrictive") ? "text-sm font-semibold mb-1 text-red-600" : "text-sm font-semibold mb-1 text-blue-600";
+            }
+            const usdSignal = sig.USD_Strength || sig.DXY_Strength;
+            if(usdSignal) {
+                document.getElementById('kpi-dxy-val').innerText = usdSignal.value;
+                document.getElementById('kpi-dxy-stat').innerText = usdSignal.status;
+                document.getElementById('kpi-dxy-stat').className = String(usdSignal.status || '').includes("+") ? "text-sm font-semibold mb-1 text-green-600" : "text-sm font-semibold mb-1 text-red-600";
+            }
+            if(sig.Risk_Barometer) {
+                const score = Number(sig.Risk_Barometer.score);
+                const hasScore = Number.isFinite(score);
+                document.getElementById('kpi-risk-val').innerText = hasScore ? score : '--';
+
+                const badge = document.getElementById('kpi-risk-badge');
+                badge.innerText = sig.Risk_Barometer.regime || 'Partial data';
+                badge.className = `text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${sig.Risk_Barometer.badge_color || 'bg-gray-100 text-gray-700'}`;
+
+                const fillBar = document.getElementById('barometer-fill');
+                fillBar.style.width = hasScore ? `${score}%` : '0%';
+                fillBar.className = `h-full transition-all duration-500 rounded-full ${sig.Risk_Barometer.bar_color || 'bg-gray-300'}`;
+            }
+
+            // 2. POPULATE ENDLESS CATALYST TIMELINE (Hybrid Macro + Corporate)
+            const renderTimelineNode = (event, index, isPast) => {
+                
+                const idMap = {
+                    // US Macro
+                    10: {name: "US CPI", color: "text-red-600", border: "border-t-red-500", tick: "bg-red-500"},
+                    50: {name: "US Payrolls", color: "text-blue-600", border: "border-t-blue-500", tick: "bg-blue-500"},
+                    53: {name: "US GDP", color: "text-emerald-600", border: "border-t-emerald-500", tick: "bg-emerald-500"},
+                    13: {name: "US Ind. Prod", color: "text-purple-600", border: "border-t-purple-500", tick: "bg-purple-500"},
+                    9:  {name: "US Retail", color: "text-orange-600", border: "border-t-orange-500", tick: "bg-orange-500"},
+                    46: {name: "US PPI", color: "text-pink-600", border: "border-t-pink-500", tick: "bg-pink-500"},
+                    // Global Macro
+                    322: {name: "ECB Rate", color: "text-indigo-600", border: "border-t-indigo-500", tick: "bg-indigo-500"},
+                    295: {name: "BOE Rate", color: "text-rose-600", border: "border-t-rose-500", tick: "bg-rose-500"},
+                    254: {name: "EU HICP", color: "text-cyan-600", border: "border-t-cyan-500", tick: "bg-cyan-500"},
+                    356: {name: "UK CPI", color: "text-fuchsia-600", border: "border-t-fuchsia-500", tick: "bg-fuchsia-500"},
+                    172: {name: "China GDP", color: "text-amber-700", border: "border-t-amber-600", tick: "bg-amber-600"},
+                    // Corporate Earnings
+                    "EARNINGS": {name: "Earnings", color: "text-amber-500", border: "border-t-amber-400", tick: "bg-amber-400"}
+                };
+                
+                const config = idMap[event.release_id] || {name: "Macro Release", color: "text-gray-600", border: "border-t-gray-500", tick: "bg-gray-500"};
+                
+                const finalEventName = event.release_id === "EARNINGS" ? `${event.ticker} Earnings` : config.name;
+                
+                const isUp = index % 2 === 0;
+                const dateObj = new Date(event.date);
+                const dateStr = dateObj.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
+                
+                const opacityClass = isPast ? 'opacity-50 hover:opacity-100' : 'opacity-100';
+
+                if (isUp) {
+                    return `
+                    <div class="relative flex items-center justify-center ${opacityClass} group flex-shrink-0 transition-all duration-300" style="width: 150px;">
+                        <div class="w-1.5 h-6 rounded-sm ${config.tick} z-10 shadow-sm border border-white"></div>
+                        <div class="absolute bottom-3 w-0.5 h-10 bg-gray-300"></div>
+                        <div class="absolute bottom-12 bg-white border ${config.border} border-x-gray-200 border-b-gray-200 px-4 py-4 rounded-xl shadow-lg text-center w-full transform transition group-hover:-translate-y-2">
+                            <span class="block text-[13px] font-black text-gray-400 uppercase tracking-widest mb-1">${dateStr}</span>
+                            <span class="block text-base font-bold ${config.color} leading-tight">${finalEventName}</span>
+                        </div>
+                    </div>`;
+                } else {
+                    return `
+                    <div class="relative flex items-center justify-center ${opacityClass} group flex-shrink-0 transition-all duration-300" style="width: 150px;">
+                        <div class="w-1.5 h-6 rounded-sm ${config.tick} z-10 shadow-sm border border-white"></div>
+                        <div class="absolute top-3 w-0.5 h-10 bg-gray-300"></div>
+                        <div class="absolute top-12 bg-white border ${config.border} border-x-gray-200 border-b-gray-200 px-4 py-4 rounded-xl shadow-lg text-center w-full transform transition group-hover:translate-y-2">
+                            <span class="block text-[13px] font-black text-gray-400 uppercase tracking-widest mb-1">${dateStr}</span>
+                            <span class="block text-base font-bold ${config.color} leading-tight">${finalEventName}</span>
+                        </div>
+                    </div>`;
+                }
+            };
+            
+            document.getElementById('timeline-past').innerHTML = cal.past.map((e, i) => renderTimelineNode(e, i, true)).join('');
+            document.getElementById('timeline-future').innerHTML = cal.future.map((e, i) => renderTimelineNode(e, i, false)).join('');
+
+            // 3. PILLAR 1: JOBS
+            if(jobs.US_Unemp?.length && jobs.UK_Unemp?.length && (jobs.DE_Unemp?.length || jobs.EU_Unemp?.length)) {
+                const usU = [...jobs.US_Unemp].reverse();
+                const ukU = [...jobs.UK_Unemp].reverse();
+                const deU = [...(jobs.DE_Unemp || jobs.EU_Unemp)].reverse();
+                Plotly.newPlot('chart-unemp', [
+                    {x: usU.map(d=>d.date), y: usU.map(d=>d.value), name: 'US', line: {color: '#2563eb'}},
+                    {x: ukU.map(d=>d.date), y: ukU.map(d=>d.value), name: 'UK', line: {color: '#dc2626'}},
+                    {x: deU.map(d=>d.date), y: deU.map(d=>d.value), name: 'Germany', line: {color: '#10b981'}}
+                ], layoutBase, {displayModeBar: false});
+
+                const meta = jobs.Unemployment_Metadata || {};
+                const freshness = document.getElementById('unemp-freshness');
+                if (freshness) {
+                    const parts = ['US', 'UK', 'DE'].map(k => {
+                        const row = meta[k];
+                        return row?.latest_date ? `${row.label || k}: ${new Date(row.latest_date + 'T00:00:00Z').toLocaleDateString('en-GB', {month:'short', year:'numeric'})}` : null;
+                    }).filter(Boolean);
+                    freshness.innerText = parts.length
+                        ? `Latest observations — ${parts.join(' · ')}. Monthly seasonally adjusted; publication lags differ by country.`
+                        : 'Monthly seasonally adjusted data; publication dates vary by country.';
+                }
+            }
+            
+            if(jobs.US_NFP?.length && jobs.US_JOLTS?.length) {
+                const nfp = [...jobs.US_NFP].reverse(), jolts = [...jobs.US_JOLTS].reverse();
+                
+                // JOLTS Chart (Line with shaded area)
+                Plotly.newPlot('chart-jolts', [
+                    {x: jolts.map(d=>d.date), y: jolts.map(d=>d.value), name: 'Job Openings (M)', type: 'scatter', line: {color: '#8b5cf6', width: 2}, fill: 'tozeroy', fillcolor: 'rgba(139, 92, 246, 0.1)'}
+                ], { ...layoutBase, showlegend: false, margin: { t: 10, r: 20, l: 40, b: 40 } }, {displayModeBar: false});
+
+                // NFP Chart (Color-coded Bars)
+                const nfpColors = nfp.map(d => d.value >= 0 ? '#3b82f6' : '#ef4444');
+                Plotly.newPlot('chart-nfp', [
+                    {x: nfp.map(d=>d.date), y: nfp.map(d=>d.value), name: 'NFP Added (K)', type: 'bar', marker: {color: nfpColors}}
+                ], { ...layoutBase, showlegend: false, margin: { t: 10, r: 20, l: 40, b: 40 } }, {displayModeBar: false});
+            }
+
+            if(jobs.US_Wages?.length) {
+                const wages = [...jobs.US_Wages].reverse();
+                Plotly.newPlot('chart-wages', [
+                    {
+                        x: wages.map(d=>d.date), 
+                        y: wages.map(d=>d.value), 
+                        name: 'Wage Growth', 
+                        type: 'scatter', 
+                        line: {color: '#f59e0b', width: 2}, 
+                        fill: 'tozeroy', 
+                        fillcolor: 'rgba(245, 158, 11, 0.1)'
+                    }
+                ], { ...layoutBase, showlegend: false, margin: { t: 10, r: 20, l: 40, b: 40 } }, {displayModeBar: false});
+            }
+
+            // 4. PILLAR 2: RATES
+            if(rates.Fed_Funds?.length && rates.ECB_Rate?.length) {
+                let fed = [...rates.Fed_Funds].reverse();
+                let ecb = [...rates.ECB_Rate].reverse();
+                
+                // QUANT TRICK 1: Perfect Timeline Synchronization
+                // Creates a mathematical intersection of dates that exist in BOTH datasets
+                const fedDates = new Set(fed.map(d => d.date));
+                const ecbDates = new Set(ecb.map(d => d.date));
+                fed = fed.filter(d => ecbDates.has(d.date));
+                ecb = ecb.filter(d => fedDates.has(d.date));
+
+                Plotly.newPlot('chart-cb-rates', [
+                    {x: fed.map(d=>d.date), y: fed.map(d=>d.value), name: 'Fed Funds', line: {shape: 'hv', color: '#059669', width: 2}},
+                    {x: ecb.map(d=>d.date), y: ecb.map(d=>d.value), name: 'ECB Rate', line: {shape: 'hv', color: '#2563eb', width: 2}}
+                ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
+            }
+            
+            if(rates.US_10Y?.length && rates.UK_10Y?.length && rates.GER_10Y?.length) {
+                let us = [...rates.US_10Y].reverse();
+                let uk = [...rates.UK_10Y].reverse();
+                let ger = [...rates.GER_10Y].reverse();
+
+                // QUANT TRICK 2: 3-Way Date Intersection
+                // Forces all 3 global sovereign bonds to start and end on the exact same month
+                const usDates = new Set(us.map(d => d.date));
+                const ukDates = new Set(uk.map(d => d.date));
+                const gerDates = new Set(ger.map(d => d.date));
+                
+                const commonDates = new Set([...usDates].filter(d => ukDates.has(d) && gerDates.has(d)));
+                
+                us = us.filter(d => commonDates.has(d.date));
+                uk = uk.filter(d => commonDates.has(d.date));
+                ger = ger.filter(d => commonDates.has(d.date));
+
+                Plotly.newPlot('chart-spreads', [
+                    {x: us.map(d=>d.date), y: us.map(d=>d.value), name: 'US 10Y', line: {color: '#1f2937', width: 2}},
+                    {x: uk.map(d=>d.date), y: uk.map(d=>d.value), name: 'UK Gilt 10Y', line: {color: '#dc2626', width: 2}},
+                    {x: ger.map(d=>d.date), y: ger.map(d=>d.value), name: 'GER Bund 10Y', line: {color: '#d97706', width: 2}}
+                ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
+            }
+
+            if(rates.CPI?.length && rates.PCE?.length && rates.PPI?.length) {
+                const cpi = [...rates.CPI].reverse();
+                const pce = [...rates.PCE].reverse();
+                const ppi = [...rates.PPI].reverse();
+
+                const fedTarget = { x: [cpi[0].date, cpi[cpi.length-1].date], y: [2, 2], name: 'Fed Target (2%)', type: 'scatter', hoverinfo: 'none', line: {color: '#9ca3af', width: 2, dash: 'dash'} };
+
+                Plotly.newPlot('chart-inflation', [
+                    {x: cpi.map(d=>d.date), y: cpi.map(d=>d.value), name: 'Headline CPI', line: {color: '#dc2626', width: 2}},
+                    {x: pce.map(d=>d.date), y: pce.map(d=>d.value), name: 'Core PCE', line: {color: '#2563eb', width: 2}},
+                    {x: ppi.map(d=>d.date), y: ppi.map(d=>d.value), name: 'PPI (Wholesale)', line: {color: '#f59e0b', width: 2, dash: 'dot'}},
+                    fedTarget
+                ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
+            }
+
+            // New Real Yields vs Expectations
+            if(rates.Breakeven?.length && rates.Real_Yield?.length) {
+                const breakeven = [...rates.Breakeven].reverse();
+                const realYield = [...rates.Real_Yield].reverse();
+
+                Plotly.newPlot('chart-real-yields', [
+                    {x: breakeven.map(d=>d.date), y: breakeven.map(d=>d.value), name: '10Y Breakeven (Inflation Exp.)', fill: 'tozeroy', fillcolor: 'rgba(239, 68, 68, 0.1)', line: {color: '#ef4444', width: 2}},
+                    {x: realYield.map(d=>d.date), y: realYield.map(d=>d.value), name: '10Y Real Yield', fill: 'tozeroy', fillcolor: 'rgba(59, 130, 246, 0.1)', line: {color: '#3b82f6', width: 2}}
+                ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
+            }
+
+            if(yieldCurveData && yieldCurveData.Term_Structure) {
+                const ts = yieldCurveData.Term_Structure;
+                const maturities = ["3M", "2Y", "5Y", "10Y", "30Y"];
+                
+                // Safely extract the current value (index 0) and 1 year ago (index ~250)
+                const getVal = (arr, idx) => arr && arr.length > idx ? arr[idx].value : null;
+                const todayYields = maturities.map(m => getVal(ts[m], 0));
+                const oneYearAgoYields = maturities.map(m => getVal(ts[m], ts[m].length > 250 ? 250 : ts[m].length - 1));
+
+                Plotly.newPlot('chart-term-structure', [
+                    {x: maturities, y: todayYields, name: 'Today', type: 'scatter', mode: 'lines+markers', line: {color: '#2563eb', width: 3, shape: 'spline'}, marker: {size: 8}},
+                    {x: maturities, y: oneYearAgoYields, name: '1 Year Ago', type: 'scatter', mode: 'lines+markers', line: {color: '#9ca3af', width: 2, dash: 'dash', shape: 'spline'}}
+                ], { 
+                    ...layoutBase, 
+                    xaxis: { ...layoutBase.xaxis, type: 'category' }, // <-- THE FIX: Forces categorical text, disables date-guessing!
+                    yaxis: { ...layoutBase.yaxis, title: 'Yield (%)' },
+                    margin: { t: 10, r: 30, l: 40, b: 40 }
+                }, {displayModeBar: false});
+            }
+
+            if(yieldCurveData?.Inversion_Spread?.length) {
+                const spread = [...yieldCurveData.Inversion_Spread].reverse();
+                const zeroLine = { x: [spread[0].date, spread[spread.length-1].date], y: [0, 0], name: 'Zero Line', type: 'scatter', mode: 'lines', line: {color: '#ef4444', width: 2, dash: 'dot'}, hoverinfo: 'none'};
+
+                Plotly.newPlot('chart-yield-spread', [
+                    {x: spread.map(d=>d.date), y: spread.map(d=>d.value), name: '10Y-2Y Spread', type: 'scatter', mode: 'lines', line: {color: '#8b5cf6', width: 2}, fill: 'tozeroy', fillcolor: 'rgba(139, 92, 246, 0.1)'},
+                    zeroLine
+                ], { ...layoutBase, showlegend: false, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
+            }
+
+            // 5. PILLAR 3: GDP
+            if(gdp.US_GDP && gdp.UK_GDP && gdp.EU_GDP) {
+                let usG = [...gdp.US_GDP].reverse();
+                let ukG = [...gdp.UK_GDP].reverse();
+                let euG = [...gdp.EU_GDP].reverse();
+
+                // QUANT DATE INTERSECTION: Match common quarters across US, UK, and EU
+                const usDates = new Set(usG.map(d => d.date));
+                const ukDates = new Set(ukG.map(d => d.date));
+                const euDates = new Set(euG.map(d => d.date));
+                
+                const commonDates = new Set([...usDates].filter(d => ukDates.has(d) && euDates.has(d)));
+                
+                if (commonDates.size > 0) {
+                    usG = usG.filter(d => commonDates.has(d.date));
+                    ukG = ukG.filter(d => commonDates.has(d.date));
+                    euG = euG.filter(d => commonDates.has(d.date));
+                }
+
+                Plotly.newPlot('chart-gdp', [
+                    {x: usG.map(d=>d.date), y: usG.map(d=>d.value), name: 'US GDP (YoY %)', line: {color: '#2563eb', width: 2}},
+                    {x: ukG.map(d=>d.date), y: ukG.map(d=>d.value), name: 'UK GDP (YoY %)', line: {color: '#dc2626', width: 2}},
+                    {x: euG.map(d=>d.date), y: euG.map(d=>d.value), name: 'EU GDP (YoY %)', line: {color: '#10b981', width: 2}}
+                ], {
+                    ...layoutBase,
+                    yaxis: { ...layoutBase.yaxis, zeroline: true, zerolinecolor: '#9ca3af', zerolinewidth: 1.5 },
+                    margin: { t: 10, r: 30, l: 40, b: 40 }
+                }, {displayModeBar: false});
+            }
+
+            // THE FIX: Explicitly draw the Industrial Production Chart
+            if(gdp.IndPro) {
+                const indpro = [...gdp.IndPro].reverse();
+                const indColors = indpro.map(d => d.value >= 0 ? '#1f2937' : '#ef4444');
+                Plotly.newPlot('chart-indpro', [
+                    {x: indpro.map(d=>d.date), y: indpro.map(d=>d.value), name: 'Industrial Production', type: 'bar', marker: {color: indColors}}
+                ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 }, showlegend: false }, {displayModeBar: false});
+            }
+
+            if(gdp.Retail_Sales) {
+                const retail = [...gdp.Retail_Sales].reverse();
+                const retailColors = retail.map(d => d.value >= 0 ? '#10b981' : '#ef4444');
+                Plotly.newPlot('chart-retail', [
+                    {x: retail.map(d=>d.date), y: retail.map(d=>d.value), name: 'Retail Sales Growth', type: 'bar', marker: {color: retailColors}}
+                ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 }, showlegend: false }, {displayModeBar: false});
+            }
+
+            if(gdp.Sentiment) {
+                const sentiment = [...gdp.Sentiment].reverse();
+                Plotly.newPlot('chart-sentiment', [
+                    {x: sentiment.map(d=>d.date), y: sentiment.map(d=>d.value), name: 'Consumer Sentiment', type: 'scatter', line: {color: '#f59e0b', width: 2}, fill: 'tozeroy', fillcolor: 'rgba(245, 158, 11, 0.1)'}
+                ], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 }, showlegend: false }, {displayModeBar: false});
+            }
+
+            // 6. PILLAR 4: FX
+            const renderFX = (id, dataArr, color) => {
+                if(!dataArr) return;
+                const clean = [...dataArr].reverse();
+                Plotly.newPlot(id, [{x: clean.map(d=>d.date), y: clean.map(d=>d.value), line: {color: color}}], layoutMini, {displayModeBar: false});
+            };
+            renderFX('chart-dxy', fx.broad_usd || fx.dxy, '#1f2937');
+            renderFX('chart-gbp', fx.gbp_usd, '#dc2626');
+            renderFX('chart-eur', fx.eur_usd, '#2563eb');
+            renderFX('chart-jpy', fx.usd_jpy, '#9333ea');
+
+            // The first useful snapshot/pillar unlocks the dashboard; live refresh continues quietly.
+            clearInterval(loadingInterval);
+            unlockMacroDashboard();
+
+            // 7. COMMODITIES & CREDIT SPREADS
+            if(commData) {
+                if(commData.Oil && commData.Oil.length > 0 && document.getElementById('chart-oil')) {
+                    const oil = [...commData.Oil].reverse();
+                    Plotly.newPlot('chart-oil', [{
+                        x: oil.map(d=>d.date), y: oil.map(d=>d.value), name: 'WTI Oil',
+                        type: 'scatter', mode: 'lines', line: {color: '#0284c7', width: 2},
+                        fill: 'tozeroy', fillcolor: 'rgba(2, 132, 199, 0.08)'
+                    }], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
+                }
+
+                if(commData.Gold && commData.Gold.length > 0 && document.getElementById('chart-gold')) {
+                    const gold = [...commData.Gold].reverse();
+                    Plotly.newPlot('chart-gold', [{
+                        x: gold.map(d=>d.date), y: gold.map(d=>d.value), name: 'Gold',
+                        type: 'scatter', mode: 'lines', line: {color: '#d97706', width: 2},
+                        fill: 'tozeroy', fillcolor: 'rgba(217, 119, 6, 0.08)'
+                    }], { ...layoutBase, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
+                }
+
+                if(commData.Credit_Spread && commData.Credit_Spread.length > 0 && document.getElementById('chart-credit')) {
+                    const credit = [...commData.Credit_Spread].reverse();
+                    Plotly.newPlot('chart-credit', [{
+                        x: credit.map(d=>d.date), y: credit.map(d=>d.value), name: 'HY Spread',
+                        type: 'scatter', mode: 'lines', line: {color: '#dc2626', width: 2},
+                        fill: 'tozeroy', fillcolor: 'rgba(220, 38, 38, 0.08)'
+                    }], { ...layoutBase, yaxis: { ...layoutBase.yaxis, title: 'Spread (%)' }, margin: { t: 10, r: 30, l: 40, b: 40 } }, {displayModeBar: false});
+                }
+            }
+
+
+            if (source === "cached") setMacroDataStatus("cached", timestamp);
+            else if (source === "partial") setMacroDataStatus("partial");
+            else setMacroDataStatus("live");
+        }
+
+        async function fetchEndpoint(path) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 30000);
+            try {
+                const response = await fetch(`${API_BASE}/${path}`, { cache: "no-store", signal: controller.signal });
+                if (!response.ok) throw new Error(`${path} returned HTTP ${response.status}`);
+                return await response.json();
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        async function refreshMacroData(manual = false) {
+            if (manual) {
+                const loader = document.getElementById("global-loader");
+                if (loader) {
+                    loader.style.display = "flex";
+                    loader.classList.remove("opacity-0", "scale-95");
+                }
+                progContainer?.classList.remove("opacity-0");
+                if (progBar) progBar.style.width = "15%";
+            }
+            setMacroDataStatus("refreshing", null, "Refreshing live macro data");
+
+            const merged = { ...(window.__macroSnapshotData || {}) };
+            const coreDefs = [
+                ["jobs", "pillar-jobs"],
+                ["rates", "pillar-rates"],
+                ["gdp", "pillar-gdp"],
+                ["fx", "pillar-fx"],
+                ["sig", "quant-signals"],
+                ["yieldCurveData", "pillar-yield-curve"],
+                ["commData", "pillar-commodities"]
+            ];
+
+            const coreResults = await Promise.allSettled(
+                coreDefs.map(async ([target, path]) => [target, await fetchEndpoint(path)])
+            );
+
+            let liveSuccesses = 0;
+            coreResults.forEach(result => {
+                if (result.status === "fulfilled") {
+                    const [target, payload] = result.value;
+                    if (payload && typeof payload === "object" && Object.keys(payload).length) {
+                        merged[target] = payload;
+                        liveSuccesses += 1;
+                    }
+                }
+            });
+
+            if (Object.keys(merged).length) {
+                renderMacroData(merged, liveSuccesses ? "live" : "partial");
+                window.__macroSnapshotData = merged;
+            }
+
+            // The calendar is intentionally independent because it is the slowest endpoint.
+            try {
+                const cal = await fetchEndpoint("calendar-timeline");
+                if (cal && typeof cal === "object") {
+                    merged.cal = cal;
+                    window.__macroSnapshotData = merged;
+                    renderMacroData(merged, liveSuccesses ? "live" : "partial");
+                }
+            } catch (error) {
+                console.warn("Macro calendar refresh failed:", error);
+                if (!liveSuccesses) setMacroDataStatus("partial");
+            }
+
+            return merged;
+        }
+
+        async function initialiseMacro() {
+            progContainer?.classList.remove("opacity-0");
+            if (progBar) progBar.style.width = "12%";
+            const snapshot = await fetchMacroSnapshots();
+            if (!snapshot) {
+                const loading = document.getElementById("loading-text");
+                if (loading) loading.innerText = "Starting macro data service...";
+                setMacroDataStatus("refreshing", null, "Starting macro data service");
+            }
+            await refreshMacroData(false);
         }
 
         // FETCH AI MACRO SYNTHESIS (BULLETPROOF ROUTER)

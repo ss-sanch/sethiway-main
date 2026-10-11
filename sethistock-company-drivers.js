@@ -33,6 +33,7 @@
     let activePeriod = 'quarterly';
     let requestId = 0;
     let controller = null;
+    let metadataController = null;
     let latestRegistry = null;
     let latestCoverage = null;
     let prefetchGeneration = 0;
@@ -61,6 +62,8 @@
     }
 
     function finiteNumber(value) {
+        // Null and blank disclosures must never be interpreted as a genuine zero.
+        if (value == null || (typeof value === 'string' && !value.trim())) return null;
         const number = Number(value);
         return Number.isFinite(number) ? number : null;
     }
@@ -144,11 +147,18 @@
     function comparablePrior(observations, latest) {
         const latestDate = new Date(`${periodDate(latest)}T00:00:00Z`);
         if (Number.isNaN(latestDate.getTime())) return null;
-        const target = latestDate.getTime() - 365.25 * 24 * 60 * 60 * 1000;
+        const day = 24 * 60 * 60 * 1000;
+        const target = latestDate.getTime() - 365.25 * day;
+        // A missing quarter must not silently turn a comparison into QoQ or
+        // a six-/nine-month change labelled as YoY.
+        const toleranceDays = activePeriod === 'annual' ? 75 : 45;
+        const latestType = String(latest?.period_type || '').toLowerCase();
         let best = null;
         let bestDistance = Infinity;
         for (const row of observations) {
             if (row === latest) continue;
+            const type = String(row?.period_type || '').toLowerCase();
+            if (latestType && type && type !== latestType) continue;
             const dateValue = periodDate(row);
             if (!dateValue) continue;
             const date = new Date(`${dateValue}T00:00:00Z`).getTime();
@@ -159,7 +169,7 @@
                 best = row;
             }
         }
-        return bestDistance <= 190 * 24 * 60 * 60 * 1000 ? best : null;
+        return bestDistance <= toleranceDays * day ? best : null;
     }
 
     function yoyChange(metric, observations) {
@@ -237,8 +247,17 @@
     }
 
     function closeDrivers(returnToRevenue = false) {
+        // Invalidate even metadata requests, which previously could finish after
+        // the modal closed and paint the wrong ticker on the next opening.
+        requestId += 1;
+        prefetchGeneration += 1;
         if (controller) controller.abort();
+        if (metadataController) metadataController.abort();
         controller = null;
+        metadataController = null;
+        activeTicker = '';
+        latestRegistry = null;
+        latestCoverage = null;
         const section = qs('#company-drivers');
         if (section) section.classList.add('hidden');
         document.body.classList.remove('modal-active');
@@ -434,6 +453,22 @@
         return Array.from(byYear.values()).sort((a, b) => String(periodDate(a)).localeCompare(String(periodDate(b))));
     }
 
+    function renderHistoryErrorCard(metric) {
+        const card = qs(`#driver-card-${CSS.escape(metric.key)}`);
+        if (!card) return;
+        card.replaceChildren();
+        const wrapper = document.createElement('div');
+        wrapper.className = 'flex min-h-[250px] flex-col items-center justify-center text-center px-5';
+        const label = document.createElement('h4');
+        label.className = 'text-sm font-black text-gray-800';
+        label.textContent = metric.label;
+        const message = document.createElement('p');
+        message.className = 'text-xs text-amber-700 mt-2';
+        message.textContent = 'This filing history could not be loaded. Try reopening Revenue Drivers.';
+        wrapper.append(label, message);
+        card.appendChild(wrapper);
+    }
+
     function renderMetricCard(metric, payload) {
         const card = qs(`#driver-card-${CSS.escape(metric.key)}`);
         if (!card) return;
@@ -588,10 +623,16 @@
         renderLoadingCards(metrics);
         setStatus(`Loading ${humanPeriod(period).toLowerCase()} ${ticker} revenue drivers…`, 'live');
         const histories = await mapConcurrent(metrics, MAX_PARALLEL, async metric => {
-            const payload = await getHistory(ticker, metric.key, period, signal);
-            if (thisRequest !== requestId) return { metric, stale: true };
-            renderMetricCard(metric, payload);
-            return { metric, payload };
+            try {
+                const payload = await getHistory(ticker, metric.key, period, signal);
+                if (thisRequest !== requestId) return { metric, stale: true };
+                renderMetricCard(metric, payload);
+                return { metric, payload };
+            } catch (error) {
+                if (thisRequest !== requestId) return { metric, stale: true };
+                renderHistoryErrorCard(metric);
+                return { metric, error };
+            }
         });
         if (thisRequest !== requestId) return;
 
@@ -614,6 +655,9 @@
             return;
         }
 
+        // Cancel histories from a previous stock while registry metadata loads.
+        if (controller) controller.abort();
+        controller = null;
         activeTicker = symbol;
         const section = qs('#company-drivers');
         if (section?.dataset) section.dataset.expectedTicker = symbol;
@@ -625,9 +669,11 @@
         showEmpty(`Loading ${symbol} Revenue Drivers…`, 'Checking the verified filing registry and persistent driver cache.');
 
         const localRequest = ++requestId;
-        const metadataController = new AbortController();
+        if (metadataController) metadataController.abort();
+        metadataController = new AbortController();
+        const metadataSignal = metadataController.signal;
         try {
-            const { registry, coverage } = await getMetadata(symbol, metadataController.signal);
+            const { registry, coverage } = await getMetadata(symbol, metadataSignal);
             if (localRequest !== requestId || activeTicker !== symbol) return;
             latestRegistry = registry;
             latestCoverage = coverage;
@@ -643,6 +689,8 @@
                 showEmpty('Revenue Drivers are temporarily unavailable.', error?.message || 'The driver service could not be reached.', 'error');
                 setStatus('Revenue-driver service temporarily unavailable', 'error');
             }
+        } finally {
+            if (metadataController?.signal === metadataSignal) metadataController = null;
         }
     }
 

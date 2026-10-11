@@ -9,6 +9,16 @@
     <style>
         /* Smooth scrolling for the pillar navigation */
         html { scroll-behavior: smooth; }
+        /* Responsive charts: compact enough for laptops without crushing axes. */
+        .macro-chart { height: 265px; width: 100%; }
+        .macro-mini-chart { height: 175px; width: 100%; }
+        @media (min-width: 1024px) and (max-width: 1439px) {
+            .macro-chart { height: 245px; }
+        }
+        @media (max-width: 639px) {
+            .macro-chart { height: 250px; }
+            .macro-mini-chart { height: 165px; }
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
@@ -48,36 +58,30 @@
         <div id="progress-bar" class="h-full bg-blue-600 w-0 transition-all duration-300 ease-out"></div>
     </div>
 
-    <div class="flex-grow px-4 md:px-8 pt-8 pb-0">
+    <div class="flex-grow px-4 md:px-6 pt-5 pb-0">
         <!-- DASHBOARD HEADER -->
-        <div class="text-center mb-10">
-            <h1 class="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-gray-900 mb-2">SETHI<span class="text-blue-600">MACRO</span></h1>
-            <p class="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-3">Global Macroeconomic &amp; Risk Terminal</p>
-            <div class="flex items-center justify-center mb-5">
+        <div class="text-center mb-5">
+            <h1 class="text-3xl sm:text-4xl xl:text-5xl font-black tracking-tight text-gray-900 mb-1">SETHI<span class="text-blue-600">MACRO</span></h1>
+            <p class="text-xs sm:text-sm font-semibold text-gray-400 uppercase tracking-widest mb-2">Global Macroeconomic &amp; Risk Terminal</p>
+            <div class="flex items-center justify-center mb-2">
                 <span id="macro-data-status" class="hidden inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-black uppercase tracking-wider"></span>
             </div>
 
-            <div id="global-loader" class="mx-auto flex justify-center items-center py-2 px-6 bg-blue-50 border border-blue-100 rounded-full max-w-md transition-all duration-500 mb-6 shadow-sm overflow-hidden">
+            <div id="global-loader" class="mx-auto flex justify-center items-center py-1.5 px-4 bg-blue-50 border border-blue-100 rounded-full max-w-md transition-all duration-500 mb-3 shadow-sm overflow-hidden">
                 <svg class="animate-spin h-4 w-4 text-blue-600 mr-3 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                 <span id="loading-text" class="text-xs font-bold text-blue-800 tracking-wider uppercase">Initializing Global Terminal...</span>
             </div>
 
-            <div class="flex flex-wrap justify-center gap-3">
-                <a href="#job-market" class="px-6 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 shadow-sm transition">💼 Job Market</a>
-                <a href="#inflation-rates" class="px-6 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 shadow-sm transition">📉 Inflation & Rates</a>
-                <a href="#gdp-output" class="px-6 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 shadow-sm transition">🏭 GDP & Output</a>
-                <a href="#currencies" class="px-6 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 shadow-sm transition">💱 Currencies</a>
-                <a href="#pillar-commodities" class="px-6 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 shadow-sm transition"> 📦 Commodities & Credit</a>
-            </div>
+            <!-- Sticky navigation provides all five section links on every screen size. -->
         </div>
 
     <div id="macro-dashboard-content" class="opacity-30 transition-opacity duration-1000 pointer-events-none">
 
         <!-- EXECUTIVE KPI BAR (COMPACT UNIFORM LAYOUT) -->
-        <div class="max-w-[1600px] px-4 lg:px-8 mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <div class="max-w-[1600px] mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
             
             <!-- 1. COMPACT HORIZONTAL BAROMETER -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-indigo-600 flex flex-col justify-between">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3.5 xl:p-4 border-t-4 border-t-indigo-600 flex flex-col justify-between">
                 <div class="flex justify-between items-center">
                     <h3 class="text-xs font-bold text-indigo-900 uppercase tracking-wider">Macro Risk Barometer</h3>
                     <button onclick="toggleModal('modal-risk-barometer')" class="text-gray-400 hover:text-indigo-600 transition cursor-pointer">
@@ -98,7 +102,7 @@
             </div>
 
             <!-- 2. Sahm Rule -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-purple-500 flex flex-col justify-between">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3.5 xl:p-4 border-t-4 border-t-purple-500 flex flex-col justify-between">
                 <div class="flex justify-between items-center">
                     <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Sahm Recession Rule</h3>
                     <button onclick="toggleModal('modal-sahm')" class="text-gray-400 hover:text-purple-600 transition cursor-pointer">
@@ -115,7 +119,7 @@
             </div>
 
             <!-- 3. Yield Spread -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-blue-500 flex flex-col justify-between">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3.5 xl:p-4 border-t-4 border-t-blue-500 flex flex-col justify-between">
                 <div class="flex justify-between items-center">
                     <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">10Y-2Y Yield Spread</h3>
                     <button onclick="toggleModal('modal-spread')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer">
@@ -132,7 +136,7 @@
             </div>
 
             <!-- 4. Fed Policy Gap -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-emerald-500 flex flex-col justify-between">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3.5 xl:p-4 border-t-4 border-t-emerald-500 flex flex-col justify-between">
                 <div class="flex justify-between items-center">
                     <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Fed Policy Gap</h3>
                     <button onclick="toggleModal('modal-fed')" class="text-gray-400 hover:text-emerald-600 transition cursor-pointer">
@@ -149,7 +153,7 @@
             </div>
 
             <!-- 5. DXY Strength -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 border-t-4 border-t-gray-800 flex flex-col justify-between">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3.5 xl:p-4 border-t-4 border-t-gray-800 flex flex-col justify-between">
                 <div class="flex justify-between items-center">
                     <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Broad USD Index</h3>
                     <button onclick="toggleModal('modal-dxy')" class="text-gray-400 hover:text-gray-800 transition cursor-pointer">
@@ -168,7 +172,7 @@
         </div>
 
         <!-- TOP EXECUTIVE AI SUMMARY CONTAINER -->
-        <div class="bg-blue-50/80 border border-blue-200 rounded-2xl p-6 mb-12 shadow-sm relative overflow-hidden">
+        <div class="bg-blue-50/80 border border-blue-200 rounded-2xl p-4 sm:p-5 mb-6 shadow-sm relative overflow-hidden">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2">
                     <span class="relative flex h-2.5 w-2.5">
@@ -194,10 +198,10 @@
     <!-- ========================================== -->
     <!-- THE ENDLESS MACRO CATALYST TIMELINE        -->
     <!-- ========================================== -->
-    <div class="w-full bg-white border-y border-gray-200 py-16 mb-12 shadow-sm relative overflow-hidden">
-        <h2 class="absolute top-6 w-full text-sm font-black text-gray-400 uppercase tracking-widest text-center">Global Macro Calendar</h2>
+    <div class="w-full bg-white border-y border-gray-200 py-8 mb-8 shadow-sm relative overflow-hidden">
+        <h2 class="absolute top-3.5 w-full text-sm font-black text-gray-400 uppercase tracking-widest text-center">Global Macro Calendar</h2>
         
-        <div class="max-w-[1400px] mx-auto relative h-56 mt-8 flex justify-center items-center">
+        <div class="max-w-[1400px] mx-auto relative h-52 mt-6 flex justify-center items-center">
             <!-- Thicker, Blue Endless Line -->
             <div class="absolute w-[200vw] h-1.5 bg-blue-200 z-0"></div>
             
@@ -208,7 +212,7 @@
             <div id="timeline-past" class="absolute right-[50%] pr-16 flex justify-end items-center space-x-2 w-[50vw] z-10"></div>
             
             <!-- Today Node -->
-            <div class="z-20 flex flex-col items-center justify-center bg-blue-600 text-white rounded-full h-20 w-20 shadow-xl border-4 border-white flex-shrink-0 relative">
+            <div class="z-20 flex flex-col items-center justify-center bg-blue-600 text-white rounded-full h-16 w-16 shadow-xl border-4 border-white flex-shrink-0 relative">
                 <span class="text-[11px] font-black tracking-widest">TODAY</span>
             </div>
             
@@ -218,22 +222,22 @@
     </div>
 
     <!-- Re-open the main container for the rest of the page -->
-    <div class="flex-grow px-8 pb-8">
+    <div class="flex-grow px-4 lg:px-6 pb-6">
 
         <!-- PHASE 2A: DEEPER EVIDENCE, AFTER THE EXECUTIVE BRIEFING AND CALENDAR -->
-        <section id="macro-intelligence" aria-labelledby="macro-intelligence-title" class="scroll-mt-24 max-w-[1600px] px-4 lg:px-8 mx-auto mb-14">
+        <section id="macro-intelligence" aria-labelledby="macro-intelligence-title" class="scroll-mt-24 max-w-[1600px] mx-auto mb-9">
             <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-5">
                 <div>
                     <p class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600 mb-1">Quantitative framework</p>
-                    <h2 id="macro-intelligence-title" class="text-2xl font-black text-gray-900 uppercase tracking-tight">Macro Intelligence</h2>
+                    <h2 id="macro-intelligence-title" class="text-xl xl:text-2xl font-black text-gray-900 uppercase tracking-tight">Macro Intelligence</h2>
                     <p class="text-sm text-gray-500 mt-1">The US growth and inflation signals behind the broader economic outlook.</p>
                 </div>
                 <span class="text-[10px] font-semibold text-gray-400">Directional breadth, not a recession forecast</span>
             </div>
         <!-- PHASE 2A: MACRO REGIME + MOMENTUM -->
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6">
-                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-5">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 xl:p-5">
+                <div class="flex flex-col xl:flex-row xl:items-start justify-between gap-2 mb-3">
                     <div>
                         <p class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600 mb-1">Growth × Inflation</p>
                         <h2 class="text-xl font-black text-gray-900">US Macro Regime</h2>
@@ -242,7 +246,7 @@
                     <span id="regime-label" class="inline-flex self-start px-3 py-1.5 rounded-full border border-gray-200 bg-gray-50 text-[11px] font-black text-gray-600">Calculating</span>
                 </div>
 
-                <div class="relative h-64 sm:h-72 rounded-2xl overflow-hidden border border-gray-200 bg-gray-50">
+                <div class="relative h-52 sm:h-56 rounded-2xl overflow-hidden border border-gray-200 bg-gray-50">
                     <div class="absolute inset-0 grid grid-cols-2 grid-rows-2">
                         <div class="border-r border-b border-gray-200 bg-rose-50/40 p-3 flex items-start">
                             <span class="text-[10px] sm:text-xs font-bold text-rose-700">Growth slowing<br>Inflation heating</span>
@@ -264,7 +268,7 @@
                     <span class="absolute bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-black uppercase tracking-widest text-gray-400">Growth momentum</span>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3 mt-4">
+                <div class="grid grid-cols-2 gap-2 mt-3">
                     <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
                         <p class="text-[10px] font-black uppercase tracking-wider text-gray-400">Growth breadth</p>
                         <div class="flex items-end gap-2 mt-1">
@@ -283,8 +287,8 @@
                 <p class="mt-3 text-[10px] leading-relaxed text-gray-400">Breadth scores range from -100 to +100 and measure the direction of the underlying indicators, not forecast probabilities.</p>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6">
-                <div class="flex items-start justify-between gap-3 mb-4">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 xl:p-5">
+                <div class="flex items-start justify-between gap-2 mb-3">
                     <div>
                         <p class="text-[10px] font-black uppercase tracking-[0.18em] text-indigo-600 mb-1">What changed?</p>
                         <h2 class="text-xl font-black text-gray-900">Macro Momentum</h2>
@@ -292,7 +296,7 @@
                     </div>
                     <span id="regime-coverage" class="text-[10px] font-black uppercase tracking-wider text-gray-400"></span>
                 </div>
-                <div id="regime-components" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div id="regime-components" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div class="rounded-xl border border-gray-200 p-3 text-xs text-gray-400">Awaiting macro inputs…</div>
                 </div>
             </div>
@@ -302,10 +306,10 @@
         <!-- ========================================== -->
         <!-- PILLAR 1: JOB MARKET & EMPLOYMENT -->
         <!-- ========================================== -->
-        <div id="job-market" class="scroll-mt-24 max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-6">
-                <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight shrink-0">Job Market & Employment</h2>
-                <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-4 shadow-sm flex-1">
+        <div id="job-market" class="scroll-mt-24 max-w-7xl mx-auto mb-9 pt-5 border-t border-gray-200">
+            <div class="flex flex-col lg:flex-row lg:items-start justify-between mb-4 gap-3">
+                <h2 class="text-xl xl:text-2xl font-black text-gray-900 uppercase tracking-tight shrink-0">Job Market & Employment</h2>
+                <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-3 shadow-sm flex-1 min-w-0">
                     <div class="flex items-center justify-between mb-2">
                         <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider">AI Sector Synthesis</h4>
                         <button onclick="toggleModal('modal-ai-disclaimer')" class="text-blue-500 hover:text-blue-700 transition cursor-pointer" title="AI Disclaimer">
@@ -321,46 +325,46 @@
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 xl:p-5">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-md font-bold text-gray-800">Global Unemployment</h3>
                         <button onclick="toggleModal('modal-unemp')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="chart-unemp" style="height: 300px; width: 100%;"></div>
+                    <div id="chart-unemp" class="macro-chart"></div>
                     <p id="unemp-freshness" class="mt-2 text-[10px] font-semibold text-gray-400">Monthly seasonally adjusted data; publication dates vary by country.</p>
                 </div>
 
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 xl:p-5">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-md font-bold text-gray-800">US Wage Growth (YoY %)</h3>
                         <button onclick="toggleModal('modal-wages')" class="text-gray-400 hover:text-amber-500 transition cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="chart-wages" style="height: 300px; width: 100%;"></div>
+                    <div id="chart-wages" class="macro-chart"></div>
                 </div>
 
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 xl:p-5">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-md font-bold text-gray-800">US Job Openings (JOLTS)</h3>
                         <button onclick="toggleModal('modal-jolts')" class="text-gray-400 hover:text-purple-600 transition cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="chart-jolts" style="height: 300px; width: 100%;"></div>
+                    <div id="chart-jolts" class="macro-chart"></div>
                 </div>
 
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 xl:p-5">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-md font-bold text-gray-800">US Nonfarm Payrolls</h3>
                         <button onclick="toggleModal('modal-nfp')" class="text-gray-400 hover:text-blue-500 transition cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="chart-nfp" style="height: 300px; width: 100%;"></div>
+                    <div id="chart-nfp" class="macro-chart"></div>
                 </div>
             </div>
         </div>
@@ -368,10 +372,10 @@
         <!-- ========================================== -->
         <!-- PILLAR 2: INFLATION, RATES & YIELDS -->
         <!-- ========================================== -->
-        <div id="inflation-rates" class="scroll-mt-24 w-full max-w-[1600px] px-4 lg:px-8 mx-auto mb-16 pt-8 border-t border-gray-200">
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-6">
-                <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight shrink-0">Inflation, Rates & Yields</h2>
-                <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-4 shadow-sm flex-1">
+        <div id="inflation-rates" class="scroll-mt-24 w-full max-w-[1600px] mx-auto mb-9 pt-5 border-t border-gray-200">
+            <div class="flex flex-col lg:flex-row lg:items-start justify-between mb-4 gap-3">
+                <h2 class="text-xl xl:text-2xl font-black text-gray-900 uppercase tracking-tight shrink-0">Inflation, Rates & Yields</h2>
+                <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-3 shadow-sm flex-1 min-w-0">
                     <div class="flex items-center justify-between mb-1">
                         <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider">AI Sector Synthesis</h4>
                         <button onclick="toggleModal('modal-ai-disclaimer')" class="text-blue-500 hover:text-blue-700 transition cursor-pointer" title="AI Disclaimer">
@@ -387,71 +391,71 @@
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 <!-- 1. Central Bank Rates -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 xl:p-5">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-md font-bold text-gray-800">Global Central Bank Rates</h3>
                         <button onclick="toggleModal('modal-cb-rates')" class="text-gray-400 hover:text-green-600 transition cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="chart-cb-rates" style="height: 300px; width: 100%;"></div>
+                    <div id="chart-cb-rates" class="macro-chart"></div>
                 </div>
 
                 <!-- 2. Sovereign Yield Spreads -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 xl:p-5">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-md font-bold text-gray-800">Global 10Y Sovereign Spreads</h3>
                         <button onclick="toggleModal('modal-spreads')" class="text-gray-400 hover:text-red-500 transition cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="chart-spreads" style="height: 300px; width: 100%;"></div>
+                    <div id="chart-spreads" class="macro-chart"></div>
                 </div>
 
                 <!-- 3. Advanced US Inflation Tracker -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 xl:p-5">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-md font-bold text-gray-800">US Inflation vs Fed Target (YoY)</h3>
                         <button onclick="toggleModal('modal-inflation')" class="text-gray-400 hover:text-orange-500 transition cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="chart-inflation" style="height: 300px; width: 100%;"></div>
+                    <div id="chart-inflation" class="macro-chart"></div>
                 </div>
 
                 <!-- 4. Real Yields vs Breakevens -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 xl:p-5">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-md font-bold text-gray-800">10Y Real Yield vs Inflation Expectations</h3>
                         <button onclick="toggleModal('modal-real-yield')" class="text-gray-400 hover:text-blue-500 transition cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="chart-real-yields" style="height: 300px; width: 100%;"></div>
+                    <div id="chart-real-yields" class="macro-chart"></div>
                 </div>
 
                 <!-- 5. US Yield Curve (Term Structure) -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 xl:p-5">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-md font-bold text-gray-800">US Yield Curve Term Structure</h3>
                         <button onclick="toggleModal('modal-term')" class="text-gray-400 hover:text-indigo-500 transition cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="chart-term-structure" style="height: 300px; width: 100%;"></div>
+                    <div id="chart-term-structure" class="macro-chart"></div>
                 </div>
 
                 <!-- 6. 10Y-2Y Spread -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 xl:p-5">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-md font-bold text-gray-800">10Y-2Y Yield Spread Inversion</h3>
                         <button onclick="toggleModal('modal-inversion')" class="text-gray-400 hover:text-indigo-500 transition cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="chart-yield-spread" style="height: 300px; width: 100%;"></div>
+                    <div id="chart-yield-spread" class="macro-chart"></div>
                 </div>
             </div>
         </div>
@@ -459,10 +463,10 @@
         <!-- ========================================== -->
         <!-- PILLAR 3: GDP & ECONOMIC SECTORS -->
         <!-- ========================================== -->
-        <div id="gdp-output" class="scroll-mt-24 max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-6">
-                <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight shrink-0">GDP & Output</h2>
-                <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-4 shadow-sm flex-1">
+        <div id="gdp-output" class="scroll-mt-24 max-w-7xl mx-auto mb-9 pt-5 border-t border-gray-200">
+            <div class="flex flex-col lg:flex-row lg:items-start justify-between mb-4 gap-3">
+                <h2 class="text-xl xl:text-2xl font-black text-gray-900 uppercase tracking-tight shrink-0">GDP & Output</h2>
+                <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-3 shadow-sm flex-1 min-w-0">
                     <div class="flex items-center justify-between mb-1">
                         <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider">AI Sector Synthesis</h4>
                         <button onclick="toggleModal('modal-ai-disclaimer')" class="text-blue-500 hover:text-blue-700 transition cursor-pointer" title="AI Disclaimer">
@@ -478,45 +482,45 @@
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 xl:p-5">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-md font-bold text-gray-800">Global Real GDP Growth</h3>
                         <button onclick="toggleModal('modal-gdp')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="chart-gdp" style="height: 300px; width: 100%;"></div>
+                    <div id="chart-gdp" class="macro-chart"></div>
                 </div>
 
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 xl:p-5">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-md font-bold text-gray-800">US Industrial Production (YoY)</h3>
                         <button onclick="toggleModal('modal-indpro')" class="text-gray-400 hover:text-gray-800 transition cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="chart-indpro" style="height: 300px; width: 100%;"></div>
+                    <div id="chart-indpro" class="macro-chart"></div>
                 </div>
 
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 xl:p-5">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-md font-bold text-gray-800">US Retail Sales Growth (YoY)</h3>
                         <button onclick="toggleModal('modal-retail')" class="text-gray-400 hover:text-emerald-500 transition cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="chart-retail" style="height: 300px; width: 100%;"></div>
+                    <div id="chart-retail" class="macro-chart"></div>
                 </div>
 
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 xl:p-5">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-md font-bold text-gray-800">US Consumer Sentiment (UMich)</h3>
                         <button onclick="toggleModal('modal-sentiment')" class="text-gray-400 hover:text-amber-500 transition cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="chart-sentiment" style="height: 300px; width: 100%;"></div>
+                    <div id="chart-sentiment" class="macro-chart"></div>
                 </div>
             </div>
         </div>
@@ -524,10 +528,10 @@
         <!-- ========================================== -->
         <!-- PILLAR 4: CURRENCIES & FX -->
         <!-- ========================================== -->
-        <div id="currencies" class="scroll-mt-24 max-w-7xl mx-auto mb-16 pt-8 border-t border-gray-200">
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-6">
-                <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight shrink-0">Currencies & FX</h2>
-                <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-4 shadow-sm flex-1">
+        <div id="currencies" class="scroll-mt-24 max-w-7xl mx-auto mb-9 pt-5 border-t border-gray-200">
+            <div class="flex flex-col lg:flex-row lg:items-start justify-between mb-4 gap-3">
+                <h2 class="text-xl xl:text-2xl font-black text-gray-900 uppercase tracking-tight shrink-0">Currencies & FX</h2>
+                <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-3 shadow-sm flex-1 min-w-0">
                     <div class="flex items-center justify-between mb-1">
                         <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider">AI Sector Synthesis</h4>
                         <button onclick="toggleModal('modal-ai-disclaimer')" class="text-blue-500 hover:text-blue-700 transition cursor-pointer" title="AI Disclaimer">
@@ -543,22 +547,22 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 relative overflow-hidden">
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-3 relative overflow-hidden">
                     <h3 class="text-sm font-bold text-gray-500 mb-2">Broad USD Index</h3>
-                    <div id="chart-dxy" style="height: 200px; width: 100%;"></div>
+                    <div id="chart-dxy" class="macro-mini-chart"></div>
                 </div>
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 relative overflow-hidden">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-3 relative overflow-hidden">
                     <h3 class="text-sm font-bold text-gray-500 mb-2">GBP/USD (Cable)</h3>
-                    <div id="chart-gbp" style="height: 200px; width: 100%;"></div>
+                    <div id="chart-gbp" class="macro-mini-chart"></div>
                 </div>
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 relative overflow-hidden">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-3 relative overflow-hidden">
                     <h3 class="text-sm font-bold text-gray-500 mb-2">EUR/USD (Fiber)</h3>
-                    <div id="chart-eur" style="height: 200px; width: 100%;"></div>
+                    <div id="chart-eur" class="macro-mini-chart"></div>
                 </div>
-                <div class="bg-white rounded-2xl shadow-sm border border-purple-200 p-4 relative overflow-hidden">
+                <div class="bg-white rounded-2xl shadow-sm border border-purple-200 p-3 relative overflow-hidden">
                     <h3 class="text-sm font-bold text-gray-500 mb-2">USD/JPY (Yen)</h3>
-                    <div id="chart-jpy" style="height: 200px; width: 100%;"></div>
+                    <div id="chart-jpy" class="macro-mini-chart"></div>
                 </div>
             </div>
         </div>
@@ -566,10 +570,10 @@
         <!-- ========================================== -->
         <!-- PILLAR 5: COMMODITIES & CREDIT RISK        -->
         <!-- ========================================== -->
-        <div id="pillar-commodities" class="scroll-mt-24 w-full max-w-[1600px] px-4 lg:px-8 mx-auto mb-16 pt-8 border-t border-gray-200">
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-6">
-                <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight shrink-0">Commodities & Credit Risk</h2>
-                <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-4 shadow-sm flex-1">
+        <div id="pillar-commodities" class="scroll-mt-24 w-full max-w-[1600px] mx-auto mb-9 pt-5 border-t border-gray-200">
+            <div class="flex flex-col lg:flex-row lg:items-start justify-between mb-4 gap-3">
+                <h2 class="text-xl xl:text-2xl font-black text-gray-900 uppercase tracking-tight shrink-0">Commodities & Credit Risk</h2>
+                <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-3 shadow-sm flex-1 min-w-0">
                     <div class="flex items-center justify-between mb-2">
                         <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider">AI Sector Synthesis</h4>
                         <button onclick="toggleModal('modal-ai-disclaimer')" class="text-blue-500 hover:text-blue-700 transition cursor-pointer" title="AI Disclaimer">
@@ -586,43 +590,43 @@
             </div>
 
             <!-- 3-COLUMN BALANCED GRID -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 <!-- 1. WTI Crude Oil -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 xl:p-5">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-md font-bold text-gray-800">WTI Crude Oil ($/bbl)</h3>
                         <button onclick="toggleModal('modal-oil')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="chart-oil" style="height: 300px; width: 100%;"></div>
+                    <div id="chart-oil" class="macro-chart"></div>
                 </div>
 
                 <!-- 2. Gold Fixing -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 xl:p-5">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-md font-bold text-gray-800">Gold (USD / Troy Oz)</h3>
                         <button onclick="toggleModal('modal-gold')" class="text-gray-400 hover:text-amber-600 transition cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="chart-gold" style="height: 300px; width: 100%;"></div>
+                    <div id="chart-gold" class="macro-chart"></div>
                 </div>
 
                 <!-- 3. High-Yield OAS -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 xl:p-5">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-md font-bold text-gray-800">US High-Yield OAS Spread</h3>
                         <button onclick="toggleModal('modal-credit')" class="text-gray-400 hover:text-red-600 transition cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="chart-credit" style="height: 300px; width: 100%;"></div>
+                    <div id="chart-credit" class="macro-chart"></div>
                 </div>
             </div>
 
             <!-- OPTIONAL: CROSS-ASSET READ-THROUGH (kept secondary to detailed research) -->
-            <details id="cross-asset-pulse" class="group mt-6 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <details id="cross-asset-pulse" class="group mt-4 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
                 <summary class="flex items-center justify-between gap-3 px-5 md:px-6 py-4 cursor-pointer list-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 [&::-webkit-details-marker]:hidden">
                     <div class="min-w-0">
                         <p class="text-[10px] font-black uppercase tracking-[0.16em] text-sky-600 mb-1">Optional market context</p>
@@ -645,8 +649,8 @@
         </div>
     </div>    
 
-    <section class="max-w-4xl mx-auto mb-0 pb-16 pt-8 border-t border-gray-200 px-4">
-            <div class="bg-gray-50 rounded-2xl p-8 text-center border border-gray-200 shadow-sm">
+    <section class="max-w-4xl mx-auto mb-0 pb-9 pt-5 border-t border-gray-200 px-4">
+            <div class="bg-gray-50 rounded-2xl p-5 md:p-6 text-center border border-gray-200 shadow-sm">
                 <h2 class="text-2xl font-bold text-gray-800 mb-2">Spotted a bug or have a feature idea?</h2>
                 <p class="text-gray-500 text-sm mb-6">SethiMacro is continuously evolving. Let me know what data pillar or currency pair we should build next.</p>
                 

@@ -1,0 +1,25 @@
+name: SethiStock Company Drivers UI
+on:
+  push:
+    paths:
+      - 'sethistock-company-drivers.js'
+      - 'sethistock-financial-history.js'
+      - 'sethiway-history.js'
+      - 'tests/test-sethistock-company-drivers.cjs'
+      - '.github/workflows/sethistock-company-drivers.yml'
+  pull_request:
+    paths:
+      - 'sethistock-company-drivers.js'
+      - 'sethistock-financial-history.js'
+      - 'sethiway-history.js'
+      - 'tests/test-sethistock-company-drivers.cjs'
+      - '.github/workflows/sethistock-company-drivers.yml'
+jobs:
+  driver-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check module syntax
+        run: node --check sethistock-company-drivers.js
+      - name: Run driver contract regression tests
+        run: node tests/test-sethistock-company-drivers.cjs

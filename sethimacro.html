@@ -167,8 +167,71 @@
 
         </div>
 
+        <!-- TOP EXECUTIVE AI SUMMARY CONTAINER -->
+        <div class="bg-blue-50/80 border border-blue-200 rounded-2xl p-6 mb-12 shadow-sm relative overflow-hidden">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-600"></span>
+                    </span>
+                    <h3 class="text-xs font-black text-blue-900 uppercase tracking-widest">Chief Economist AI Briefing</h3>
+                </div>
+                <button onclick="toggleModal('modal-ai-disclaimer')" class="text-blue-600 hover:text-blue-800 transition cursor-pointer" title="AI Methodology & Disclaimer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </button>
+            </div>
+            <div id="ai-executive" class="text-sm text-gray-700 leading-relaxed font-medium">
+                <div class="flex items-center gap-2 text-blue-600 animate-pulse">
+                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Synthesizing macroeconomic framework...
+                </div>
+            </div>
+        </div>
+
+    </div> <!-- Close the inner container so the Timeline can go full width -->
+
+    <!-- ========================================== -->
+    <!-- THE ENDLESS MACRO CATALYST TIMELINE        -->
+    <!-- ========================================== -->
+    <div class="w-full bg-white border-y border-gray-200 py-16 mb-12 shadow-sm relative overflow-hidden">
+        <h2 class="absolute top-6 w-full text-sm font-black text-gray-400 uppercase tracking-widest text-center">Global Macro Calendar</h2>
+        
+        <div class="max-w-[1400px] mx-auto relative h-56 mt-8 flex justify-center items-center">
+            <!-- Thicker, Blue Endless Line -->
+            <div class="absolute w-[200vw] h-1.5 bg-blue-200 z-0"></div>
+            
+            <!-- Etchings Background (Creates the empty generic ruler marks along the line) -->
+            <div class="absolute w-[200vw] h-3 z-0" style="background-image: repeating-linear-gradient(to right, transparent, transparent 99px, #93c5fd 99px, #93c5fd 100px); background-size: 100px 100%;"></div>
+            
+            <!-- Past Events Container -->
+            <div id="timeline-past" class="absolute right-[50%] pr-16 flex justify-end items-center space-x-2 w-[50vw] z-10"></div>
+            
+            <!-- Today Node -->
+            <div class="z-20 flex flex-col items-center justify-center bg-blue-600 text-white rounded-full h-20 w-20 shadow-xl border-4 border-white flex-shrink-0 relative">
+                <span class="text-[11px] font-black tracking-widest">TODAY</span>
+            </div>
+            
+            <!-- Future Events Container -->
+            <div id="timeline-future" class="absolute left-[50%] pl-16 flex justify-start items-center space-x-2 w-[50vw] z-10"></div>
+        </div>
+    </div>
+
+    <!-- Re-open the main container for the rest of the page -->
+    <div class="flex-grow px-8 pb-8">
+
+        <!-- PHASE 2A: DEEPER EVIDENCE, AFTER THE EXECUTIVE BRIEFING AND CALENDAR -->
+        <section id="macro-intelligence" aria-labelledby="macro-intelligence-title" class="scroll-mt-24 max-w-[1600px] px-4 lg:px-8 mx-auto mb-14">
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-5">
+                <div>
+                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600 mb-1">Quantitative framework</p>
+                    <h2 id="macro-intelligence-title" class="text-2xl font-black text-gray-900 uppercase tracking-tight">Macro Intelligence</h2>
+                    <p class="text-sm text-gray-500 mt-1">The US growth and inflation signals behind the broader economic outlook.</p>
+                </div>
+                <span class="text-[10px] font-semibold text-gray-400">Directional breadth, not a recession forecast</span>
+            </div>
         <!-- PHASE 2A: MACRO REGIME + MOMENTUM -->
-        <div class="max-w-[1600px] px-4 lg:px-8 mx-auto grid grid-cols-1 xl:grid-cols-2 gap-5 mb-5">
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6">
                 <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-5">
                     <div>
@@ -234,74 +297,8 @@
                 </div>
             </div>
         </div>
+        </section>
 
-        <!-- PHASE 2A: CROSS-ASSET MACRO PULSE -->
-        <div class="max-w-[1600px] px-4 lg:px-8 mx-auto bg-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6 mb-6">
-            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-4">
-                <div>
-                    <p class="text-[10px] font-black uppercase tracking-[0.18em] text-sky-600 mb-1">Markets</p>
-                    <h2 class="text-xl font-black text-gray-900">Cross-Asset Macro Pulse</h2>
-                    <p class="text-xs text-gray-500 mt-1">A compact read of dollar, rates, commodities and credit over the latest monthly interval.</p>
-                </div>
-                <span class="text-[10px] font-semibold text-gray-400">Direction is descriptive, not a positive/negative market judgement.</span>
-            </div>
-            <div id="cross-asset-pulse-grid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-                <div class="rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-400 col-span-2">Awaiting market data…</div>
-            </div>
-        </div>
-
-        <!-- TOP EXECUTIVE AI SUMMARY CONTAINER -->
-        <div class="bg-blue-50/80 border border-blue-200 rounded-2xl p-6 mb-12 shadow-sm relative overflow-hidden">
-            <div class="flex items-center justify-between mb-3">
-                <div class="flex items-center gap-2">
-                    <span class="relative flex h-2.5 w-2.5">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-600"></span>
-                    </span>
-                    <h3 class="text-xs font-black text-blue-900 uppercase tracking-widest">Chief Economist AI Briefing</h3>
-                </div>
-                <button onclick="toggleModal('modal-ai-disclaimer')" class="text-blue-600 hover:text-blue-800 transition cursor-pointer" title="AI Methodology & Disclaimer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </button>
-            </div>
-            <div id="ai-executive" class="text-sm text-gray-700 leading-relaxed font-medium">
-                <div class="flex items-center gap-2 text-blue-600 animate-pulse">
-                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    Synthesizing macroeconomic framework...
-                </div>
-            </div>
-        </div>
-
-    </div> <!-- Close the inner container so the Timeline can go full width -->
-
-    <!-- ========================================== -->
-    <!-- THE ENDLESS MACRO CATALYST TIMELINE        -->
-    <!-- ========================================== -->
-    <div class="w-full bg-white border-y border-gray-200 py-16 mb-12 shadow-sm relative overflow-hidden">
-        <h2 class="absolute top-6 w-full text-sm font-black text-gray-400 uppercase tracking-widest text-center">Global Macro Calendar</h2>
-        
-        <div class="max-w-[1400px] mx-auto relative h-56 mt-8 flex justify-center items-center">
-            <!-- Thicker, Blue Endless Line -->
-            <div class="absolute w-[200vw] h-1.5 bg-blue-200 z-0"></div>
-            
-            <!-- Etchings Background (Creates the empty generic ruler marks along the line) -->
-            <div class="absolute w-[200vw] h-3 z-0" style="background-image: repeating-linear-gradient(to right, transparent, transparent 99px, #93c5fd 99px, #93c5fd 100px); background-size: 100px 100%;"></div>
-            
-            <!-- Past Events Container -->
-            <div id="timeline-past" class="absolute right-[50%] pr-16 flex justify-end items-center space-x-2 w-[50vw] z-10"></div>
-            
-            <!-- Today Node -->
-            <div class="z-20 flex flex-col items-center justify-center bg-blue-600 text-white rounded-full h-20 w-20 shadow-xl border-4 border-white flex-shrink-0 relative">
-                <span class="text-[11px] font-black tracking-widest">TODAY</span>
-            </div>
-            
-            <!-- Future Events Container -->
-            <div id="timeline-future" class="absolute left-[50%] pl-16 flex justify-start items-center space-x-2 w-[50vw] z-10"></div>
-        </div>
-    </div>
-
-    <!-- Re-open the main container for the rest of the page -->
-    <div class="flex-grow px-8 pb-8">
         <!-- ========================================== -->
         <!-- PILLAR 1: JOB MARKET & EMPLOYMENT -->
         <!-- ========================================== -->
@@ -623,6 +620,27 @@
                     <div id="chart-credit" style="height: 300px; width: 100%;"></div>
                 </div>
             </div>
+
+            <!-- OPTIONAL: CROSS-ASSET READ-THROUGH (kept secondary to detailed research) -->
+            <details id="cross-asset-pulse" class="group mt-6 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <summary class="flex items-center justify-between gap-3 px-5 md:px-6 py-4 cursor-pointer list-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 [&::-webkit-details-marker]:hidden">
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-black uppercase tracking-[0.16em] text-sky-600 mb-1">Optional market context</p>
+                        <h3 class="text-base font-black text-gray-900">Cross-Asset Macro Pulse</h3>
+                        <p class="text-xs text-gray-500 mt-1">Compare the latest dollar, yield, commodity and credit moves without repeating the charts above.</p>
+                    </div>
+                    <span class="shrink-0 inline-flex items-center gap-2 text-xs font-bold text-blue-700">
+                        <span>Explore markets</span>
+                        <svg aria-hidden="true" class="w-4 h-4 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>
+                    </span>
+                </summary>
+                <div class="border-t border-gray-100 px-5 md:px-6 pb-5 pt-4">
+                    <p class="text-xs text-gray-500 mb-4">Short-term market response to macroeconomic conditions. Directions are descriptive, not trading recommendations.</p>
+                    <div id="cross-asset-pulse-grid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+                        <div class="rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-400 col-span-2">Awaiting market data…</div>
+                    </div>
+                </div>
+            </details>
         </div>
     </div>    
 

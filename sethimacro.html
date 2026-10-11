@@ -9,6 +9,13 @@
     <style>
         /* Smooth scrolling for the pillar navigation */
         html { scroll-behavior: smooth; }
+        /* Cap secondary AI commentary at two lines until expanded. */
+        .macro-insight-preview {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+        }
         /* Responsive charts: compact enough for laptops without crushing axes. */
         .macro-chart { height: 265px; width: 100%; }
         .macro-mini-chart { height: 175px; width: 100%; }
@@ -316,12 +323,13 @@
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="ai-jobs" class="text-sm text-gray-700 font-medium leading-relaxed">
+                    <div id="ai-jobs" class="text-sm text-gray-700 font-medium leading-relaxed macro-insight-preview">
                         <div class="flex items-center gap-2 text-gray-500 animate-pulse">
                             <svg class="animate-spin h-3.5 w-3.5 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                             Awaiting labor market analysis...
                         </div>
                     </div>
+                    <button type="button" aria-expanded="false" aria-controls="ai-jobs" onclick="toggleMacroInsight('ai-jobs', this)" class="mt-1 text-xs font-bold text-blue-700 hover:text-blue-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500">Read more</button>
                 </div>
             </div>
             
@@ -382,12 +390,13 @@
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="ai-inflation" class="text-sm text-gray-700 font-medium leading-relaxed">
+                    <div id="ai-inflation" class="text-sm text-gray-700 font-medium leading-relaxed macro-insight-preview">
                         <div class="flex items-center gap-2 text-gray-500 animate-pulse">
                             <svg class="animate-spin h-3.5 w-3.5 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                             Awaiting inflation & rates analysis...
                         </div>
                     </div>
+                    <button type="button" aria-expanded="false" aria-controls="ai-inflation" onclick="toggleMacroInsight('ai-inflation', this)" class="mt-1 text-xs font-bold text-blue-700 hover:text-blue-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500">Read more</button>
                 </div>
             </div>
             
@@ -473,12 +482,13 @@
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="ai-gdp" class="text-sm text-gray-700 font-medium leading-relaxed">
+                    <div id="ai-gdp" class="text-sm text-gray-700 font-medium leading-relaxed macro-insight-preview">
                         <div class="flex items-center gap-2 text-gray-500 animate-pulse">
                             <svg class="animate-spin h-3.5 w-3.5 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                             Awaiting gdp analysis...
                         </div>
                     </div>
+                    <button type="button" aria-expanded="false" aria-controls="ai-gdp" onclick="toggleMacroInsight('ai-gdp', this)" class="mt-1 text-xs font-bold text-blue-700 hover:text-blue-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500">Read more</button>
                 </div>
             </div>
             
@@ -538,12 +548,13 @@
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="ai-fx" class="text-sm text-gray-700 font-medium leading-relaxed">
+                    <div id="ai-fx" class="text-sm text-gray-700 font-medium leading-relaxed macro-insight-preview">
                         <div class="flex items-center gap-2 text-gray-500 animate-pulse">
                             <svg class="animate-spin h-3.5 w-3.5 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                             Awaiting currency regime analysis...
                         </div>
                     </div>
+                    <button type="button" aria-expanded="false" aria-controls="ai-fx" onclick="toggleMacroInsight('ai-fx', this)" class="mt-1 text-xs font-bold text-blue-700 hover:text-blue-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500">Read more</button>
                 </div>
             </div>
 
@@ -580,12 +591,13 @@
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <div id="ai-commodities" class="text-sm text-gray-700 font-medium leading-relaxed">
+                    <div id="ai-commodities" class="text-sm text-gray-700 font-medium leading-relaxed macro-insight-preview">
                         <div class="flex items-center gap-2 text-gray-500 animate-pulse">
                             <svg class="animate-spin h-3.5 w-3.5 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                             Awaiting commodities and credit analysis...
                         </div>
                     </div>
+                    <button type="button" aria-expanded="false" aria-controls="ai-commodities" onclick="toggleMacroInsight('ai-commodities', this)" class="mt-1 text-xs font-bold text-blue-700 hover:text-blue-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500">Read more</button>
                 </div>
             </div>
 
@@ -967,6 +979,16 @@
             }
         }
 
+        // Reveal the rest of a sector's AI explanation only on request.
+        function toggleMacroInsight(id, button) {
+            const panel = document.getElementById(id);
+            if (!panel || !button) return;
+            const expanding = panel.classList.contains("macro-insight-preview");
+            panel.classList.toggle("macro-insight-preview", !expanding);
+            button.setAttribute("aria-expanded", String(expanding));
+            button.textContent = expanding ? "Show less" : "Read more";
+        }
+
         const API_BASE = "https://sethimacro.sethiway.com/api";
         const SNAPSHOT_API_URL = "https://gqqftksplktxfrilltsx.supabase.co/rest/v1/sethimacro_public_snapshots";
         const SNAPSHOT_API_KEY = "sb_publishable_zjKjFfN1wTq9ocpje09Z1A_xgLe0UiK";
@@ -1327,7 +1349,7 @@
                     }
 
                     return `
-                        <div class="rounded-xl border border-gray-200 bg-gray-50/70 p-3">
+                        <div class="rounded-xl border border-gray-200 bg-gray-50/70 p-2.5">
                             <div class="flex items-start justify-between gap-2">
                                 <p class="text-[11px] font-bold text-gray-700 leading-tight">${item.name}</p>
                                 <span class="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wide ${signalClass}">${signalText}</span>

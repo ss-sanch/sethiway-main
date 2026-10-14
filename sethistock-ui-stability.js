@@ -99,7 +99,7 @@
 
     function resetDriverSurface(ticker) {
         const section = document.getElementById('company-drivers');
-        if (!section || section.is_null_shield || !section.dataset) return;
+        if (!section || !section.dataset) return;
         const symbol = normaliseTicker(ticker);
         section.dataset.expectedTicker = canonicalDriverTicker(symbol);
 
@@ -191,8 +191,9 @@
         const guard = setInterval(() => {
             if (!expectedTicker) return;
             const drivers = window.SethiStockCompanyDrivers;
+            if (!drivers) return;
             const section = document.getElementById('company-drivers');
-            if (!drivers || !section) return;
+            if (!section) return;
 
             const guardTicker = analysisReady() ? currentStateTicker() : expectedTicker;
             const expectedDriverTicker = canonicalDriverTicker(guardTicker);

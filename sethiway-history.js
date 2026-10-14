@@ -63,7 +63,7 @@
     if (page === 'sethistock.html') {
         if (!document.querySelector('script[data-sethistock-ui-stability]')) {
             const stabilityScript = document.createElement('script');
-            stabilityScript.src = 'sethistock-ui-stability.js?v=5';
+            stabilityScript.src = 'sethistock-ui-stability.js?v=6';
             stabilityScript.dataset.sethistockUiStability = '1';
             document.body.appendChild(stabilityScript);
         }

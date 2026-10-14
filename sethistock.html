@@ -910,7 +910,7 @@
 
             const score = Number(stats.sethi_score);
             if (Number.isFinite(score)) {
-                [document.getElementById('sethi-score'), document.getElementById('sethi-score-mobile')].forEach(el => {
+                [document.getElementById('sethi-score')].forEach(el => {
                     if (!el) return;
                     el.innerText = `${score}/100`;
                     el.className = score >= 70 ? 'text-3xl font-black mt-1 text-green-600' : (score >= 40 ? 'text-3xl font-black mt-1 text-yellow-500' : 'text-3xl font-black mt-1 text-red-500');
@@ -922,8 +922,8 @@
             if (summary && analysis.summary) summary.innerText = analysis.summary;
 
             if (analysis.risk_profile && !analysis.risk_profile.error) {
-                injectText('var-95', `${analysis.risk_profile.daily_var_95}%`);
-                injectText('volatility', `${analysis.risk_profile.annualized_volatility}%`);
+                injectText('stat-var', `${analysis.risk_profile.daily_var_95}%`);
+                injectText('stat-vol', `${analysis.risk_profile.annualized_volatility}%`);
             }
             if (analysis.dupont_analysis && !analysis.dupont_analysis.error) {
                 injectText('dupont-margin', `${analysis.dupont_analysis.net_profit_margin}%`);
@@ -985,33 +985,39 @@
         // host cold starts from ticker-analysis cold starts.
         async function probeRenderState() {
             const startedAt = performance.now();
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 65000);
-            try {
-                const response = await fetch(`${API_URL}/api/runtime/status`, {
-                    cache: 'no-store',
-                    signal: controller.signal
-                });
-                const payload = response.ok ? await response.json() : {};
-                const wakeMs = Math.round(performance.now() - startedAt);
-                const uptime = Number(payload?.process_uptime_seconds);
-                const uptimeSeconds = Number.isFinite(uptime) && uptime >= 0 ? Math.round(uptime) : null;
-                const genuinelyCold = uptimeSeconds !== null && uptimeSeconds < 120 && wakeMs >= 3000;
-                window.__sethiStockLastServerReadyAt = Date.now();
-                return {
-                    server_wake_ms: wakeMs,
-                    server_uptime_s: uptimeSeconds,
-                    server_state: genuinelyCold ? 'cold' : 'warm'
-                };
-            } catch (_) {
-                return {
-                    server_wake_ms: Math.round(performance.now() - startedAt),
-                    server_uptime_s: null,
-                    server_state: 'unknown'
-                };
-            } finally {
-                clearTimeout(timeout);
+            // Retry only the cheap readiness probe. Render restart responses may lack
+            // CORS headers, and must not consume the separate analysis deadline.
+            while (performance.now() - startedAt < 65000) {
+                const controller = new AbortController();
+                const remainingMs = 65000 - (performance.now() - startedAt);
+                const timeout = setTimeout(() => controller.abort(), Math.min(12000, remainingMs));
+                try {
+                    const response = await fetch(`${API_URL}/api/runtime/status`, {
+                        cache: 'no-store', signal: controller.signal
+                    });
+                    if (!response.ok) throw new Error(`Data service unavailable (${response.status})`);
+                    const payload = await response.json();
+                    const wakeMs = Math.round(performance.now() - startedAt);
+                    const uptime = Number(payload?.process_uptime_seconds);
+                    const uptimeSeconds = Number.isFinite(uptime) && uptime >= 0 ? Math.round(uptime) : null;
+                    const genuinelyCold = uptimeSeconds !== null && uptimeSeconds < 120 && wakeMs >= 3000;
+                    window.__sethiStockLastServerReadyAt = Date.now();
+                    return {
+                        server_wake_ms: wakeMs, server_uptime_s: uptimeSeconds,
+                        server_state: genuinelyCold ? 'cold' : 'warm'
+                    };
+                } catch (_) {
+                    // Keep retrying readiness within one overall wake budget.
+                } finally {
+                    clearTimeout(timeout);
+                }
+                const pauseMs = Math.min(1000, Math.max(0, 65000 - (performance.now() - startedAt)));
+                if (pauseMs) await new Promise(resolve => setTimeout(resolve, pauseMs));
             }
+            return {
+                server_wake_ms: Math.round(performance.now() - startedAt),
+                server_uptime_s: null, server_state: 'unknown'
+            };
         }
 
         window.__sethiStockWakeProbeStartedAt = Date.now();
@@ -1159,33 +1165,12 @@
             pill.classList.remove('hidden');
         }
 
+        // Keep the DOM API native: optional modules must receive null until mounted.
         const _originalGetElementById = document.getElementById;
-        document.getElementById = function(id) {
-            const el = _originalGetElementById.call(document, id);
-            if (!el) {
-                console.warn(`🛡️ Null-Shield intercepted missing ID: "${id}"`);
-                // Return a dummy safe object so setting .innerText never crashes your app
-                return { 
-                    is_null_shield: true,
-                    dataset: {},
-                    style: {}, 
-                    classList: { add(){}, remove(){}, contains(){} },
-                    setAttribute() {},
-                    addEventListener() {},
-                    innerText: '',
-                    innerHTML: ''
-                };
-            }
-            return el;
-        };
 
         function injectText(id, text) {
             const el = document.getElementById(id);
-            if (el && !el.is_null_shield) {
-                el.innerText = text;
-            } else {
-                console.warn(`🚨 GHOST ID: Cannot find HTML element with id="${id}"`);
-            }
+            if (el) el.innerText = text;
         }
 
         renderWatchlist();
@@ -1401,7 +1386,7 @@
                 if (errorEl) {
                     errorEl.innerText = basicsReady
                         ? 'Live market data is available, but some detailed financial analytics are taking too long. Retry to refresh the remaining sections.'
-                        : 'The data service is taking longer than expected to start. Please retry in a moment.';
+                        : 'The data service is temporarily unavailable or responding too slowly. Please retry.';
                     errorEl.className = 'mt-4 font-semibold text-amber-600';
                     errorEl.classList.remove('hidden');
                 }
@@ -1666,7 +1651,7 @@
 
 
                 const score = data.stats.sethi_score;
-                const scoreEls = [document.getElementById('sethi-score'), document.getElementById('sethi-score-mobile')];
+                const scoreEls = [document.getElementById('sethi-score')];
 
                 scoreEls.forEach(el => {
                     if (el) {
@@ -1740,11 +1725,11 @@
 
                 // 1. Risk Profile Mapping
                 if (data.risk_profile && !data.risk_profile.error) {
-                    injectText('var-95', data.risk_profile.daily_var_95 + '%');
-                    injectText('volatility', data.risk_profile.annualized_volatility + '%');
+                    injectText('stat-var', data.risk_profile.daily_var_95 + '%');
+                    injectText('stat-vol', data.risk_profile.annualized_volatility + '%');
                 } else {
-                    injectText('var-95', 'N/A');
-                    injectText('volatility', 'N/A');
+                    injectText('stat-var', 'N/A');
+                    injectText('stat-vol', 'N/A');
                 }
 
                 // 2. DuPont Analysis Mapping
@@ -1857,7 +1842,7 @@
                 } else {
                     if (loadingBubbleText) loadingBubbleText.innerText = "Data Sync Failed.";
                     const message = err?.code === 'SERVER_WAKE_TIMEOUT'
-                        ? 'The data service is still starting. Please retry in a moment.'
+                        ? 'The data service could not be reached within 65 seconds. It may be restarting or temporarily unavailable. Please retry.'
                         : (err?.message === 'Failed to fetch'
                             ? 'Detailed analysis could not reach the data server. Please retry.'
                             : (err?.message || 'Detailed analysis temporarily unavailable.'));
@@ -2428,42 +2413,58 @@
         // --- LIVE SEARCH AUTOCOMPLETE ENGINE ------
         // ==========================================
         let searchTimeout;
+        let suggestionController = null;
+        let suggestionSequence = 0;
         async function fetchSuggestions(query) {
             const dropdown = document.getElementById('search-suggestions');
-            if (!query || query.length < 1) {
-                dropdown.classList.add('hidden');
-                return;
-            }
-
             clearTimeout(searchTimeout);
+            suggestionController?.abort();
+            const sequence = ++suggestionSequence;
+            dropdown.replaceChildren();
+            dropdown.classList.add('hidden');
+            query = String(query || '').trim();
+            if (!query) return;
+
             searchTimeout = setTimeout(async () => {
+                const controller = new AbortController();
+                suggestionController = controller;
+                const timeout = setTimeout(() => controller.abort(), 5000);
                 try {
-                    // Uses your Render URL (Ensure this matches your actual backend domain if live)
-                    const response = await fetch(`https://sethistock-backend.onrender.com/autocomplete?q=${query}`);
+                    const response = await fetch(`${API_URL}/autocomplete?q=${encodeURIComponent(query)}`, { signal: controller.signal });
+                    if (!response.ok) return;
                     const data = await response.json();
-                    
-                    if (data.results && data.results.length > 0) {
-                        dropdown.innerHTML = data.results.map(item => `
-                            <li onclick="selectSuggestion('${item.symbol}')" class="px-6 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 flex justify-between items-center transition-colors">
-                                <span class="font-bold text-gray-900">${item.symbol}</span>
-                                <span class="text-xs text-gray-500 truncate ml-4">${item.name}</span>
-                            </li>
-                        `).join('');
-                        dropdown.classList.remove('hidden');
-                    } else {
-                        dropdown.classList.add('hidden');
+                    if (sequence !== suggestionSequence) return;
+                    for (const item of Array.isArray(data.results) ? data.results : []) {
+                        if (!item.symbol) continue;
+                        const row = document.createElement('li');
+                        row.className = 'px-6 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 flex justify-between items-center transition-colors';
+                        const symbol = document.createElement('span');
+                        symbol.className = 'font-bold text-gray-900';
+                        symbol.textContent = item.symbol;
+                        const name = document.createElement('span');
+                        name.className = 'text-xs text-gray-500 truncate ml-4';
+                        name.textContent = item.name || '';
+                        row.append(symbol, name);
+                        row.addEventListener('click', () => selectSuggestion(item.symbol));
+                        dropdown.appendChild(row);
                     }
-                } catch (error) {
-                    console.error("Autocomplete error:", error);
+                    dropdown.classList.toggle('hidden', !dropdown.children.length);
+                } catch (_) {
+                    // Suggestions are optional; submitting a ticker still works.
+                } finally {
+                    clearTimeout(timeout);
+                    if (suggestionController === controller) suggestionController = null;
                 }
-            }, 300); // 300ms delay protects the server
+            }, 300);
         }
 
         function selectSuggestion(symbol) {
+            clearTimeout(searchTimeout);
+            suggestionController?.abort();
+            suggestionSequence += 1;
             document.getElementById('ticker-input').value = symbol;
             document.getElementById('search-suggestions').classList.add('hidden');
-            // Call your main search function here (e.g., fetchStockData())
-            fetchStockData(); 
+            document.getElementById('search-form').requestSubmit();
         }
 
         // Auto-hide the dropdown if the user clicks anywhere else on the screen
@@ -2511,213 +2512,15 @@
                 return res.json();
             });
         sharedResearchPromises.set(symbol, promise);
+        while (sharedResearchPromises.size > 12) sharedResearchPromises.delete(sharedResearchPromises.keys().next().value);
         promise.catch(() => sharedResearchPromises.delete(symbol));
         return promise;
     });
 
-    const pct = (value, digits = 1) => value === null || value === undefined || Number.isNaN(Number(value)) ? "--" : `${Number(value).toFixed(digits)}%`;
-    const mult = (value) => value === null || value === undefined || Number.isNaN(Number(value)) ? "--" : `${Number(value).toFixed(1)}x`;
-
-    function researchCard(label, id, suffix = "") {
-        return `<div class="bg-gray-50 border border-gray-100 rounded-xl p-4">
-            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">${label}</p>
-            <p id="${id}" class="text-2xl font-black text-gray-900">--${suffix}</p>
-        </div>`;
-    }
-
-    function ensureResearchUI() {
-        return; // Retired: P/E History and Earnings Surprise now live in Key Financial Metrics.
-    }
-
-    function setResearchStatus(text, tone = "neutral") {
-        const el = document.getElementById("research-status");
-        if (!el) return;
-        el.textContent = text;
-        el.className = `text-xs font-bold uppercase tracking-widest ${tone === "error" ? "text-red-500" : tone === "live" ? "text-blue-600" : "text-gray-400"}`;
-    }
-
-    function setResearchLoading(ticker) {
-        setResearchStatus(`Analysing ${ticker || "stock"}...`, "live");
-        ["earnings-avg-abs", "earnings-positive", "earnings-beat", "earnings-5d", "valuation-current", "valuation-median", "valuation-percentile", "valuation-label"].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.innerHTML = '<span class="inline-block h-5 w-16 bg-gray-200 rounded animate-pulse"></span>';
-        });
-        document.getElementById("earnings-reaction-empty")?.classList.add("hidden");
-        document.getElementById("valuation-band-empty")?.classList.add("hidden");
-    }
-
-    function renderEarnings(study) {
-        const chart = document.getElementById("earnings-reaction-chart");
-        const empty = document.getElementById("earnings-reaction-empty");
-        const table = document.getElementById("earnings-reaction-table");
-
-        if (!study || !study.available || !study.events?.length) {
-            chart.innerHTML = "";
-            table.innerHTML = "";
-            empty.textContent = study?.reason || "Earnings reaction history is unavailable for this security.";
-            empty.classList.remove("hidden");
-            ["earnings-avg-abs", "earnings-positive", "earnings-beat", "earnings-5d"].forEach(id => document.getElementById(id).textContent = "N/A");
-            return;
-        }
-
-        const s = study.summary || {};
-        document.getElementById("earnings-avg-abs").textContent = pct(s.average_abs_1d_move_pct);
-        document.getElementById("earnings-positive").textContent = pct(s.positive_reaction_rate_pct, 0);
-        document.getElementById("earnings-beat").textContent = pct(s.eps_beat_rate_pct, 0);
-        document.getElementById("earnings-5d").textContent = pct(s.average_5d_move_pct);
-
-        const chronological = [...study.events].reverse();
-        const y = chronological.map(e => e.move_1d_pct);
-        const markerColors = y.map(v => Number(v) >= 0 ? "#16a34a" : "#dc2626");
-        const hover = chronological.map(e => `EPS surprise: ${e.surprise_pct === null ? "N/A" : pct(e.surprise_pct)}<br>5D move: ${e.move_5d_pct === null ? "N/A" : pct(e.move_5d_pct)}`);
-
-        Plotly.newPlot(chart, [{
-            x: chronological.map(e => e.earnings_date),
-            y,
-            type: "bar",
-            marker: { color: markerColors },
-            customdata: hover,
-            hovertemplate: "%{x}<br>1D reaction: %{y:.2f}%<br>%{customdata}<extra></extra>"
-        }], {
-            paper_bgcolor: "rgba(0,0,0,0)",
-            plot_bgcolor: "rgba(0,0,0,0)",
-            margin: { t: 12, r: 12, b: 45, l: 45 },
-            font: { color: "#6b7280", size: 11 },
-            xaxis: { gridcolor: "#f3f4f6", tickformat: "%b %y", fixedrange: true },
-            yaxis: { title: "1D move (%)", gridcolor: "#e5e7eb", zerolinecolor: "#9ca3af", fixedrange: true }
-        }, { displayModeBar: false, responsive: true });
-
-        table.innerHTML = study.events.slice(0, 8).map(e => {
-            const one = Number(e.move_1d_pct);
-            const five = e.move_5d_pct === null ? null : Number(e.move_5d_pct);
-            const surprise = e.surprise_pct === null ? "N/A" : pct(e.surprise_pct);
-            return `<tr>
-                <td class="py-2.5 pr-3 font-bold text-gray-700">${e.earnings_date}</td>
-                <td class="py-2.5 px-3 font-semibold ${e.surprise_pct !== null && e.surprise_pct >= 0 ? "text-green-600" : "text-red-600"}">${surprise}</td>
-                <td class="py-2.5 px-3 font-black ${one >= 0 ? "text-green-600" : "text-red-600"}">${pct(one)}</td>
-                <td class="py-2.5 pl-3 font-black ${five !== null && five >= 0 ? "text-green-600" : "text-red-600"}">${five === null ? "N/A" : pct(five)}</td>
-            </tr>`;
-        }).join("");
-    }
-
-    function renderValuation(study) {
-        const chart = document.getElementById("valuation-band-chart");
-        const empty = document.getElementById("valuation-band-empty");
-
-        document.getElementById("valuation-current").textContent = study?.current_pe ? mult(study.current_pe) : "N/A";
-
-        if (!study || !study.available || !study.observations?.length) {
-            chart.innerHTML = "";
-            empty.textContent = study?.reason || "Historical valuation data is unavailable for this security.";
-            empty.classList.remove("hidden");
-            document.getElementById("valuation-median").textContent = "N/A";
-            document.getElementById("valuation-percentile").textContent = "N/A";
-            document.getElementById("valuation-label").textContent = "Insufficient history";
-            return;
-        }
-
-        const b = study.bands;
-        document.getElementById("valuation-median").textContent = mult(b.median);
-        document.getElementById("valuation-percentile").textContent = study.current_percentile === null ? "N/A" : pct(study.current_percentile, 0);
-        document.getElementById("valuation-label").textContent = study.valuation_label || "Historical range";
-
-        const obs = study.observations;
-        const shapes = [{
-            type: "rect", xref: "paper", x0: 0, x1: 1, y0: b.p25, y1: b.p75,
-            fillcolor: "rgba(37,99,235,0.08)", line: { width: 0 }, layer: "below"
-        }, {
-            type: "line", xref: "paper", x0: 0, x1: 1, y0: b.median, y1: b.median,
-            line: { color: "#2563eb", width: 2, dash: "dash" }
-        }];
-
-        if (study.current_pe) {
-            shapes.push({
-                type: "line", xref: "paper", x0: 0, x1: 1, y0: study.current_pe, y1: study.current_pe,
-                line: { color: "#111827", width: 2, dash: "dot" }
-            });
-        }
-
-        Plotly.newPlot(chart, [{
-            x: obs.map(o => o.date),
-            y: obs.map(o => o.pe),
-            type: "scatter",
-            mode: "lines+markers",
-            line: { color: "#2563eb", width: 2 },
-            marker: { size: 7, color: "#ffffff", line: { color: "#2563eb", width: 2 } },
-            customdata: obs.map(o => [o.price, o.ttm_eps]),
-            hovertemplate: "%{x}<br>P/E: %{y:.1f}x<br>Price: $%{customdata[0]:.2f}<br>TTM EPS: %{customdata[1]:.3f}<extra></extra>"
-        }], {
-            paper_bgcolor: "rgba(0,0,0,0)",
-            plot_bgcolor: "rgba(0,0,0,0)",
-            margin: { t: 12, r: 12, b: 45, l: 45 },
-            font: { color: "#6b7280", size: 11 },
-            shapes,
-            xaxis: { gridcolor: "#f3f4f6", tickformat: "%b %y", fixedrange: true },
-            yaxis: { title: "Trailing P/E (x)", gridcolor: "#e5e7eb", fixedrange: true }
-        }, { displayModeBar: false, responsive: true });
-    }
-
-    async function loadStockResearch(ticker) {
-        return null; // Retired legacy UI; shared research data is consumed by Financial History.
-        ensureResearchUI();
-        if (!ticker) return;
-        const requestId = ++researchRequestId;
-        setResearchLoading(ticker);
-
-        try {
-            const data = await window.getSethiStockResearch(ticker);
-            if (requestId !== researchRequestId) return;
-
-            renderEarnings(data.earnings_reaction);
-            renderValuation(data.valuation_bands);
-            setResearchStatus(`${data.ticker || ticker} research updated`, "live");
-        } catch (err) {
-            if (requestId !== researchRequestId) return;
-            console.error("SethiStock research load failed:", err);
-            setResearchStatus("Research temporarily unavailable", "error");
-            renderEarnings({ available: false, reason: "Could not load earnings research." });
-            renderValuation({ available: false, reason: "Could not load valuation history." });
-        }
-    }
-
-    function waitForMainAnalysis(requestedValue) {
-        setResearchLoading(requestedValue);
-        let attempts = 0;
-        const timer = setInterval(() => {
-            attempts += 1;
-            const dash = document.getElementById("dashboard");
-            const button = document.getElementById("search-btn");
-            const resolvedTicker = document.getElementById("display-ticker")?.textContent?.trim();
-            if (dash?.classList.contains("opacity-100") && !button?.disabled && resolvedTicker) {
-                clearInterval(timer);
-                loadStockResearch(resolvedTicker);
-            } else if (attempts >= 80) {
-                clearInterval(timer);
-                setResearchStatus("Waiting for a successful stock analysis", "neutral");
-            }
-        }, 250);
-    }
-
-    function bootResearchLabs() {
-        ensureResearchUI();
-        const form = document.getElementById("search-form");
-        const input = document.getElementById("ticker-input");
-        if (form) {
-            form.addEventListener("submit", () => {
-                waitForMainAnalysis(input?.value?.trim() || "stock");
-            });
-        }
-    }
-
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", bootResearchLabs);
-    } else {
-        bootResearchLabs();
-    }
 })();
 
     </script>
     <script src="sethistock-financial-history.js"></script>
-    <script src="sethiway-history.js?v=stock4h3"></script>
+    <script src="sethiway-history.js?v=stock-reliability1"></script>
 </body>
 </html>

@@ -7,22 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        html { scroll-behavior: smooth; }
-
-        /* Market Risk Lab desktop-density pass */
-        #market-risk-lab input, #market-risk-lab select { min-height: 38px; }
-        #market-risk-lab #positions input { padding-top: 0.45rem; padding-bottom: 0.45rem; }
-        @media (min-width: 1536px) {
-            #market-risk-lab { width: min(1800px, calc(100vw - 3rem)); }
-            #market-risk-lab #model-chart,
-            #market-risk-lab #pnl-chart,
-            #market-risk-lab #corr-chart,
-            #market-risk-lab #risk-contribution-chart,
-            #market-risk-lab #derivatives-chart,
-            #market-risk-lab #stress-chart { height: 438px !important; }
-        }
-    </style>
+    <link rel="stylesheet" href="sethiquant-layout.css?v=1">
     <link rel="stylesheet" href="sethiway-header.css?v=1">
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
@@ -37,7 +22,7 @@
                 <a href="#section-options" class="site-header__link">Options Valuation</a>
                 <a href="#section-portfolio" class="site-header__link">Portfolio Optimiser</a>
                 <a href="#section-backtest" class="site-header__link">Strategy Backtest</a>
-                <a href="#section-var" class="site-header__link">Monte Carlo VaR</a>
+                <a href="#section-var" class="site-header__link">Market Risk Lab</a>
             </div>
             <div class="site-header__actions">
                 <button type="button" class="site-header__button site-header__menu site-header__menu--tools" popovertarget="site-header-menu">
@@ -50,7 +35,7 @@
                 <a href="#section-options" class="site-header__mobile-link">Options Valuation</a>
                 <a href="#section-portfolio" class="site-header__mobile-link">Portfolio Optimiser</a>
                 <a href="#section-backtest" class="site-header__mobile-link">Strategy Backtest</a>
-                <a href="#section-var" class="site-header__mobile-link">Monte Carlo VaR</a>
+                <a href="#section-var" class="site-header__mobile-link">Market Risk Lab</a>
                 <a href="sethistock.html" class="site-header__tool-link">SethiStock</a>
                 <a href="sethimacro.html" class="site-header__tool-link">SethiMacro</a>
                 <a href="sethiportfolio.html" class="site-header__tool-link">SethiPortfolio</a>
@@ -58,58 +43,39 @@
         </div>
     </nav>
 
-    <!-- MAIN QUANTITATIVE TERMINAL -->
-    <div class="flex-grow p-6 md:p-10">
-        <!-- GLOBAL TITLE -->
-        <div class="max-w-7xl mx-auto text-center mb-10">
-            <h1 class="text-4xl md:text-6xl font-black tracking-tight text-gray-900 mb-2">SETHI<span class="text-blue-600">QUANT</span></h1>
-            <p class="text-base sm:text-md text-gray-600 max-w-2xl mx-auto mt-3">High-performance derivatives valuation, Markowitz frontier optimisation, signal backtesting, and stochastic risk simulations.</p>
+    <main class="quant-main">
+        <div class="quant-mobile-workspaces" role="navigation" aria-label="Quant workspaces">
+            <a href="#section-options">Options</a>
+            <a href="#section-portfolio">Optimiser</a>
+            <a href="#section-backtest">Backtest</a>
+            <a href="#section-var">Risk Lab</a>
         </div>
 
-            <!-- QUICK-JUMP PILL CARDS (SethiMacro Style) -->
-            <div class="flex flex-wrap items-center justify-center gap-3 mt-8">
-                <a href="#section-options" class="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-full shadow-sm text-xs font-bold text-gray-800 hover:border-indigo-400 hover:text-indigo-600 hover:shadow transition">
-                    <span>📈</span> Options Valuation
-                </a>
-                <a href="#section-portfolio" class="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-full shadow-sm text-xs font-bold text-gray-800 hover:border-indigo-400 hover:text-indigo-600 hover:shadow transition">
-                    <span>💼</span> Portfolio Optimisation
-                </a>
-                <a href="#section-backtest" class="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-full shadow-sm text-xs font-bold text-gray-800 hover:border-indigo-400 hover:text-indigo-600 hover:shadow transition">
-                    <span>⚡</span> Strategy Backtest
-                </a>
-                <a href="#section-var" class="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-full shadow-sm text-xs font-bold text-gray-800 hover:border-indigo-400 hover:text-indigo-600 hover:shadow transition">
-                    <span>🎲</span> Monte Carlo VaR
-                </a>
-            </div>
-        </header>
-
         <!-- UNIFIED OPTIONS PRICING ENGINE (INSTITUTIONAL LAYOUT) -->
-        <section id="section-options" class="scroll-mt-24 mb-16">
-            <div class="max-w-7xl mx-auto mb-6 mt-4 flex flex-col lg:flex-row lg:items-center gap-6">
-                <h2 class="text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tight shrink-0">Options Valuation</h2>
-                <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-5 shadow-sm flex-1">
-                    <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-1">Pricing & Risk Sensitivities</h4>
-                    <p class="text-sm text-gray-700 font-medium leading-relaxed">
-                        This tool helps you calculate the fair price of an options contract. It uses famous mathematical models (like Black-Scholes) to figure out what an option should cost today, and shows exactly how sensitive that price is to things like time passing, stock price changes, and market volatility.
-                    </p>
+        <section id="section-options" class="quant-workspace" aria-labelledby="quant-title-options">
+            <header class="quant-heading">
+                <div>
+                    <p class="quant-eyebrow">SethiQuant</p>
+                    <h1 id="quant-title-options">Options Valuation</h1>
                 </div>
-            </div>
-            <div id="options-engine" class="max-w-[1600px] w-full mx-auto grid grid-cols-1 xl:grid-cols-4 gap-6 mb-16 px-4">
+                <p class="quant-description">Price European or American options and inspect their payoff and sensitivities.</p>
+            </header>
+            <div id="options-engine" class="quant-grid">
                 
                 <!-- COLUMN 1: INPUT PARAMETERS -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 xl:col-span-1 flex flex-col h-full">
-                    <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
-                        <h2 class="text-xl font-bold text-gray-900">Options Pricer</h2>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col">
+                    <div class="flex justify-between items-center mb-3 border-b border-gray-100 pb-4">
+                        <h2 class="text-lg font-bold text-gray-900">Options Pricer</h2>
                         <button type="button" onclick="toggleModal('modal-options-master')" class="text-gray-400 hover:text-indigo-600 transition cursor-pointer" title="Options Pricing Info">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <form id="op-form" class="space-y-4 flex-grow">
+                    <form id="op-form" class="space-y-2 flex-grow">
                         <div>
                             <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Target Asset (Ticker)</label>
                             <input type="text" id="op-ticker" placeholder="e.g. AAPL" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 font-bold text-gray-900 uppercase outline-none focus:border-blue-500 transition">
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Style</label>
                                 <select id="op-style" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 font-bold text-gray-700 outline-none focus:border-blue-500 transition" onchange="toggleBinomialSteps()">
@@ -125,7 +91,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Price ($)</label>
                                 <input type="number" id="op-s" step="0.01" required value="150.00" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
@@ -135,7 +101,7 @@
                                 <input type="number" id="op-k" step="0.01" required value="155.00" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Days</label>
                                 <input type="number" id="op-days" required value="30" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
@@ -145,7 +111,7 @@
                                 <input type="number" id="op-n" required value="100" max="1000" disabled class="w-full bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 font-bold text-gray-400 outline-none cursor-not-allowed">
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">IV (%)</label>
                                 <input type="number" id="op-iv" step="0.1" required value="20.0" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
@@ -153,10 +119,10 @@
                             <div class="relative">
                                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Rate (%)</label>
                                 <input type="number" id="op-r" step="0.01" required value="5.00" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 font-bold text-gray-900 outline-none focus:border-blue-500 transition">
-                                <div class="absolute top-0 right-0 -mt-1"><span class="flex h-2 w-2 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span></div>
+                                <div class="absolute top-0 right-0 -mt-1"><span class="flex h-2 w-2 relative"><span class="animate-ping absolute inline-flex w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span></div>
                             </div>
                         </div>
-                        <button type="submit" id="op-btn" class="w-full mt-4 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition shadow-md">
+                        <button type="submit" id="op-btn" class="w-full mt-2 py-2.5 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition shadow-md">
                             Calculate Pricing
                         </button>
                     </form>
@@ -164,16 +130,16 @@
                 </div>
 
                 <!-- COLUMN 2 & 3: VISUAL PRICE ACTION CHART -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 xl:col-span-2 flex flex-col h-full relative">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col relative">
                     
                     <!-- Header (Shrink-0 prevents it from being crushed) -->
-                    <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2 shrink-0">
+                    <div class="flex justify-between items-center mb-2 border-b border-gray-100 pb-2 shrink-0">
                         <h3 class="text-lg font-bold text-gray-900">Spot Price vs. Strike Profile</h3>
                         <span id="chart-ticker-badge" class="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full uppercase tracking-wider">Awaiting Ticker</span>
                     </div>
                     
                     <!-- Chart Wrapper (flex-grow forces it to consume ALL dead space) -->
-                    <div class="w-full flex-grow relative min-h-[250px] mb-4">
+                    <div class="w-full flex-grow relative min-h-[205px] mb-4">
                         <!-- absolute inset-0 forces Plotly to render exactly to the boundaries of the flex container -->
                         <div id="op-chart" class="absolute inset-0 w-full h-full">
                             <div class="absolute inset-0 flex flex-col justify-center items-center text-sm text-gray-400 italic bg-gray-50/50 rounded-lg">
@@ -184,7 +150,7 @@
                     </div>
 
                     <!-- Asset Quick Stats (mt-auto pushes this firmly to the absolute bottom floor) -->
-                    <div class="grid grid-cols-4 gap-4 mt-auto border-t border-gray-100 pt-5 shrink-0">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-auto border-t border-gray-100 pt-2 shrink-0">
                         <div class="flex flex-col text-center">
                             <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">52W High</span>
                             <span id="op-stat-high" class="text-lg md:text-xl font-black text-gray-900 mt-1">--</span>
@@ -205,9 +171,9 @@
                 </div>
 
                 <!-- COLUMN 4: STACKED OUTPUT (Theoretical Value & Greeks) -->
-                <div class="xl:col-span-1 flex flex-col gap-4 h-full">
+                <div class="flex flex-col gap-3 h-full">
                     <!-- Theoretical Price Box -->
-                    <div class="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6 flex flex-col items-center justify-center relative overflow-hidden h-1/2 min-h-[180px]">
+                    <div class="bg-gray-900 rounded-xl shadow-lg border border-gray-800 p-4 flex flex-col items-center justify-center relative overflow-hidden min-h-[112px]">
                         <div id="price-glow" class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-blue-600 rounded-full opacity-20 blur-3xl transition-colors"></div>
                         <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 z-10">Theoretical Value</h3>
                         <h1 id="out-price" class="text-5xl font-black text-white z-10">$0.00</h1>
@@ -215,8 +181,8 @@
                     </div>
 
                     <!-- The Greeks Matrix (Re-styled to a 2x2 Grid) -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex-grow h-1/2">
-                        <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex-grow">
+                        <div class="flex justify-between items-center mb-2 border-b border-gray-100 pb-2">
                             <h3 class="text-sm font-bold text-gray-900">The Greeks</h3>
                             <button type="button" onclick="toggleModal('modal-greeks')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer" title="Learn about The Greeks">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -245,9 +211,10 @@
 
             </div>
 
-            <div id="options-insights" class="max-w-[1600px] w-full mx-auto px-4 -mt-10 mb-16">
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6">
-                    <div id="options-preview-cue" class="flex items-center justify-between gap-4 rounded-xl border border-blue-100 bg-blue-50/40 px-4 py-3 mb-4">
+            <details id="options-insights" class="quant-disclosure" data-quant-resize>
+                <summary>Payoff &amp; position interpretation</summary>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                    <div id="options-preview-cue" class="flex items-center justify-between gap-3 rounded-xl border border-blue-100 bg-blue-50/40 px-4 py-3 mb-4">
                         <div class="min-w-0"><p class="text-[10px] font-black uppercase tracking-widest text-blue-600">Next step</p><p class="text-sm font-bold text-gray-800 mt-0.5">Calculate an option to unlock payoff, break-even and risk interpretation.</p></div>
                         <span class="shrink-0 text-[10px] font-black uppercase tracking-wider text-blue-700 bg-white border border-blue-200 rounded-full px-3 py-1.5">Run to unlock</span>
                     </div>
@@ -268,7 +235,7 @@
                         <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Moneyness</p><p id="op-moneyness" class="text-xl font-black text-gray-900 mt-1">--</p><p id="op-moneyness-note" class="text-[10px] text-gray-400 mt-1">Relationship between spot and strike.</p></div>
                     </div>
 
-                    <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)] gap-4">
+                    <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)] gap-3">
                         <div class="rounded-xl border border-gray-200 p-3 min-w-0">
                             <div class="flex items-center justify-between px-2 pt-1"><div><h4 class="font-black text-sm text-gray-900">Expiry Payoff &amp; Profit/Loss</h4><p class="text-xs text-gray-500">Profit after subtracting the theoretical premium paid today.</p></div><span id="op-payoff-type" class="text-[10px] font-black uppercase tracking-wider bg-gray-100 text-gray-500 rounded-full px-3 py-1">--</span></div>
                             <div id="op-payoff-chart" style="height:320px"></div>
@@ -290,33 +257,31 @@
                     </div>
                     </div>
                 </div>
-            </div>
+            </details>
         </section>
 
         <!-- MARKOWITZ OPTIMISER (INSTITUTIONAL 4-COLUMN LAYOUT) -->
-        <section id="section-portfolio" class="scroll-mt-24 mb-16">
-            <div class="max-w-7xl mx-auto pt-10 border-t border-gray-200 mb-6 flex flex-col lg:flex-row lg:items-center gap-6">
-                <h2 class="text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tight shrink-0">Portfolio Optimiser</h2>
-                <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-5 shadow-sm flex-1">
-                    <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-1">Balancing Risk and Reward</h4>
-                    <p class="text-sm text-gray-700 font-medium leading-relaxed">
-                        This section takes a list of stocks and figures out the smartest way to mix them. By looking at how the stocks move together over time, the algorithm calculates the exact percentage of your money you should put into each one to get the highest expected return for the lowest possible risk.
-                    </p>
+        <section id="section-portfolio" class="quant-workspace" aria-labelledby="quant-title-portfolio">
+            <header class="quant-heading">
+                <div>
+                    <p class="quant-eyebrow">SethiQuant</p>
+                    <h1 id="quant-title-portfolio">Portfolio Optimiser</h1>
                 </div>
-            </div>
-            <div id="markowitz-engine" class="max-w-[1600px] w-full mx-auto grid grid-cols-1 xl:grid-cols-4 gap-6 mb-16 px-4">
+                <p class="quant-description">Find the maximum-Sharpe allocation for a basket of stocks.</p>
+            </header>
+            <div id="markowitz-engine" class="quant-grid">
                 
                 <!-- COLUMN 1: INPUT PARAMETERS -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 xl:col-span-1 flex flex-col h-full">
-                    <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
-                        <h2 class="text-xl font-bold text-gray-900">Markowitz Optimiser</h2>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col">
+                    <div class="flex justify-between items-center mb-3 border-b border-gray-100 pb-4">
+                        <h2 class="text-lg font-bold text-gray-900">Markowitz Optimiser</h2>
                         <button type="button" onclick="toggleModal('modal-markowitz')" class="text-gray-400 hover:text-indigo-600 transition cursor-pointer" title="Learn about MPT">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
                     <p class="text-xs text-gray-500 mb-4">Enter 2 to 5 ticker symbols to find the mathematically optimal portfolio weighting.</p>
-                    <form id="mkw-form" class="space-y-4 flex-grow">
-                        <div class="grid grid-cols-5 gap-2">
+                    <form id="mkw-form" class="space-y-2 flex-grow">
+                        <div class="grid grid-cols-3 gap-2">
                             <input type="text" id="mkw-t1" required placeholder="T1" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-center font-bold text-gray-900 uppercase outline-none focus:border-indigo-500 transition">
                             <input type="text" id="mkw-t2" required placeholder="T2" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-center font-bold text-gray-900 uppercase outline-none focus:border-indigo-500 transition">
                             <input type="text" id="mkw-t3" placeholder="T3" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-center font-bold text-gray-900 uppercase outline-none focus:border-indigo-500 transition">
@@ -326,9 +291,9 @@
                         <div class="mt-4 relative">
                             <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Risk-Free Rate (%)</label>
                             <input type="number" id="mkw-r" step="0.01" required value="5.00" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 font-bold text-gray-900 outline-none focus:border-indigo-500 transition">
-                            <div class="absolute top-0 right-0 -mt-1"><span class="flex h-2 w-2 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span></div>
+                            <div class="absolute top-0 right-0 -mt-1"><span class="flex h-2 w-2 relative"><span class="animate-ping absolute inline-flex w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span></div>
                         </div>
-                        <button type="submit" id="mkw-btn" class="w-full mt-4 py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition shadow-md">
+                        <button type="submit" id="mkw-btn" class="w-full mt-2 py-2.5 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition shadow-md">
                             Run SLSQP Optimisation
                         </button>
                     </form>
@@ -336,42 +301,42 @@
                 </div>
 
                 <!-- OUTPUT DASHBOARD (KPIs, Weights, and AI) -->
-                <div class="xl:col-span-3 flex flex-col gap-6">
+                <div class="flex flex-col gap-3">
                     
                     <!-- KPI Banner -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6 flex flex-col justify-center relative overflow-hidden">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        <div class="bg-gray-900 rounded-xl shadow-lg border border-gray-800 p-4 flex flex-col justify-center relative overflow-hidden">
                             <div class="absolute top-0 right-0 -mt-6 -mr-6 w-20 h-20 bg-indigo-500 rounded-full opacity-20 blur-2xl"></div>
                             <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 z-10">Max Sharpe Ratio</h3>
                             <h1 id="out-sharpe" class="text-3xl font-black text-white z-10">0.00</h1>
                         </div>
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col justify-center">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col justify-center">
                             <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Expected Annual Return</h3>
                             <h1 id="out-ret" class="text-3xl font-black text-emerald-600">0.00%</h1>
                         </div>
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col justify-center">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col justify-center">
                             <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Portfolio Volatility (Risk)</h3>
                             <h1 id="out-vol" class="text-3xl font-black text-red-500">0.00%</h1>
                         </div>
                     </div>
 
                     <!-- SIDE-BY-SIDE MATRIX (33% Weights, 66% AI) -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 flex-grow">
                         
                         <!-- Optimal Asset Allocation Box (1/3 Width) -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col lg:col-span-1">
-                            <h3 class="text-sm font-bold text-gray-900 mb-4 border-b border-gray-100 pb-2">Optimal Asset Allocation</h3>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col lg:col-span-1">
+                            <h3 class="text-sm font-bold text-gray-900 mb-2 border-b border-gray-100 pb-2">Optimal Asset Allocation</h3>
                             <div id="mkw-weights-container" class="grid grid-cols-2 gap-3 flex-grow content-start">
                                 <div class="text-sm text-gray-400 italic col-span-full text-center py-4">Awaiting optimisation run...</div>
                             </div>
                         </div>
 
                         <!-- AI Synthesis Module (2/3 Width) -->
-                        <div class="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-6 flex flex-col relative overflow-hidden lg:col-span-2 shadow-sm">
-                            <div class="flex justify-between items-center mb-4 border-b border-indigo-100/50 pb-2">
+                        <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4 flex flex-col relative overflow-hidden lg:col-span-2 shadow-sm">
+                            <div class="flex justify-between items-center mb-2 border-b border-indigo-100/50 pb-2">
                                 <div class="flex items-center gap-2">
                                     <span class="relative flex h-2 w-2">
-                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                                        <span class="animate-ping absolute inline-flex w-full rounded-full bg-indigo-400 opacity-75"></span>
                                         <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
                                     </span>
                                     <h3 class="text-[10px] font-bold text-indigo-900 uppercase tracking-widest">Quantitative AI Rationale</h3>
@@ -380,7 +345,7 @@
                                     Generate Synthesis
                                 </button>
                             </div>
-                            <ul id="out-markowitz-ai" class="space-y-3 text-sm text-indigo-900/80 list-disc pl-4 italic min-h-[250px]">
+                            <ul id="out-markowitz-ai" class="space-y-3 text-sm text-indigo-900/80 list-disc pl-4 italic">
                                 <li>Awaiting execution of the Efficient Frontier algorithm...</li>
                             </ul>
                         </div>
@@ -392,50 +357,50 @@
 
 
         <!-- ALGORITHMIC BACKTESTING ENGINE -->
-        <section id="section-backtest" class="scroll-mt-24 mb-16">
-            <div class="max-w-7xl mx-auto pt-10 border-t border-gray-200 mb-6 flex flex-col lg:flex-row lg:items-center gap-6">
-                <h2 class="text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tight shrink-0">Strategy Backtest</h2>
-                <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-5 shadow-sm flex-1">
-                    <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-1">Historical Performance Testing</h4>
-                    <p class="text-sm text-gray-700 font-medium leading-relaxed">
-                        Before risking real money, you need to know if a trading idea actually works. This tool lets you test out different trading strategies on years of historical market data. It calculates exactly how much money you would have made (or lost) and compares it to simply buying and holding the stock normally.
-                    </p>
+        <section id="section-backtest" class="quant-workspace" aria-labelledby="quant-title-backtest">
+            <header class="quant-heading">
+                <div>
+                    <p class="quant-eyebrow">SethiQuant</p>
+                    <h1 id="quant-title-backtest">Strategy Backtest</h1>
                 </div>
-            </div>
-            <div id="algorithmic-backtester" class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+                <p class="quant-description">Test a trading rule on historical prices and compare it with buy-and-hold.</p>
+            </header>
+            <div id="algorithmic-backtester" class="quant-grid">
                 
                 <!-- INPUT PARAMETERS -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 lg:col-span-1 flex flex-col h-full">
-                    <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
-                        <h2 class="text-xl font-bold text-gray-900">Algorithmic Backtester</h2>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col">
+                    <div class="flex justify-between items-center mb-3 border-b border-gray-100 pb-4">
+                        <h2 class="text-lg font-bold text-gray-900">Strategy setup</h2>
                         <button type="button" onclick="toggleModal('modal-backtest')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer" title="Learn about Backtesting">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </button>
                     </div>
-                    <form id="bt-form" class="space-y-4 flex-grow">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Target Asset</label>
-                            <input type="text" id="bt-ticker" required value="SPY" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 uppercase outline-none focus:border-teal-500 transition">
+                    <form id="bt-form" class="space-y-2 flex-grow">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Target Asset</label>
+                                <input type="text" id="bt-ticker" required value="SPY" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 uppercase outline-none focus:border-teal-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Period</label>
+                                <select id="bt-period" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-teal-500 transition">
+                                    <option value="1y">1 Year</option>
+                                    <option value="3y">3 Years</option>
+                                    <option value="5y" selected>5 Years</option>
+                                </select>
+                            </div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Trading Strategy</label>
                             <!-- UNLOCKED: Strategy Dropdown -->
                             <select id="bt-strategy" onchange="toggleBacktestParams()" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-teal-500 transition">
-                                <option value="sma_crossover">SMA Crossover (Trend)</option>
-                                <option value="bollinger_bands">Bollinger Bands (Mean Reversion)</option>
+                                <option value="sma_crossover">SMA Crossover</option>
+                                <option value="bollinger_bands">Bollinger Bands</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Backtest Period</label>
-                            <select id="bt-period" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-teal-500 transition">
-                                <option value="1y">1 Year</option>
-                                <option value="3y">3 Years</option>
-                                <option value="5y" selected>5 Years</option>
-                            </select>
-                        </div>
-                        
+
                         <!-- DYNAMIC PARAMS: SMA Crossover -->
-                        <div id="param-sma" class="grid grid-cols-2 gap-4">
+                        <div id="param-sma" class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Fast SMA</label>
                                 <input type="number" id="bt-short" value="50" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-teal-500 transition">
@@ -447,7 +412,7 @@
                         </div>
 
                         <!-- DYNAMIC PARAMS: Bollinger Bands -->
-                        <div id="param-bb" class="grid grid-cols-2 gap-4 hidden">
+                        <div id="param-bb" class="grid grid-cols-2 gap-3 hidden">
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">BB Window</label>
                                 <input type="number" id="bt-bb-window" value="20" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 font-bold text-gray-900 outline-none focus:border-teal-500 transition">
@@ -458,7 +423,7 @@
                             </div>
                         </div>
 
-                        <button type="submit" id="bt-btn" class="w-full mt-4 py-3 bg-teal-600 text-white font-bold rounded-lg hover:bg-teal-700 transition shadow-md">
+                        <button type="submit" id="bt-btn" class="w-full mt-2 py-2.5 bg-teal-600 text-white font-bold rounded-lg hover:bg-teal-700 transition shadow-md">
                             Analyse Strategy
                         </button>
                     </form>
@@ -466,93 +431,91 @@
                 </div>
 
                 <!-- OUTPUT DASHBOARD -->
-                <div class="lg:col-span-2 flex flex-col gap-6">
-                    <!-- KPI Banner -->
-                    <div class="grid grid-cols-3 gap-4 md:gap-6">
-                        <div class="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-4 md:p-6 flex flex-col justify-center relative overflow-hidden">
+                <div class="quant-results">
+                    <div class="quant-backtest-metrics">
+                        <div class="bg-gray-900 rounded-xl shadow-lg border border-gray-800 p-4  flex flex-col justify-center relative overflow-hidden">
                             <div class="absolute top-0 right-0 -mt-6 -mr-6 w-20 h-20 bg-teal-500 rounded-full opacity-20 blur-2xl"></div>
                             <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 z-10">Strategy Return</h3>
                             <h1 id="out-bt-ret" class="text-2xl md:text-3xl font-black text-white z-10">0.00%</h1>
                         </div>
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 md:p-6 flex flex-col justify-center">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4  flex flex-col justify-center">
                             <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Max Drawdown</h3>
                             <h1 id="out-bt-dd" class="text-2xl md:text-3xl font-black text-red-500">0.00%</h1>
                         </div>
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 md:p-6 flex flex-col justify-center">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4  flex flex-col justify-center">
                             <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Annualised Volatility</h3>
                             <h1 id="out-bt-vol" class="text-2xl md:text-3xl font-black text-gray-900">0.00%</h1>
                         </div>
-                    </div>
-                    <div class="grid grid-cols-3 gap-4 md:gap-6">
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 md:p-5"><h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Sharpe Ratio</h3><h1 id="out-bt-sharpe" class="text-2xl font-black text-gray-900">--</h1><p class="text-[10px] text-gray-400 mt-1">Return earned per unit of total volatility.</p></div>
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 md:p-5"><h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Sortino Ratio</h3><h1 id="out-bt-sortino" class="text-2xl font-black text-gray-900">--</h1><p class="text-[10px] text-gray-400 mt-1">Return relative to downside volatility only.</p></div>
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 md:p-5"><h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Vs Buy &amp; Hold</h3><h1 id="out-bt-alpha" class="text-2xl font-black text-gray-900">--</h1><p class="text-[10px] text-gray-400 mt-1">Cumulative return difference over this sample.</p></div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4"><h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1" title="Return earned per unit of total volatility.">Sharpe Ratio</h3><h1 id="out-bt-sharpe" class="text-2xl font-black text-gray-900">--</h1></div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4"><h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1" title="Return relative to downside volatility only.">Sortino Ratio</h3><h1 id="out-bt-sortino" class="text-2xl font-black text-gray-900">--</h1></div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4"><h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1" title="Cumulative return difference over this sample.">Vs Buy &amp; Hold</h3><h1 id="out-bt-alpha" class="text-2xl font-black text-gray-900">--</h1></div>
                     </div>
 
-                    <!-- Equity Curve Chart -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex-grow flex flex-col">
-                        <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                    <div class="quant-result-controls" role="group" aria-label="Backtest result views">
+                        <button type="button" data-quant-result="backtest-overview" aria-controls="backtest-overview" aria-pressed="true">Equity Curve</button>
+                        <button type="button" data-quant-result="backtest-insights" aria-controls="backtest-insights" aria-pressed="false">Diagnostics</button>
+                    </div>
+                    <div id="backtest-overview" class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                        <div class="flex justify-between items-center mb-2 border-b border-gray-100 pb-2">
                             <h3 class="text-lg font-bold text-gray-900">Historical Equity Curve (Base 100)</h3>
                             <span id="out-bh-ret" class="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">Buy & Hold: 0.00%</span>
                         </div>
-                        <!-- CRITICAL FIX: Removed flex classes, added strict 350px height -->
-                        <div id="bt-chart" style="height: 350px; width: 100%;" class="w-full relative">
+                        <div id="bt-chart" class="quant-backtest-chart w-full relative">
                             <div class="absolute inset-0 flex justify-center items-center text-sm text-gray-400 italic">
                                 Awaiting backtest execution...
                             </div>
                         </div>
                     </div>
-                </div>
-
-            </div>
-
-            <div id="backtest-insights" class="max-w-6xl mx-auto -mt-10 mb-16 bg-white rounded-2xl shadow-sm border border-gray-200 p-5 md:p-6">
-                <div id="backtest-preview-cue" class="flex items-center justify-between gap-4 rounded-xl border border-teal-100 bg-teal-50/40 px-4 py-3 mb-4">
-                    <div class="min-w-0"><p class="text-[10px] font-black uppercase tracking-widest text-teal-600">Next step</p><p class="text-sm font-bold text-gray-800 mt-0.5">Analyse a strategy to unlock drawdowns, trade quality and risk-adjusted diagnostics.</p></div>
-                    <span class="shrink-0 text-[10px] font-black uppercase tracking-wider text-teal-700 bg-white border border-teal-200 rounded-full px-3 py-1.5">Run to unlock</span>
-                </div>
-                <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-5">
-                    <div><p class="text-[10px] font-black uppercase tracking-widest text-teal-600 mb-1">Backtest Diagnostics</p><h3 class="text-xl font-black text-gray-900">Was the return actually worth the risk?</h3><p id="bt-insight-summary" class="text-sm text-gray-500 mt-1 max-w-3xl">Run a strategy to reveal drawdowns, trade quality, market exposure and risk-adjusted performance.</p></div>
-                    <button type="button" onclick="toggleModal('modal-backtest')" class="shrink-0 px-4 py-2 rounded-lg border border-teal-200 bg-teal-50 text-teal-700 text-xs font-black hover:bg-teal-100 transition">How to interpret this</button>
-                </div>
-                <div id="backtest-insights-detail" class="hidden">
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Completed Trades</p><p id="out-bt-trades" class="text-xl font-black text-gray-900 mt-1">--</p></div>
-                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Trade Win Rate</p><p id="out-bt-win" class="text-xl font-black text-gray-900 mt-1">--</p></div>
-                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Time In Market</p><p id="out-bt-exposure" class="text-xl font-black text-gray-900 mt-1">--</p></div>
-                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Worst Drawdown</p><p id="out-bt-worst-dd" class="text-xl font-black text-red-600 mt-1">--</p></div>
-                </div>
-                <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)] gap-4">
-                    <div class="rounded-xl border border-gray-200 p-3"><div class="px-2 pt-1"><h4 class="font-black text-sm text-gray-900">Drawdown Through Time</h4><p class="text-xs text-gray-500">Shows how far the strategy sits below its previous equity peak.</p></div><div id="bt-drawdown-chart" style="height:300px"></div></div>
-                    <div class="rounded-xl border border-gray-200 overflow-hidden">
-                        <div class="p-4 border-b border-gray-100"><h4 class="font-black text-sm text-gray-900">Recent Trades</h4><p class="text-xs text-gray-500">Latest completed long-position segments.</p></div>
-                        <div class="max-h-[300px] overflow-y-auto"><table class="w-full text-xs"><thead class="sticky top-0 bg-gray-50 text-gray-400 uppercase tracking-wider"><tr><th class="text-left px-4 py-2">Entry</th><th class="text-left px-3 py-2">Exit</th><th class="text-right px-4 py-2">Return</th></tr></thead><tbody id="bt-trade-table"><tr><td colspan="3" class="text-center text-gray-400 italic py-8">Awaiting backtest...</td></tr></tbody></table></div>
+                    <div id="backtest-insights" class="bg-white rounded-xl shadow-sm border border-gray-200 p-3" hidden>
+                        <p id="backtest-preview-cue" class="mb-2 rounded-lg bg-teal-50 px-3 py-2 text-sm text-teal-800">Run a backtest to see drawdowns, trades and time in market.</p>
+                        <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+                            <p id="bt-insight-summary" class="text-sm font-semibold text-gray-700"></p>
+                            <button type="button" onclick="toggleModal('modal-backtest')" class="rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-xs font-bold text-teal-700 hover:bg-teal-100">How to interpret this</button>
+                        </div>
+                        <div id="backtest-insights-detail" class="hidden">
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-2">
+                            <div class="rounded-xl bg-gray-50 border border-gray-100 p-2"><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Completed Trades</p><p id="out-bt-trades" class="text-lg font-black text-gray-900">--</p></div>
+                            <div class="rounded-xl bg-gray-50 border border-gray-100 p-2"><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Trade Win Rate</p><p id="out-bt-win" class="text-lg font-black text-gray-900">--</p></div>
+                            <div class="rounded-xl bg-gray-50 border border-gray-100 p-2"><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Time In Market</p><p id="out-bt-exposure" class="text-lg font-black text-gray-900">--</p></div>
+                            <div class="rounded-xl bg-gray-50 border border-gray-100 p-2"><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Worst Drawdown</p><p id="out-bt-worst-dd" class="text-lg font-black text-red-600">--</p></div>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1.6fr)_minmax(220px,1fr)] gap-3">
+                            <div class="rounded-xl border border-gray-200 p-2"><div class="px-1"><h4 class="font-black text-sm text-gray-900">Drawdown Through Time</h4></div><div id="bt-drawdown-chart" class="quant-diagnostics-chart"></div></div>
+                            <div class="rounded-xl border border-gray-200 overflow-hidden">
+                                <div class="px-3 py-2 border-b border-gray-100"><h4 class="font-black text-sm text-gray-900">Recent Trades</h4></div>
+                                <div class="max-h-[185px] overflow-y-auto"><table class="w-full text-xs"><thead class="sticky top-0 bg-gray-50 text-gray-400 uppercase tracking-wider"><tr><th class="text-left px-4 py-2">Entry</th><th class="text-left px-3 py-2">Exit</th><th class="text-right px-4 py-2">Return</th></tr></thead><tbody id="bt-trade-table"><tr><td colspan="3" class="text-center text-gray-400 italic py-8">Awaiting backtest...</td></tr></tbody></table></div>
+                            </div>
+                        </div>
+                        <details class="quant-disclosure">
+                            <summary>Interpretation</summary>
+                            <div id="bt-learning-points" class="px-3 pb-3 text-sm leading-relaxed text-gray-700">A strong backtest should be judged on more than total return: compare risk-adjusted ratios, drawdowns, benchmark performance and how often the strategy was actually invested.</div>
+                        </details>
+                        </div>
                     </div>
-                </div>
-                <div id="bt-learning-points" class="mt-4 rounded-xl bg-teal-50/50 border border-teal-100 p-4 text-sm text-gray-700 leading-relaxed">A strong backtest should be judged on more than total return: compare risk-adjusted ratios, drawdowns, benchmark performance and how often the strategy was actually invested.</div>
                 </div>
             </div>
         </section>
 
         <!-- MONTE CARLO VaR ENGINE -->
-         <section id="section-var" class="scroll-mt-24 mb-12">
-            <div class="max-w-[1800px] mx-auto pt-8 border-t border-gray-200 mb-4 flex flex-col lg:flex-row lg:items-center gap-4">
-                <h2 class="text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tight shrink-0">Market Risk Lab</h2>
-                <div class="bg-blue-50/40 border border-blue-100 rounded-xl px-5 py-3.5 shadow-sm flex-1">
-                    <h4 class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-1">Portfolio VaR & Expected Shortfall</h4>
-                    <p class="text-sm text-gray-700 font-medium leading-relaxed">This engine simulates thousands of correlated market scenarios to project extreme portfolio losses. It calculates Value at Risk (VaR) to establish a baseline loss threshold, alongside Expected Shortfall (CVaR) to estimate the magnitude of severe tail-risk events.</p>
+         <section id="section-var" class="quant-workspace" aria-labelledby="quant-title-var">
+            <header class="quant-heading">
+                <div>
+                    <p class="quant-eyebrow">SethiQuant</p>
+                    <h1 id="quant-title-var">Market Risk Lab</h1>
                 </div>
-            </div>
-            <div id="market-risk-lab" class="max-w-[1800px] mx-auto grid grid-cols-1 xl:grid-cols-[300px_minmax(0,1fr)] gap-4 mb-10 items-start">
-                <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col xl:sticky xl:top-20">
-                    <h2 class="text-lg font-black text-gray-900 mb-3 border-b border-gray-100 pb-3">Portfolio Parameters</h2>
-                    <form id="risk-form" class="space-y-3 flex-grow">
-                        <div><label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Portfolio Value (£)</label><input id="portfolio-value" type="number" value="100000" min="1" class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-bold outline-none focus:border-blue-500"></div>
-                        <div class="grid grid-cols-2 gap-3">
+                <p class="quant-description">Compare portfolio loss estimates, risk contributions and stress scenarios.</p>
+            </header>
+            <div id="market-risk-lab" class="quant-grid">
+                <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col">
+                    <h2 class="text-base font-black text-gray-900 mb-2 border-b border-gray-100 pb-2">Portfolio Parameters</h2>
+                    <form id="risk-form" class="space-y-2 flex-grow">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div><label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Portfolio Value (£)</label><input id="portfolio-value" type="number" value="100000" min="1" class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-bold outline-none focus:border-blue-500"></div>
                             <div><label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Confidence</label><select id="confidence" class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-bold outline-none focus:border-blue-500"><option value="0.95">95%</option><option value="0.99" selected>99%</option></select></div>
                             <div><label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Horizon</label><select id="horizon" class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-bold outline-none focus:border-blue-500"><option value="1">1 day</option><option value="10" selected>10 days</option><option value="30">30 days</option></select></div>
+                            <div><label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Lookback</label><select id="lookback" class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-bold outline-none focus:border-blue-500"><option value="1y">1 year</option><option value="2y" selected>2 years</option><option value="5y">5 years</option></select></div>
                         </div>
-                        <div><label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Lookback</label><select id="lookback" class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-bold outline-none focus:border-blue-500"><option value="1y">1 year</option><option value="2y" selected>2 years</option><option value="5y">5 years</option></select></div>
                         <div>
                             <div class="flex items-end justify-between mb-2 border-b border-gray-100 pb-2">
                                 <div><label class="text-[10px] font-black uppercase tracking-widest text-gray-500">Positions</label><span class="text-[10px] text-gray-400 block mt-0.5">Must total 100%</span></div>
@@ -568,23 +531,23 @@
                                 <span>Stress Test</span><span id="stress-count-badge" class="bg-white border border-amber-200 rounded-full px-2 py-0.5 text-[9px]">4 presets</span>
                             </button>
                         </div>
-                        <button type="submit" id="run-btn" class="w-full py-2.5 mt-3 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-lg shadow-sm transition">Run Risk Analysis</button>
+                        <button type="submit" id="run-btn" class="w-full py-2.5 mt-1 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-lg shadow-sm transition">Run Risk Analysis</button>
                         <p id="risk-error" class="hidden text-sm text-red-600 font-semibold text-center mt-2"></p>
                     </form>
                 </div>
-                <div class="space-y-4 min-w-0">
+                <div class="space-y-2 min-w-0">
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                        <div class="bg-gray-900 text-white rounded-xl p-4 shadow-lg relative overflow-hidden min-h-[96px]"><div class="absolute top-0 right-0 -mt-6 -mr-6 w-20 h-20 bg-blue-500 rounded-full opacity-20 blur-2xl"></div><div class="flex justify-between items-start z-10 relative"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">MC 99% VaR</p><button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-white transition cursor-pointer" title="Learn about VaR">ⓘ</button></div><h3 id="mc-var" class="text-3xl font-black mt-2 z-10 relative">£0</h3></div>
-                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-h-[96px]"><div class="flex justify-between items-start"><p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">MC Expected Shortfall</p><button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-red-500 transition cursor-pointer" title="Learn about Expected Shortfall">ⓘ</button></div><h3 id="mc-es" class="text-3xl font-black text-red-600 mt-2">£0</h3></div>
-                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-h-[96px]"><div class="flex justify-between items-start"><p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Historical VaR</p><button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer" title="Learn about Historical VaR">ⓘ</button></div><h3 id="hist-var" class="text-3xl font-black mt-2">£0</h3></div>
-                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-h-[96px]"><div class="flex justify-between items-start"><p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Historical ES</p><button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer" title="Learn about Historical ES">ⓘ</button></div><h3 id="hist-es" class="text-3xl font-black mt-2">£0</h3></div>
+                        <div class="bg-gray-900 text-white rounded-xl p-4 shadow-lg relative overflow-hidden min-h-[76px]"><div class="absolute top-0 right-0 -mt-6 -mr-6 w-20 h-20 bg-blue-500 rounded-full opacity-20 blur-2xl"></div><div class="flex justify-between items-start z-10 relative"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">MC 99% VaR</p><button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-white transition cursor-pointer" title="Learn about VaR">ⓘ</button></div><h3 id="mc-var" class="text-3xl font-black mt-2 z-10 relative">£0</h3></div>
+                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-h-[76px]"><div class="flex justify-between items-start"><p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">MC Expected Shortfall</p><button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-red-500 transition cursor-pointer" title="Learn about Expected Shortfall">ⓘ</button></div><h3 id="mc-es" class="text-3xl font-black text-red-600 mt-2">£0</h3></div>
+                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-h-[76px]"><div class="flex justify-between items-start"><p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Historical VaR</p><button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer" title="Learn about Historical VaR">ⓘ</button></div><h3 id="hist-var" class="text-3xl font-black mt-2">£0</h3></div>
+                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-h-[76px]"><div class="flex justify-between items-start"><p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Historical ES</p><button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer" title="Learn about Historical ES">ⓘ</button></div><h3 id="hist-es" class="text-3xl font-black mt-2">£0</h3></div>
                     </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4">
-                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0"><div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-2"><div><h3 class="font-black text-lg text-gray-900">Model Comparison</h3><p class="text-xs text-gray-500">Same portfolio, different risk assumptions.</p></div><div class="flex items-center gap-2"><span id="model-gap" class="text-xs font-bold bg-gray-100 rounded-full px-3 py-1 text-gray-600">--</span><button type="button" onclick="toggleModal('modal-risk-lab-guide')" class="text-gray-400 hover:text-blue-600 transition" title="How to interpret this chart">ⓘ</button></div></div><div id="model-chart" style="height:255px"></div></div>
-                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0"><div class="flex items-start justify-between gap-3 border-b border-gray-100 pb-2 mb-2"><div><h3 class="font-black text-lg text-gray-900">MC P&amp;L Distribution</h3><p class="text-xs text-gray-500">Losses beyond the VaR threshold form the tail.</p></div><button type="button" onclick="toggleModal('modal-risk-lab-guide')" class="text-gray-400 hover:text-blue-600 transition mt-1" title="How to interpret this chart">ⓘ</button></div><div id="pnl-chart" style="height:255px"></div></div>
-                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0 lg:col-span-2 2xl:col-span-1">
+                    <div class="grid quant-risk-charts">
+                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0"><div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-2"><div><h3 class="font-black text-lg text-gray-900">Model Comparison</h3><p class="text-xs text-gray-500">Same portfolio, different risk assumptions.</p></div><div class="flex items-center gap-2"><span id="model-gap" class="text-xs font-bold bg-gray-100 rounded-full px-3 py-1 text-gray-600">--</span><button type="button" onclick="toggleModal('modal-risk-lab-guide')" class="text-gray-400 hover:text-blue-600 transition" title="How to interpret this chart">ⓘ</button></div></div><div id="model-chart" class="quant-risk-chart"></div></div>
+                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0"><div class="flex items-start justify-between gap-3 border-b border-gray-100 pb-2 mb-2"><div><h3 class="font-black text-lg text-gray-900">MC P&amp;L Distribution</h3><p class="text-xs text-gray-500">Losses beyond the VaR threshold form the tail.</p></div><button type="button" onclick="toggleModal('modal-risk-lab-guide')" class="text-gray-400 hover:text-blue-600 transition mt-1" title="How to interpret this chart">ⓘ</button></div><div id="pnl-chart" class="quant-risk-chart"></div></div>
+                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0 quant-risk-detail">
                             <div class="border-b border-gray-100 pb-2 mb-2">
-                                <div class="flex items-center justify-between gap-3">
+                                <div class="flex flex-wrap items-center justify-between gap-2">
                                     <div class="flex items-center gap-2 min-w-0">
                                         <h3 id="risk-detail-title" class="font-black text-lg text-gray-900">Risk Contribution</h3>
                                         <button type="button" onclick="toggleModal('modal-risk-lab-guide')" class="text-gray-400 hover:text-blue-600 transition shrink-0" title="Learn how to interpret Market Risk Lab">ⓘ</button>
@@ -598,43 +561,46 @@
                                 </div>
                                 <p id="risk-detail-subtitle" class="text-xs text-gray-500 mt-1.5 leading-relaxed whitespace-normal">Run an analysis to decompose portfolio VaR.</p>
                             </div>
-                            <div id="risk-attribution-view"><div id="risk-contribution-chart" style="height:255px"></div></div>
-                            <div id="derivatives-view" class="hidden"><div id="derivatives-chart" style="height:255px"></div></div>
-                            <div id="stress-view" class="hidden"><div id="stress-chart" style="height:255px"></div></div>
-                            <div id="correlation-view" class="hidden"><div id="corr-chart" style="height:255px"></div></div>
+                            <div id="risk-attribution-view"><div id="risk-contribution-chart" class="quant-risk-chart"></div></div>
+                            <div id="derivatives-view" class="hidden"><div id="derivatives-chart" class="quant-risk-chart"></div></div>
+                            <div id="stress-view" class="hidden"><div id="stress-chart" class="quant-risk-chart"></div></div>
+                            <div id="correlation-view" class="hidden"><div id="corr-chart" class="quant-risk-chart"></div></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="max-w-[1800px] mx-auto mt-4 bg-white border border-gray-200 rounded-2xl shadow-sm p-5 md:p-6">
-                <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-5">
-                    <div>
-                        <p class="text-[10px] font-black uppercase tracking-widest text-blue-600 mb-1">Interpretation Guide</p>
-                        <h3 class="text-xl font-black text-gray-900">How to read the Market Risk Lab</h3>
-                        <p class="text-sm text-gray-500 mt-1 max-w-3xl">The models answer different questions. Read them together rather than treating any single number as a complete measure of risk.</p>
+            <details class="quant-disclosure">
+                <summary>Market Risk Lab interpretation guide</summary>
+                <div class="p-4">
+                    <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-5">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-blue-600 mb-1">Interpretation Guide</p>
+                            <h3 class="text-xl font-black text-gray-900">How to read the Market Risk Lab</h3>
+                            <p class="text-sm text-gray-500 mt-1 max-w-3xl">The models answer different questions. Read them together rather than treating any single number as a complete measure of risk.</p>
+                        </div>
+                        <button type="button" onclick="toggleModal('modal-risk-lab-guide')" class="shrink-0 px-4 py-2 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 text-xs font-black hover:bg-blue-100 transition">Open step-by-step guide</button>
                     </div>
-                    <button type="button" onclick="toggleModal('modal-risk-lab-guide')" class="shrink-0 px-4 py-2 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 text-xs font-black hover:bg-blue-100 transition">Open step-by-step guide</button>
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+                        <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><h4 class="font-black text-sm text-gray-900 mb-1">1. VaR &amp; Expected Shortfall</h4><p class="text-xs text-gray-600 leading-relaxed">VaR is the loss threshold at the chosen confidence level. Expected Shortfall asks how severe losses are on average once that threshold is breached.</p></div>
+                        <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><h4 class="font-black text-sm text-gray-900 mb-1">2. Risk Contribution</h4><p class="text-xs text-gray-600 leading-relaxed">Component VaR shows which holdings are driving portfolio risk after correlations are considered. A large weight does not always mean a large risk contribution.</p></div>
+                        <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><h4 class="font-black text-sm text-gray-900 mb-1">3. Greeks</h4><p class="text-xs text-gray-600 leading-relaxed">Delta measures directional option exposure, Gamma measures curvature and Vega measures sensitivity to volatility. These explain how derivatives reshape the portfolio's P&amp;L.</p></div>
+                        <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><h4 class="font-black text-sm text-gray-900 mb-1">4. Stress Testing</h4><p class="text-xs text-gray-600 leading-relaxed">Stress tests ask “what if markets move sharply?” They are scenario analyses, not forecasts. Compare the equity, options and total P&amp;L to see where protection or extra downside comes from.</p></div>
+                    </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><h4 class="font-black text-sm text-gray-900 mb-1">1. VaR &amp; Expected Shortfall</h4><p class="text-xs text-gray-600 leading-relaxed">VaR is the loss threshold at the chosen confidence level. Expected Shortfall asks how severe losses are on average once that threshold is breached.</p></div>
-                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><h4 class="font-black text-sm text-gray-900 mb-1">2. Risk Contribution</h4><p class="text-xs text-gray-600 leading-relaxed">Component VaR shows which holdings are driving portfolio risk after correlations are considered. A large weight does not always mean a large risk contribution.</p></div>
-                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><h4 class="font-black text-sm text-gray-900 mb-1">3. Greeks</h4><p class="text-xs text-gray-600 leading-relaxed">Delta measures directional option exposure, Gamma measures curvature and Vega measures sensitivity to volatility. These explain how derivatives reshape the portfolio's P&amp;L.</p></div>
-                    <div class="rounded-xl bg-gray-50 border border-gray-100 p-4"><h4 class="font-black text-sm text-gray-900 mb-1">4. Stress Testing</h4><p class="text-xs text-gray-600 leading-relaxed">Stress tests ask “what if markets move sharply?” They are scenario analyses, not forecasts. Compare the equity, options and total P&amp;L to see where protection or extra downside comes from.</p></div>
-                </div>
-            </div>
+            </details>
         </section>
 
         <!-- QUANTITATIVE LEGAL DISCLAIMER -->
-        <div class="max-w-7xl mx-auto px-6 md:px-10 pb-8 text-center">
+        <div class="max-w-7xl mx-auto px-2 py-3 text-center">
             <p class="text-[10px] md:text-xs text-gray-400 font-medium leading-relaxed max-w-4xl mx-auto">
                 <strong class="text-gray-500 uppercase tracking-widest">Important Legal Notice:</strong> All mathematical models, derivatives pricing, and algorithmic backtesting simulations provided on SethiQuant are strictly for educational and portfolio demonstration purposes. This terminal does not provide financial, investment, or trading advice. Algorithmic outputs (including Markowitz allocations and Black-Scholes valuations) rely on historical data and theoretical formulas, which do not guarantee future market behaviour. Always conduct independent fundamental research and consult a licensed professional before executing real capital allocation.
             </p>
         </div>
 
         <!-- FEEDBACK CARD (Matching SethiMacro Feedback Form) -->
-        <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-200 p-8 md:p-10 mb-12">
-            <div class="text-center max-w-xl mx-auto mb-8">
+        <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 mb-6">
+            <div class="text-center max-w-xl mx-auto mb-4">
                 <h3 class="text-2xl font-bold text-gray-900 mb-2">Spotted a bug or have a feature idea?</h3>
                 <p class="text-gray-500 text-sm font-light">
                     SethiQuant is continuously evolving. Let me know what quant model, pricing engine, or backtest feature we should build next.
@@ -661,7 +627,7 @@
                 Thank you! Your feedback has been transmitted securely.
             </div>
         </div>
-    </div>
+    </main>
 
     <!-- MODAL: MARKET RISK LAB STRESS TEST -->
     <div id="modal-risk-stress" class="hidden fixed inset-0 z-[225] flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
@@ -1153,7 +1119,7 @@
                 greekBox.classList.add('hidden');
             }
 
-            setTimeout(() => Plotly.Plots.resize('op-payoff-chart'), 0);
+            resizeQuantPlots(insights);
         }
 
         document.getElementById('op-form').addEventListener('submit', async (e) => {
@@ -1682,19 +1648,17 @@
                 title.innerText = 'Derivatives Risk';
                 const d = latestRiskData?.derivatives;
                 subtitle.innerText = d?.active ? `Δ £${Math.round(d.aggregate_dollar_delta).toLocaleString()} · Γ(1%) ${formatMoney(d.aggregate_gamma_pnl_1pct)} · Vega ${formatMoney(d.aggregate_vega_pnl_1vol)}/vol pt` : 'No options overlay is active.';
-                if (document.getElementById('derivatives-chart').data) Plotly.Plots.resize('derivatives-chart');
             } else if (view === 'stress') {
                 title.innerText = 'Stress Testing';
                 const st = latestRiskData?.stress_testing;
                 subtitle.innerText = st?.worst_scenario ? `Worst: ${st.worst_scenario} ${formatMoney(st.worst_pnl)} · full revaluation` : 'Preset and custom market shock scenarios.';
-                if (document.getElementById('stress-chart').data) Plotly.Plots.resize('stress-chart');
             } else {
                 title.innerText = 'Risk Contribution';
                 const a = latestRiskData?.attribution;
                 const overlayNote = latestRiskData?.derivatives?.active ? ' · equity attribution only' : '';
                 subtitle.innerText = a ? `Parametric VaR ${formatMoney(a.portfolio_var)} · diversification ${a.diversification_pct.toFixed(1)}%${overlayNote}` : 'Run an analysis to decompose portfolio VaR.';
-                if (document.getElementById('risk-contribution-chart').data) Plotly.Plots.resize('risk-contribution-chart');
             }
+            resizeQuantPlots(views[view]);
         }
 
         let activePositions = [ ["AAPL", 30], ["NVDA", 25], ["JPM", 25], ["GLD", 20] ];
@@ -1947,6 +1911,7 @@
             }).catch(() => {});
         }, 1000); 
     </script>
+    <script src="sethiquant-layout.js?v=1"></script>
     <script src="sethiway-history.js"></script>
 </body>
 </html>

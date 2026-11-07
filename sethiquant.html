@@ -50,51 +50,44 @@
         </header>
 
 
-        <nav aria-labelledby="quant-map-title" class="mb-6 rounded-xl border border-slate-200 bg-slate-100/60 p-3 sm:p-4">
-            <div class="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <h2 id="quant-map-title" class="text-lg font-black text-slate-900">Portfolio risk workflow</h2>
-                <p class="text-xs text-slate-600">Measure your downside, try new weights, and check the difference.</p>
+        <nav aria-labelledby="quant-map-title" class="mx-auto mb-5 max-w-6xl">
+            <div class="mb-2 flex items-center gap-3">
+                <h2 id="quant-map-title" class="shrink-0 text-[10px] font-black uppercase tracking-[0.15em] text-slate-600">Portfolio risk workflow</h2>
+                <span aria-hidden="true" class="h-px flex-1 bg-slate-200"></span>
             </div>
-            <ol class="grid list-none gap-4 md:grid-cols-3 md:gap-6">
-                <li class="relative">
-                    <a href="#risk-parameters" class="flex h-full items-start gap-3 rounded-lg border border-blue-200 bg-white p-3 hover:border-blue-400 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">
-                        <span aria-hidden="true" class="text-xl font-black leading-none text-blue-700">01</span>
-                        <span><strong class="block text-sm text-slate-900">Measure current risk</strong><span class="mt-1 block text-xs leading-relaxed text-slate-600">Set your holdings and run a baseline in Market Risk Lab.</span></span>
+            <ol class="grid list-none gap-3 md:grid-cols-[1fr_1.35fr_1fr] md:gap-6">
+                <li class="relative min-w-0">
+                    <a href="#risk-parameters" class="flex h-full items-center gap-2.5 rounded-xl border border-blue-200 border-l-4 border-l-blue-500 bg-blue-50/70 px-3 py-2.5 transition hover:bg-blue-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">
+                        <span aria-hidden="true" class="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-blue-100 text-xs font-black text-blue-800">01</span>
+                        <span><strong class="block text-sm text-slate-900">Measure current risk</strong><span class="block text-xs text-slate-600">Run a baseline for your holdings.</span></span>
                     </a>
-                    <svg aria-hidden="true" class="pointer-events-none absolute -bottom-4 left-5 h-4 w-4 rotate-90 text-slate-500 md:-right-5 md:left-auto md:top-1/2 md:-translate-y-1/2 md:rotate-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8h11M9 4l4 4-4 4"/></svg>
+                    <svg aria-hidden="true" class="pointer-events-none absolute -bottom-3 left-4 h-3 w-3 rotate-90 text-slate-500 md:-right-5 md:left-auto md:top-1/2 md:h-4 md:w-4 md:-translate-y-1/2 md:rotate-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8h11M9 4l4 4-4 4"/></svg>
                 </li>
-                <li class="relative">
-                    <button id="workflow-open-optimiser" type="button" onclick="preparePortfolioOptimiser()" class="flex h-full w-full items-start gap-3 rounded-lg border border-indigo-200 bg-white p-3 text-left hover:border-indigo-400 hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600 disabled:opacity-60">
-                        <span aria-hidden="true" class="text-xl font-black leading-none text-indigo-700">02</span>
-                        <span><strong class="block text-sm text-slate-900">Build a proposal</strong><span class="mt-1 block text-xs leading-relaxed text-slate-600">Open the Optimiser with your holdings and choose which to reweight.</span></span>
+                <li class="relative min-w-0 rounded-xl border border-indigo-200 border-l-4 border-l-indigo-500 bg-indigo-50/70">
+                    <button id="workflow-open-optimiser" type="button" onclick="preparePortfolioOptimiser()" class="flex w-full items-center gap-2.5 rounded-t-lg px-3 pb-1 pt-2.5 text-left transition hover:bg-indigo-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600 disabled:opacity-60">
+                        <span aria-hidden="true" class="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-indigo-100 text-xs font-black text-indigo-800">02</span>
+                        <span><strong class="block text-sm text-slate-900">Build a proposal</strong><span class="block text-xs text-slate-600">Reweight holdings in the Optimiser.</span></span>
                     </button>
-                    <svg aria-hidden="true" class="pointer-events-none absolute -bottom-4 left-5 h-4 w-4 rotate-90 text-slate-500 md:-right-5 md:left-auto md:top-1/2 md:-translate-y-1/2 md:rotate-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8h11M9 4l4 4-4 4"/></svg>
+                    <div aria-label="Optional research for step 02" role="group" class="flex flex-wrap items-center gap-1.5 px-3 pb-2">
+                        <span class="text-[10px] font-semibold text-indigo-800">Research</span>
+                        <a href="#op-ticker" class="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-white px-2 py-1 text-[10px] font-bold leading-tight text-indigo-800 hover:border-indigo-400 hover:bg-indigo-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600" title="Price a potential hedge">
+                            <svg aria-hidden="true" class="h-3 w-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4l6-7m-3 0h3v3"/></svg>
+                            Options Valuation
+                        </a>
+                        <a href="#bt-ticker" class="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-white px-2 py-1 text-[10px] font-bold leading-tight text-indigo-800 hover:border-indigo-400 hover:bg-indigo-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600" title="Test a trading rule on historical data">
+                            <svg aria-hidden="true" class="h-3 w-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4v8h10M5 9l3-3 2 2 3-4"/></svg>
+                            Strategy Backtest
+                        </a>
+                    </div>
+                    <svg aria-hidden="true" class="pointer-events-none absolute -bottom-3 left-4 h-3 w-3 rotate-90 text-slate-500 md:-right-5 md:left-auto md:top-1/2 md:h-4 md:w-4 md:-translate-y-1/2 md:rotate-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8h11M9 4l4 4-4 4"/></svg>
                 </li>
-                <li>
-                    <a href="#risk-workflow" class="flex h-full items-start gap-3 rounded-lg border border-teal-200 bg-white p-3 hover:border-teal-400 hover:bg-teal-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600">
-                        <span aria-hidden="true" class="text-xl font-black leading-none text-teal-700">03</span>
-                        <span><strong class="block text-sm text-slate-900">Compare both portfolios</strong><span class="mt-1 block text-xs leading-relaxed text-slate-600">Return to Market Risk Lab to see current and proposed risk side by side.</span></span>
+                <li class="min-w-0">
+                    <a href="#risk-workflow" class="flex h-full items-center gap-2.5 rounded-xl border border-teal-200 border-l-4 border-l-teal-500 bg-teal-50/70 px-3 py-2.5 transition hover:bg-teal-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600">
+                        <span aria-hidden="true" class="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-teal-100 text-xs font-black text-teal-800">03</span>
+                        <span><strong class="block text-sm text-slate-900">Compare both portfolios</strong><span class="block text-xs text-slate-600">See current and proposed risk side by side.</span></span>
                     </a>
                 </li>
             </ol>
-            <section aria-labelledby="quant-research-title" class="relative mt-4 rounded-lg border border-indigo-100 bg-indigo-50/50 p-2.5">
-                <svg aria-hidden="true" class="pointer-events-none absolute -top-[17px] left-1/2 hidden h-4 w-4 -translate-x-1/2 text-indigo-500 md:block" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 14V2M4 6l4-4 4 4"/></svg>
-                <h3 id="quant-research-title" class="mb-2 text-xs font-bold text-indigo-800 md:text-center">Optional research for step 02</h3>
-                <ul class="grid gap-2 sm:grid-cols-2">
-                    <li>
-                        <a href="#op-ticker" class="block h-full rounded-md border border-indigo-100 bg-white px-3 py-2 hover:border-indigo-300 hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">
-                            <strong class="block text-xs text-indigo-800">Options Valuation</strong>
-                            <span class="mt-0.5 block text-xs leading-relaxed text-slate-600">Price a potential hedge before testing it in Risk Lab’s options overlay.</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#bt-ticker" class="block h-full rounded-md border border-indigo-100 bg-white px-3 py-2 hover:border-indigo-300 hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600">
-                            <strong class="block text-xs text-indigo-800">Strategy Backtest</strong>
-                            <span class="mt-0.5 block text-xs leading-relaxed text-slate-600">Test how a trading rule performed on a ticker before using it to inform your proposal.</span>
-                        </a>
-                    </li>
-                </ul>
-            </section>
         </nav>
 
         <!-- MONTE CARLO VaR ENGINE -->

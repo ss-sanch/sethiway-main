@@ -18,11 +18,11 @@
 }
 
 .quant-workspace {
-    margin-bottom: 12px;
+    margin-bottom: 16px;
 }
 
 .quant-workspace + .quant-workspace {
-    padding-top: 12px;
+    padding-top: 16px;
     border-top: 1px solid #e5e7eb;
 }
 
@@ -35,7 +35,7 @@
     flex-wrap: wrap;
     align-items: end;
     gap: 4px 16px;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
 }
 
 .quant-heading h2 {
@@ -89,9 +89,16 @@
 
 .quant-grid :is(input, select) {
     min-width: 0;
-    min-height: 36px;
-    padding-block: 6px;
+    min-height: 38px;
+    padding-block: 7px;
     font-size: 14px;
+}
+
+.quant-grid > :first-child > form {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .quant-grid form select {
@@ -134,13 +141,47 @@
     padding: 6px 10px;
 }
 
-.quant-backtest-chart {
-    height: clamp(220px, 35vh, 340px);
+.quant-results {
+    grid-template-rows: auto auto 1fr;
 }
 
-.quant-diagnostics-chart,
-.quant-risk-chart {
+#backtest-overview:not([hidden]),
+.quant-risk-results,
+.quant-risk-charts > div {
+    display: flex;
+    flex-direction: column;
+}
+
+.quant-risk-results {
+    gap: 10px;
+}
+
+.quant-risk-charts,
+.quant-risk-detail > [id]:not(.hidden) {
+    flex: 1;
+}
+
+.quant-risk-detail > [id]:not(.hidden) {
+    display: flex;
+}
+
+.quant-backtest-chart {
+    flex: 1;
+    min-height: clamp(220px, 35vh, 340px);
+}
+
+.quant-backtest-chart:has(> .quant-chart-placeholder) {
+    min-height: clamp(110px, 17vh, 160px);
+}
+
+.quant-diagnostics-chart {
     height: clamp(175px, 28vh, 280px);
+}
+
+.quant-risk-chart {
+    flex: 1;
+    min-width: 0;
+    min-height: clamp(175px, 28vh, 280px);
 }
 
 .quant-disclosure {
@@ -167,12 +208,16 @@
 @media (min-width: 1024px) {
     .quant-grid {
         grid-template-columns: minmax(245px, 280px) minmax(0, 1fr);
-        gap: 14px;
+        gap: 16px;
+        align-items: stretch;
+    }
+
+    .quant-grid > :first-child > form {
+        justify-content: space-between;
     }
 
     #options-engine {
         grid-template-columns: minmax(240px, 280px) minmax(0, 1fr) minmax(184px, 240px);
-        align-items: stretch;
     }
 
     .quant-risk-charts {

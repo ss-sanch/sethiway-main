@@ -510,11 +510,11 @@
                             <div id="positions" class="space-y-1.5 max-h-72 overflow-y-auto pr-1"></div>
                         </div>
                         <div class="grid grid-cols-2 gap-2">
-                            <button type="button" onclick="openOptionsOverlay()" class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-violet-200 bg-violet-50/60 hover:bg-violet-50 transition text-[11px] font-black text-violet-700">
-                                <span>Options</span><span id="option-count-badge" class="bg-white border border-violet-200 rounded-full px-2 py-0.5 text-[9px]">0 positions</span>
+                            <button type="button" onclick="openOptionsOverlay()" aria-label="Options, 0 positions" class="flex items-center justify-between gap-1 px-2 py-2 rounded-lg border border-violet-200 bg-violet-50/60 hover:bg-violet-50 transition text-[11px] font-black text-violet-700">
+                                <span class="whitespace-nowrap">Options</span><span id="option-count-badge" title="0 positions" class="shrink-0 min-w-5 text-center whitespace-nowrap bg-white border border-violet-200 rounded-full px-1 py-0.5 text-[9px]">0</span>
                             </button>
-                            <button type="button" onclick="openStressTest()" class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-amber-200 bg-amber-50/60 hover:bg-amber-50 transition text-[11px] font-black text-amber-700">
-                                <span>Stress Test</span><span id="stress-count-badge" class="bg-white border border-amber-200 rounded-full px-2 py-0.5 text-[9px]">4 presets</span>
+                            <button type="button" onclick="openStressTest()" aria-label="Stress Test, 4 presets" class="flex items-center justify-between gap-1 px-2 py-2 rounded-lg border border-amber-200 bg-amber-50/60 hover:bg-amber-50 transition text-[11px] font-black text-amber-700">
+                                <span class="whitespace-nowrap">Stress Test</span><span id="stress-count-badge" title="4 presets" class="shrink-0 min-w-5 text-center whitespace-nowrap bg-white border border-amber-200 rounded-full px-1 py-0.5 text-[9px]">4</span>
                             </button>
                         </div>
                         <button type="submit" id="run-btn" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-lg shadow-sm transition">Run Risk Analysis</button>
@@ -1499,7 +1499,11 @@
 
         function updateStressBadge() {
             const badge = document.getElementById('stress-count-badge');
-            if (badge) badge.innerText = customRiskStress ? '+ custom' : '4 presets';
+            if (!badge) return;
+            const description = customRiskStress ? '4 presets and 1 custom scenario' : '4 presets';
+            badge.textContent = customRiskStress ? '4+1' : '4';
+            badge.title = description;
+            badge.parentElement.setAttribute('aria-label', 'Stress Test, ' + description);
         }
 
         function openStressTest() {
@@ -1531,7 +1535,12 @@
 
         function updateOptionBadge() {
             const badge = document.getElementById('option-count-badge');
-            if (badge) badge.innerText = `${activeRiskOptions.length} ${activeRiskOptions.length === 1 ? 'position' : 'positions'}`;
+            if (!badge) return;
+            const count = activeRiskOptions.length;
+            const description = count + (count === 1 ? ' position' : ' positions');
+            badge.textContent = count;
+            badge.title = description;
+            badge.parentElement.setAttribute('aria-label', 'Options, ' + description);
         }
 
         function renderRiskOptionsEditor() {

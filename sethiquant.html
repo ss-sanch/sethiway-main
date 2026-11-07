@@ -86,15 +86,15 @@
 
         <!-- MONTE CARLO VaR ENGINE -->
         <section id="section-var" class="quant-workspace" aria-labelledby="quant-title-var">
-            <header class="quant-heading">
+            <header class="quant-heading !items-center">
                 <h2 id="quant-title-var">Market Risk Lab</h2>
-                <p class="quant-description">Compare portfolio loss estimates, risk contributions and stress scenarios.</p>
+                <p class="quant-description !pb-0">Compare portfolio loss estimates, risk contributions and stress scenarios.</p>
             </header>
             <div id="market-risk-lab" class="quant-grid">
                 <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col">
-                    <div class="mb-2 flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-2">
-                        <h3 id="risk-parameters" tabindex="-1" class="text-base font-black text-gray-900">Portfolio Setup</h3>
-                        <button id="risk-import-portfolio" type="button" onclick="importRiskPortfolio()" class="rounded border border-blue-200 bg-white px-2 py-1 text-[10px] font-bold text-blue-700 hover:bg-blue-50 disabled:opacity-60">Import SethiPortfolio</button>
+                    <div class="mb-2 flex items-center justify-between gap-2 border-b border-gray-100 pb-2">
+                        <h3 id="risk-parameters" tabindex="-1" class="text-sm font-black text-gray-900">Portfolio Setup</h3>
+                        <button id="risk-import-portfolio" type="button" onclick="importRiskPortfolio()" class="shrink-0 whitespace-nowrap rounded-md border border-blue-100 bg-blue-50 px-2 py-1.5 text-[10px] font-semibold text-blue-700 hover:bg-blue-100 disabled:opacity-60">Import SethiPortfolio</button>
                     </div>
                     <p id="portfolio-import-banner" role="status" hidden class="mb-2 text-[11px] leading-snug text-slate-600"></p>
                     <form id="risk-form">
@@ -166,7 +166,7 @@
                         </div>
                     </section>
 
-                    <div id="risk-diagnostics" hidden class="space-y-3">
+                    <div id="risk-diagnostics" hidden class="min-w-0 flex-1 flex-col gap-3 [&:not([hidden])]:flex">
                         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
                             <div class="bg-gray-900 text-white rounded-xl p-4 shadow-lg relative overflow-hidden min-h-[76px]"><div class="absolute top-0 right-0 -mt-6 -mr-6 w-20 h-20 bg-blue-500 rounded-full opacity-20 blur-2xl"></div><div class="flex justify-between items-start z-10 relative"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest" id="mc-var-label">MC VaR</p><button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-white transition cursor-pointer" title="Learn about VaR">ⓘ</button></div><h3 id="mc-var" class="text-3xl font-black mt-2 z-10 relative">—</h3></div>
                             <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-h-[76px]"><div class="flex justify-between items-start"><p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">MC Expected Shortfall</p><button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-red-500 transition cursor-pointer" title="Learn about Expected Shortfall">ⓘ</button></div><h3 id="mc-es" class="text-3xl font-black text-red-600 mt-2">—</h3></div>
@@ -2021,7 +2021,11 @@
                     throw new Error('Risk attribution data was not returned by the engine.');
                 }
 
-                document.getElementById('risk-diagnostics').hidden = false;
+                latestRiskData = data;
+                if (proposed) renderAllocationComparison(data, proposed, payload);
+                syncRiskWorkflow();
+                const diagnostics = document.getElementById('risk-diagnostics');
+                diagnostics.hidden = false;
                 document.getElementById('mc-var-label').textContent = `MC ${payload.confidence * 100}% VaR`;
                 document.getElementById('mc-var').innerText = formatMoney(m.var_loss);
                 document.getElementById('mc-es').innerText = formatMoney(m.expected_shortfall_loss);
@@ -2035,7 +2039,6 @@
 
                 Plotly.newPlot('pnl-chart', [{ x: data.distribution.monte_carlo_pnl_sample, type: 'histogram', marker: {color: '#6366f1'}, nbinsx: 45 }], { margin: { t: 10, r: 10, l: 45, b: 35 }, yaxis: { gridcolor: '#f3f4f6' }, shapes: [{ type: 'line', x0: -m.var_loss, x1: -m.var_loss, y0: 0, y1: 1, yref: 'paper', line: { dash: 'dash', width: 2, color: '#ef4444' } }], paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { displayModeBar: false, responsive: true });
 
-                latestRiskData = data;
                 const components = attribution.components;
                 const contributionColors = components.map(c => c.component_var < 0 ? '#10b981' : '#2563eb');
                 Plotly.newPlot('risk-contribution-chart', [{
@@ -2093,8 +2096,7 @@
                     showRiskDetail(customRiskStress ? 'stress' : 'attribution');
                 }
 
-                if (proposed) renderAllocationComparison(data, proposed, payload);
-                syncRiskWorkflow();
+                resizeQuantPlots(diagnostics);
                 if (e.submitter === baselineButton) document.getElementById('risk-next-step').focus();
             } catch (err) {
                 showError(err.message);

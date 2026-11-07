@@ -84,7 +84,29 @@
 
         <main class="max-w-[1500px] mx-auto px-5 md:px-8 py-5 space-y-4">
             <!-- ABOVE-THE-FOLD PORTFOLIO HERO -->
-            <div id="performance" class="section-intro"><h2>Performance</h2><div class="section-overview"><strong>Measured against the benchmark</strong>Compare the portfolio with equity benchmarks over your chosen period to assess whether active decisions have added value.</div></div>
+            <div id="performance" class="section-intro">
+                <h2>Performance</h2>
+                <aside class="section-overview" aria-labelledby="portfolio-brief-title">
+                    <div class="flex flex-wrap items-baseline justify-between gap-x-4">
+                        <strong id="portfolio-brief-title">Portfolio Brief</strong>
+                        <p id="portfolio-brief-date" class="text-xs text-blue-800">Latest month</p>
+                    </div>
+                    <div class="grid gap-x-4 gap-y-2 md:grid-cols-3">
+                        <div>
+                            <a href="#benchmark" onclick="setRange('1M'); setBenchmark('sp500')" class="text-xs font-bold text-blue-700 hover:underline">Return vs S&amp;P 500</a>
+                            <p id="portfolio-brief-return">Loading performance…</p>
+                        </div>
+                        <div>
+                            <a href="#attribution" onclick="setRange('1M')" class="text-xs font-bold text-blue-700 hover:underline">Return drivers</a>
+                            <p id="portfolio-brief-drivers">Loading attribution…</p>
+                        </div>
+                        <div>
+                            <a href="#holdings" class="text-xs font-bold text-blue-700 hover:underline">Largest holding</a>
+                            <p id="portfolio-brief-holding">Loading holdings…</p>
+                        </div>
+                    </div>
+                </aside>
+            </div>
             <section class="grid grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)] gap-4 items-stretch">
                 <!-- PORTFOLIO IDENTITY -->
                 <div class="portfolio-identity portfolio-data-card border border-gray-200 rounded-2xl shadow-sm p-4 md:p-5 flex flex-col">
@@ -348,7 +370,7 @@
                         <div>
                             <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Analysis Workspace</p>
                             <h3 class="text-xl md:text-2xl font-black text-gray-900">Choose the question you want to answer</h3>
-                            <p id="portfolio-lab-context" class="text-sm text-gray-500 mt-1">Select a workspace below. Advanced analytics are loaded only when you open them, keeping the main portfolio view faster and focused.</p>
+                            <p id="portfolio-lab-context" class="text-sm text-gray-500 mt-1">Select a workspace below. Additional analytics load as you open each workspace.</p>
                         </div>
                         <span class="self-start xl:self-auto text-[10px] font-black uppercase tracking-wider rounded-full bg-slate-50 text-slate-600 border border-slate-200 px-3 py-1.5">4 analysis workspaces</span>
                     </div>
@@ -680,6 +702,7 @@
     let portfolioSnapshot = null;
     let journalEntries = [];
     let attributionLoaded = false;
+    let attributionRequest = null;
     let decisionsLoaded = false;
     let decisionsLoading = false;
     const portfolioLabLoading = new Set();
@@ -705,11 +728,74 @@
         if (!portfolioData.dates.length || range === 'SI') return 0;
         const last = new Date(`${portfolioData.dates.at(-1)}T00:00:00`);
         let cutoff = new Date(last);
-        if (range === '1M') cutoff.setMonth(cutoff.getMonth() - 1);
-        else if (range === '3M') cutoff.setMonth(cutoff.getMonth() - 3);
-        else if (range === 'YTD') cutoff = new Date(last.getFullYear(), 0, 1);
+        if (range === '1M' || range === '3M') {
+            const month = cutoff.getMonth() - (range === '1M' ? 1 : 3);
+            const lastDay = new Date(cutoff.getFullYear(), month + 1, 0).getDate();
+            cutoff.setMonth(month, Math.min(last.getDate(), lastDay));
+        } else if (range === 'YTD') cutoff = new Date(last.getFullYear(), 0, 1);
         const idx = portfolioData.dates.findIndex(d => new Date(`${d}T00:00:00`) >= cutoff);
         return idx < 0 ? 0 : idx;
+    }
+
+    function renderPortfolioBrief() {
+        if (!portfolioSnapshot) return;
+        const {dates, portfolio, sp500} = portfolioData;
+        const start = rangeStartIndex('1M');
+        const end = dates.length - 1;
+        const startDate = dates[start];
+        const endDate = dates[end];
+        const dateEl = document.getElementById('portfolio-brief-date');
+        const returnEl = document.getElementById('portfolio-brief-return');
+        const driversEl = document.getElementById('portfolio-brief-drivers');
+        const holdingEl = document.getElementById('portfolio-brief-holding');
+        const returnFor = series => {
+            const first = series[start];
+            const last = series[end];
+            return start < end && Number.isFinite(first) && first > 0 && Number.isFinite(last)
+                ? (last / first - 1) * 100
+                : null;
+        };
+
+        const portfolioReturn = returnFor(portfolio);
+        const benchmarkReturn = returnFor(sp500);
+        if (portfolioReturn !== null) {
+            dateEl.textContent = `${prettyDate(startDate)} to ${prettyDate(endDate)}`;
+            returnEl.textContent = benchmarkReturn === null
+                ? `Portfolio ${fmtPct(portfolioReturn)} · benchmark unavailable`
+                : `${fmtPct(portfolioReturn)} vs ${fmtPct(benchmarkReturn)} · ${fmtPp(portfolioReturn - benchmarkReturn)}`;
+        } else {
+            dateEl.textContent = endDate ? `As of ${prettyDate(endDate)}` : 'Latest month';
+            returnEl.textContent = 'Monthly performance unavailable.';
+        }
+
+        if (attributionLoaded) {
+            const period = attributionData?.periods?.['1M'];
+            if (portfolioReturn !== null && period?.start_date === startDate && period?.end_date === endDate) {
+                const ranked = (period.components || [])
+                    .filter(row => row.symbol && Number.isFinite(row.contribution_pp) && Math.abs(row.contribution_pp) >= 0.005)
+                    .sort((a, b) => b.contribution_pp - a.contribution_pp);
+                const best = ranked[0];
+                const worst = ranked.at(-1);
+                const drivers = [
+                    best?.contribution_pp > 0 ? `${best.symbol} ${fmtPp(best.contribution_pp)}` : null,
+                    worst?.contribution_pp < 0 ? `${worst.symbol} ${fmtPp(worst.contribution_pp)}` : null
+                ].filter(Boolean);
+                driversEl.textContent = drivers.join(' · ') || 'No material holding contributions.';
+            } else {
+                driversEl.textContent = 'Attribution unavailable for these dates.';
+            }
+        }
+
+        const holding = (portfolioSnapshot?.holdings || [])
+            .filter(row => row.symbol && Number.isFinite(row.weight_pct) && row.weight_pct > 0)
+            .sort((a, b) => b.weight_pct - a.weight_pct)[0];
+        holdingEl.textContent = holding
+            ? `${holding.symbol} · ${holding.weight_pct.toFixed(1)}% of portfolio`
+            : 'No invested holdings.';
+        const pricedAt = Date.parse(portfolioSnapshot?.pricing_timestamp);
+        if (holding && Number.isFinite(pricedAt)) {
+            holdingEl.title = `Holdings snapshot calculated ${new Date(pricedAt).toLocaleString('en-GB', {timeZone:'Europe/London'})} UK time`;
+        }
     }
 
     function updatePeriodReturns(start) {
@@ -1442,12 +1528,12 @@
         whatif: ['rebalance']
     };
     const portfolioLabCopy = {
-        performance: 'Performance Diagnostics is open. Attribution is fetched on demand; benchmark, drawdown and efficiency views reuse the performance series already loaded above.',
+        performance: 'Performance Diagnostics is open. Attribution is shared with the Portfolio Brief; benchmark, drawdown and efficiency views reuse the performance series already loaded above.',
         risk: 'Risk & Exposure is open. Exposure classification and Euler risk are fetched only for this workspace.',
         fx: 'FX is open. Translation, sterling sensitivity and currency history are fetched only for this workspace.',
         whatif: 'What-If is open. The current holdings are reused locally; the backend is called only after you press Analyse Rebalance.'
     };
-    const portfolioLabDefaultCopy = 'Select a workspace below. Advanced analytics are loaded only when you open them, keeping the main portfolio view faster and focused.';
+    const portfolioLabDefaultCopy = 'Select a workspace below. Additional analytics load as you open each workspace.';
     let currentPortfolioLabTab = null;
     let currentPerformanceDiagnostic = 'attribution';
 
@@ -1461,14 +1547,19 @@
 
     async function loadAttributionOnDemand() {
         if (attributionLoaded) return;
-        const response = await fetch(`${API_BASE}/${PORTFOLIO_SLUG}/attribution`);
-        if (!response.ok) {
-            let detail = `Attribution request failed (${response.status})`;
-            try { const body = await response.json(); detail = body.detail || detail; } catch (_) {}
-            throw new Error(detail);
+        if (!attributionRequest) {
+            attributionRequest = fetch(`${API_BASE}/${PORTFOLIO_SLUG}/attribution`).then(async response => {
+                if (!response.ok) {
+                    let detail = `Attribution request failed (${response.status})`;
+                    try { const body = await response.json(); detail = body.detail || detail; } catch (_) {}
+                    throw new Error(detail);
+                }
+                attributionData = await response.json() || { periods: {} };
+                attributionLoaded = true;
+                renderPortfolioBrief();
+            }).finally(() => { attributionRequest = null; });
         }
-        attributionData = await response.json() || { periods: {} };
-        attributionLoaded = true;
+        await attributionRequest;
     }
 
     async function ensurePortfolioLabData(tab) {
@@ -2351,9 +2442,21 @@
 
             renderPerformance();
             renderHoldings(snapshot);
+            renderPortfolioBrief();
+            if (portfolioData.dates.length >= 2) {
+                loadAttributionOnDemand().catch(() => {
+                    document.getElementById('portfolio-brief-drivers').textContent = 'Attribution temporarily unavailable.';
+                });
+            } else if (!attributionLoaded) {
+                document.getElementById('portfolio-brief-drivers').textContent = 'Attribution unavailable.';
+            }
+
             if (currentPortfolioLabTab) ensurePortfolioLabData(currentPortfolioLabTab);
         } catch (error) {
             console.error('SethiPortfolio core load failed:', error);
+            document.getElementById('portfolio-brief-return').textContent = 'Performance temporarily unavailable.';
+            document.getElementById('portfolio-brief-drivers').textContent = 'Attribution temporarily unavailable.';
+            document.getElementById('portfolio-brief-holding').textContent = 'Holdings temporarily unavailable.';
             document.getElementById('data-status').textContent = 'Live data temporarily unavailable · please retry shortly';
             document.getElementById('performance-chart').innerHTML = '<div class="h-full flex items-center justify-center text-sm text-gray-400">Unable to load live portfolio data.</div>';
             document.getElementById('holdings-table').innerHTML = '<tr><td colspan="6" class="px-5 py-8 text-center text-gray-400">Unable to load holdings.</td></tr>';

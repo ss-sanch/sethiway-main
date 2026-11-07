@@ -42,32 +42,36 @@
         .portfolio-identity select { text-align: center; text-align-last: center; }
         .portfolio-identity .identity-label { font-size: .6875rem; letter-spacing: .08em; color: #64748b; }
     </style>
+    <link rel="stylesheet" href="sethiway-header.css?v=1">
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
 
     <!-- SETHIWAY UNIFIED NAVIGATION -->
-    <nav class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200" aria-label="Portfolio navigation">
-        <div class="max-w-[1500px] mx-auto px-5 md:px-8">
-            <div class="relative flex items-center gap-4 min-w-0">
-                <a href="index.html" class="flex items-center py-3 shrink-0" aria-label="SethiWay home">
-                    <img src="logo.png" alt="SethiWay" class="h-6 sm:h-10 w-auto invert">
-                </a>
-                <div class="portfolio-section-links hidden xl:flex absolute left-1/2 -translate-x-1/2 items-center justify-center gap-7 whitespace-nowrap text-sm font-bold text-gray-600">
-                    <a href="#performance" class="hover:text-blue-600">Performance</a>
-                    <a href="#holdings" class="hover:text-blue-600">Holdings</a>
-                    <a href="#portfolio-lab" class="hover:text-blue-600">Portfolio Lab</a>
-                    <a href="#decisions" class="hover:text-blue-600">Investment Decisions</a>
-                </div>
-                <div class="flex items-center gap-2 shrink-0 ml-auto">
-                    <a href="sethiportfolio-admin.html" class="px-3 py-2.5 border border-gray-200 bg-white text-gray-700 text-xs xl:text-sm font-bold rounded-lg hover:border-blue-300 hover:text-blue-700 hover:bg-blue-50 transition shadow-sm whitespace-nowrap" title="Open the protected SethiPortfolio control panel">Portfolio Admin</a>
-                    <a href="index.html" class="px-3 xl:px-4 py-2.5 bg-gray-900 text-white text-xs xl:text-sm font-bold rounded-lg hover:bg-gray-800 transition shadow-sm whitespace-nowrap">Back to Hub</a>
-                </div>
+    <nav class="site-header" aria-label="SethiPortfolio navigation">
+        <div class="site-header__row">
+            <a href="index.html" class="site-header__brand" aria-label="SethiWay home">
+                <img src="logo.png" alt="" width="40" height="40">
+            </a>
+            <div class="site-header__sections">
+                <a href="#performance" class="site-header__link">Performance</a>
+                <a href="#holdings" class="site-header__link">Holdings</a>
+                <a href="#portfolio-lab" class="site-header__link">Portfolio Lab</a>
+                <a href="#decisions" class="site-header__link">Investment Decisions</a>
             </div>
-            <div class="xl:hidden flex items-center justify-center gap-5 overflow-x-auto whitespace-nowrap text-xs font-black text-gray-600 pb-3">
-                <a href="#performance" class="hover:text-blue-600">Performance</a>
-                <a href="#holdings" class="hover:text-blue-600">Holdings</a>
-                <a href="#portfolio-lab" class="hover:text-blue-600">Portfolio Lab</a>
-                <a href="#decisions" class="hover:text-blue-600">Investment Decisions</a>
+            <div class="site-header__actions">
+                <a href="sethiportfolio-admin.html" class="site-header__button site-header__secondary" title="Open the protected SethiPortfolio control panel">Portfolio Admin</a>
+                <button type="button" class="site-header__button site-header__menu" popovertarget="site-header-menu">
+                    <span class="site-header__menu-label">Menu</span>
+                </button>
+                <a href="index.html" class="site-header__button site-header__primary">Back to Hub</a>
+            </div>
+            <div id="site-header-menu" class="site-header__panel" popover aria-label="SethiPortfolio navigation links"
+                onclick="if (event.target.closest('a, button')) this.hidePopover()">
+                <a href="#performance" class="site-header__mobile-link">Performance</a>
+                <a href="#holdings" class="site-header__mobile-link">Holdings</a>
+                <a href="#portfolio-lab" class="site-header__mobile-link">Portfolio Lab</a>
+                <a href="#decisions" class="site-header__mobile-link">Investment Decisions</a>
+                <a href="sethiportfolio-admin.html" class="site-header__mobile-extra" title="Open the protected SethiPortfolio control panel">Portfolio Admin</a>
             </div>
         </div>
     </nav>

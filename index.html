@@ -11,20 +11,32 @@
         html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
         @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
     </style>
+    <link rel="stylesheet" href="sethiway-header.css?v=1">
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased">
 
-    <nav class="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur">
-        <div class="max-w-[1600px] mx-auto px-5 md:px-8 h-20 flex items-center justify-between gap-8 relative">
-            <a href="#top" class="flex items-center shrink-0">
-                <img src="logo.png" alt="SethiWay" class="h-10 w-auto invert">
+    <nav class="site-header" aria-label="SethiWay navigation">
+        <div class="site-header__row">
+            <a href="#top" class="site-header__brand" aria-label="SethiWay home">
+                <img src="logo.png" alt="" width="40" height="40">
             </a>
-            <div class="hidden md:flex items-center gap-8 text-sm font-bold text-gray-600 absolute left-1/2 -translate-x-1/2">
-                <a href="#platform" class="hover:text-blue-600 transition">Platform</a>
-                <a href="#about" class="hover:text-blue-600 transition">About</a>
-                <a href="#feedback" class="hover:text-blue-600 transition">Feedback</a>
+            <div class="site-header__sections">
+                <a href="#platform" class="site-header__link">Platform</a>
+                <a href="#about" class="site-header__link">About</a>
+                <a href="#feedback" class="site-header__link">Feedback</a>
             </div>
-            <button type="button" onclick="openAdminModal()" class="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-gray-900 text-white text-sm font-bold hover:bg-blue-600 transition shrink-0">Sign In</button>
+            <div class="site-header__actions">
+                <button type="button" class="site-header__button site-header__menu" popovertarget="site-header-menu">
+                    <span class="site-header__menu-label">Menu</span>
+                </button>
+                <button type="button" onclick="openAdminModal()" class="site-header__button site-header__primary">Sign In</button>
+            </div>
+            <div id="site-header-menu" class="site-header__panel" popover aria-label="SethiWay navigation links"
+                onclick="if (event.target.closest('a, button')) this.hidePopover()">
+                <a href="#platform" class="site-header__mobile-link">Platform</a>
+                <a href="#about" class="site-header__mobile-link">About</a>
+                <a href="#feedback" class="site-header__mobile-link">Feedback</a>
+            </div>
         </div>
     </nav>
 

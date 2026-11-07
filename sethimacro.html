@@ -27,36 +27,40 @@
             .macro-mini-chart { height: 165px; }
         }
     </style>
+    <link rel="stylesheet" href="sethiway-header.css?v=1">
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
 
     <!-- SETHIWAY UNIFIED NAVIGATION -->
-    <nav class="sticky top-0 z-[100] bg-white/95 backdrop-blur-md border-b border-gray-200" aria-label="SethiMacro navigation">
-        <div class="max-w-[1600px] mx-auto px-5 md:px-8">
-            <div class="relative flex items-center gap-4 min-w-0">
-                <a href="index.html" class="flex items-center py-3 shrink-0" aria-label="SethiWay home">
-                    <img src="logo.png" alt="SethiWay" class="h-6 sm:h-10 w-auto invert">
-                </a>
-                <div class="hidden xl:flex absolute left-1/2 -translate-x-1/2 items-center justify-center gap-6 whitespace-nowrap text-sm font-bold text-gray-600">
-                    <button type="button" onclick="window.scrollTo({ top: 0, behavior: 'smooth' });" class="hover:text-blue-600 transition">Overview</button>
-                    <a href="#job-market" class="hover:text-blue-600 transition">Labour</a>
-                    <a href="#inflation-rates" class="hover:text-blue-600 transition">Inflation &amp; Rates</a>
-                    <a href="#gdp-output" class="hover:text-blue-600 transition">Growth</a>
-                    <a href="#currencies" class="hover:text-blue-600 transition">FX</a>
-                    <a href="#pillar-commodities" class="hover:text-blue-600 transition">Commodities</a>
-                </div>
-                <div class="flex items-center gap-2 shrink-0 ml-auto">
-                    <button type="button" onclick="refreshMacroData(true)" class="hidden sm:inline-flex px-3 py-2.5 border border-gray-200 bg-white text-gray-700 text-xs xl:text-sm font-bold rounded-lg hover:border-blue-300 hover:text-blue-700 hover:bg-blue-50 transition shadow-sm whitespace-nowrap">Refresh Data</button>
-                    <a href="index.html" class="px-3 xl:px-4 py-2.5 bg-gray-900 text-white text-xs xl:text-sm font-bold rounded-lg hover:bg-gray-800 transition shadow-sm whitespace-nowrap">Back to Hub</a>
-                </div>
+    <nav class="site-header site-header--high" aria-label="SethiMacro navigation">
+        <div class="site-header__row">
+            <a href="index.html" class="site-header__brand" aria-label="SethiWay home">
+                <img src="logo.png" alt="" width="40" height="40">
+            </a>
+            <div class="site-header__sections">
+                <button type="button" onclick="window.scrollTo({ top: 0, behavior: 'smooth' });" class="site-header__link">Overview</button>
+                <a href="#job-market" class="site-header__link">Labour</a>
+                <a href="#inflation-rates" class="site-header__link">Inflation &amp; Rates</a>
+                <a href="#gdp-output" class="site-header__link">Growth</a>
+                <a href="#currencies" class="site-header__link">FX</a>
+                <a href="#pillar-commodities" class="site-header__link">Commodities</a>
             </div>
-            <div class="xl:hidden flex items-center justify-center gap-5 overflow-x-auto whitespace-nowrap text-xs font-black text-gray-600 pb-3">
-                <button type="button" onclick="window.scrollTo({ top: 0, behavior: 'smooth' });" class="hover:text-blue-600 transition">Overview</button>
-                <a href="#job-market" class="hover:text-blue-600 transition">Labour</a>
-                <a href="#inflation-rates" class="hover:text-blue-600 transition">Inflation &amp; Rates</a>
-                <a href="#gdp-output" class="hover:text-blue-600 transition">Growth</a>
-                <a href="#currencies" class="hover:text-blue-600 transition">FX</a>
-                <a href="#pillar-commodities" class="hover:text-blue-600 transition">Commodities</a>
+            <div class="site-header__actions">
+                <button type="button" onclick="refreshMacroData(true)" class="site-header__button site-header__secondary">Refresh Data</button>
+                <button type="button" class="site-header__button site-header__menu" popovertarget="site-header-menu">
+                    <span class="site-header__menu-label">Menu</span>
+                </button>
+                <a href="index.html" class="site-header__button site-header__primary">Back to Hub</a>
+            </div>
+            <div id="site-header-menu" class="site-header__panel" popover aria-label="SethiMacro navigation links"
+                onclick="if (event.target.closest('a, button')) this.hidePopover()">
+                <button type="button" onclick="window.scrollTo({ top: 0, behavior: 'smooth' });" class="site-header__mobile-link">Overview</button>
+                <a href="#job-market" class="site-header__mobile-link">Labour</a>
+                <a href="#inflation-rates" class="site-header__mobile-link">Inflation &amp; Rates</a>
+                <a href="#gdp-output" class="site-header__mobile-link">Growth</a>
+                <a href="#currencies" class="site-header__mobile-link">FX</a>
+                <a href="#pillar-commodities" class="site-header__mobile-link">Commodities</a>
+                <button type="button" onclick="refreshMacroData(true)" class="site-header__mobile-extra">Refresh Data</button>
             </div>
         </div>
     </nav>

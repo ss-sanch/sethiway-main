@@ -23,32 +23,38 @@
             #market-risk-lab #stress-chart { height: 438px !important; }
         }
     </style>
+    <link rel="stylesheet" href="sethiway-header.css?v=1">
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
 
     <!-- SETHIWAY UNIFIED NAVIGATION (Matching SethiMacro Header) -->
-    <nav class="sticky top-0 z-[100] bg-white/90 backdrop-blur-md border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <a href="index.html" class="flex items-center space-x-2">
-                    <img src="logo.png" alt="Sethiway Logo" class="h-10 w-auto invert opacity-90 hover:opacity-100 transition">
-                </a>
+    <nav class="site-header site-header--high" aria-label="SethiQuant navigation">
+        <div class="site-header__row">
+            <a href="index.html" class="site-header__brand" aria-label="SethiWay home">
+                <img src="logo.png" alt="" width="40" height="40">
+            </a>
+            <div class="site-header__sections">
+                <a href="#section-options" class="site-header__link">Options Valuation</a>
+                <a href="#section-portfolio" class="site-header__link">Portfolio Optimiser</a>
+                <a href="#section-backtest" class="site-header__link">Strategy Backtest</a>
+                <a href="#section-var" class="site-header__link">Monte Carlo VaR</a>
             </div>
-
-            <!-- SECTION ANCHOR LINKS -->
-            <div class="hidden md:flex items-center space-x-6 text-sm font-bold text-gray-600">
-                <a href="#section-options" class="hover:text-blue-600 transition">Options Valuation</a>
-                <a href="#section-portfolio" class="hover:text-blue-600 transition">Portfolio Optimiser</a>
-                <a href="#section-backtest" class="hover:text-blue-600 transition">Strategy Backtest</a>
-                <a href="#section-var" class="hover:text-blue-600 transition">Monte Carlo VaR</a>
+            <div class="site-header__actions">
+                <button type="button" class="site-header__button site-header__menu site-header__menu--tools" popovertarget="site-header-menu">
+                    <span class="site-header__menu-label">Menu</span><span class="site-header__tools-label">Tools</span>
+                </button>
+                <a href="index.html" class="site-header__button site-header__primary">Back to Hub</a>
             </div>
-            
-            <span class="text-gray-200">|</span>
-            
-            <a href="sethistock.html" class="hover:text-blue-600 transition">SethiStock</a>
-            <a href="sethimacro.html" class="hover:text-blue-600 transition">SethiMacro</a>
-            <a href="sethiportfolio.html" class="hover:text-blue-600 transition">SethiPortfolio</a>
-            <a href="index.html" class="px-5 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition shadow-md">Back to Hub</a>
+            <div id="site-header-menu" class="site-header__panel" popover aria-label="SethiQuant navigation links"
+                onclick="if (event.target.closest('a, button')) this.hidePopover()">
+                <a href="#section-options" class="site-header__mobile-link">Options Valuation</a>
+                <a href="#section-portfolio" class="site-header__mobile-link">Portfolio Optimiser</a>
+                <a href="#section-backtest" class="site-header__mobile-link">Strategy Backtest</a>
+                <a href="#section-var" class="site-header__mobile-link">Monte Carlo VaR</a>
+                <a href="sethistock.html" class="site-header__tool-link">SethiStock</a>
+                <a href="sethimacro.html" class="site-header__tool-link">SethiMacro</a>
+                <a href="sethiportfolio.html" class="site-header__tool-link">SethiPortfolio</a>
+            </div>
         </div>
     </nav>
 

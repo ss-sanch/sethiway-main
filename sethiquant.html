@@ -50,15 +50,9 @@
         </header>
 
 
-        <nav aria-label="Choose a SethiQuant workflow" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-5">
-            <a href="#section-var" class="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50/60 px-4 py-3 transition hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">
-                <span><span class="block text-sm font-black text-blue-900">Analyse a portfolio</span><span class="block text-xs leading-relaxed text-slate-600">Start in Risk Lab and compare your current and proposed weights.</span></span>
-                <span class="text-blue-700" aria-hidden="true">↓</span>
-            </a>
-            <a href="#section-backtest" class="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-teal-200 bg-teal-50/60 px-4 py-3 transition hover:bg-teal-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600">
-                <span><span class="block text-sm font-black text-teal-900">Test a trading rule</span><span class="block text-xs leading-relaxed text-slate-600">Backtest a rule against buy-and-hold.</span></span>
-                <span class="text-teal-700" aria-hidden="true">↓</span>
-            </a>
+        <nav aria-label="Choose a SethiQuant workflow" class="mb-4 flex flex-wrap items-center justify-center gap-2 text-xs font-bold">
+            <a href="#section-var" class="rounded-lg bg-blue-100 px-3 py-2 text-blue-800 hover:bg-blue-200">Analyse a portfolio</a>
+            <a href="#section-backtest" class="rounded-lg border border-teal-200 bg-white px-3 py-2 text-teal-800 hover:bg-teal-50">Test a trading rule ↘</a>
         </nav>
 
         <!-- MONTE CARLO VaR ENGINE -->
@@ -69,10 +63,10 @@
             </header>
             <div id="market-risk-lab" class="quant-grid">
                 <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col">
-                    <h2 class="text-base font-black text-gray-900 mb-2 border-b border-gray-100 pb-2">Portfolio Parameters</h2>
+                    <h3 id="risk-parameters" class="text-base font-black text-gray-900 mb-2 border-b border-gray-100 pb-2">Portfolio Setup</h3>
                     <form id="risk-form">
                         <div class="grid grid-cols-2 gap-2">
-                            <div><label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Portfolio Value (£)</label><input id="portfolio-value" type="number" value="100000" min="1" class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-bold outline-none focus:border-blue-500"></div>
+                            <div><label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Value (£)</label><input id="portfolio-value" type="number" value="100000" min="1" class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-bold outline-none focus:border-blue-500"></div>
                             <div><label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Confidence</label><select id="confidence" class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-bold outline-none focus:border-blue-500"><option value="0.95">95%</option><option value="0.99" selected>99%</option></select></div>
                             <div><label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Horizon</label><select id="horizon" class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-bold outline-none focus:border-blue-500"><option value="1">1 day</option><option value="10" selected>10 days</option><option value="30">30 days</option></select></div>
                             <div><label class="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Lookback</label><select id="lookback" class="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 font-bold outline-none focus:border-blue-500"><option value="1y">1 year</option><option value="2y" selected>2 years</option><option value="5y">5 years</option></select></div>
@@ -93,17 +87,47 @@
                                 <span class="whitespace-nowrap">Stress Test</span><span id="stress-count-badge" title="4 presets" class="shrink-0 min-w-5 text-center whitespace-nowrap bg-white border border-amber-200 rounded-full px-1 py-0.5 text-[9px]">4</span>
                             </button>
                         </div>
-                        <button type="submit" id="run-btn" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-lg shadow-sm transition">Run Risk Analysis</button>
-                        <p id="risk-error" class="hidden text-sm text-red-600 font-semibold text-center mt-2"></p>
+                        <button type="submit" id="run-btn" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-lg shadow-sm transition">Run baseline analysis</button>
+                        <p id="risk-error" role="alert" tabindex="-1" class="hidden text-sm text-red-600 font-semibold text-center mt-2"></p>
                     </form>
                 </div>
-                <div class="quant-risk-results">
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                        <div class="bg-gray-900 text-white rounded-xl p-4 shadow-lg relative overflow-hidden min-h-[76px]"><div class="absolute top-0 right-0 -mt-6 -mr-6 w-20 h-20 bg-blue-500 rounded-full opacity-20 blur-2xl"></div><div class="flex justify-between items-start z-10 relative"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">MC 99% VaR</p><button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-white transition cursor-pointer" title="Learn about VaR">ⓘ</button></div><h3 id="mc-var" class="text-3xl font-black mt-2 z-10 relative">£0</h3></div>
-                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-h-[76px]"><div class="flex justify-between items-start"><p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">MC Expected Shortfall</p><button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-red-500 transition cursor-pointer" title="Learn about Expected Shortfall">ⓘ</button></div><h3 id="mc-es" class="text-3xl font-black text-red-600 mt-2">£0</h3></div>
-                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-h-[76px]"><div class="flex justify-between items-start"><p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Historical VaR</p><button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer" title="Learn about Historical VaR">ⓘ</button></div><h3 id="hist-var" class="text-3xl font-black mt-2">£0</h3></div>
-                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-h-[76px]"><div class="flex justify-between items-start"><p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Historical ES</p><button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer" title="Learn about Historical ES">ⓘ</button></div><h3 id="hist-es" class="text-3xl font-black mt-2">£0</h3></div>
-                    </div>
+                <div id="risk-workflow" class="quant-risk-results order-first lg:order-none">
+                    <section id="risk-start" aria-labelledby="risk-start-title" class="grow rounded-xl border border-slate-800 bg-slate-900 p-4 text-white sm:p-6">
+                        <div class="flex h-full flex-col items-start justify-center">
+                            <p class="text-[11px] font-bold uppercase tracking-widest text-blue-300">Portfolio workflow</p>
+                            <h3 id="risk-start-title" class="mt-2 max-w-2xl text-xl font-black leading-tight sm:text-3xl">What happens to your risk if you change the weights?</h3>
+                            <p class="mt-2 max-w-xl text-sm leading-relaxed text-slate-300">Measure the downside of the portfolio you hold, then see what changes when you reweight it.</p>
+                            <ol class="mt-4 grid w-full grid-cols-1 gap-2 sm:grid-cols-3">
+                                <li class="rounded-lg border border-slate-700 bg-slate-800 p-3">
+                                    <span aria-hidden="true" class="text-xs font-black text-blue-300">01</span>
+                                    <h4 class="mt-1 text-sm font-bold">Set up the portfolio</h4>
+                                    <p id="risk-start-holdings" class="mt-1 text-xs leading-relaxed text-slate-300">Edit the example holdings or load the public SethiPortfolio holdings.</p>
+                                    <a id="risk-import-link" href="?portfolio=fundamental#section-var" class="mt-2 inline-block text-xs font-bold text-blue-200 underline underline-offset-2 hover:text-white">Load SethiPortfolio</a>
+                                </li>
+                                <li class="rounded-lg border border-slate-700 bg-slate-800 p-3">
+                                    <span aria-hidden="true" class="text-xs font-black text-blue-300">02</span>
+                                    <h4 class="mt-1 text-sm font-bold">Measure current risk</h4>
+                                    <p class="mt-1 text-xs leading-relaxed text-slate-300">See estimated losses and which holdings contribute most to them.</p>
+                                </li>
+                                <li class="rounded-lg border border-slate-700 bg-slate-800 p-3">
+                                    <span aria-hidden="true" class="text-xs font-black text-blue-300">03</span>
+                                    <h4 class="mt-1 text-sm font-bold">Compare new weights</h4>
+                                    <p class="mt-1 text-xs leading-relaxed text-slate-300">Send a proposal from the Optimiser back here to compare it with your starting allocation.</p>
+                                </li>
+                            </ol>
+                            <button id="run-baseline-btn" type="submit" form="risk-form" class="mt-4 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-black text-white hover:bg-blue-500 disabled:opacity-60">Run baseline analysis</button>
+                        </div>
+                    </section>
+
+                    <section id="risk-next-step" hidden tabindex="-1" aria-label="Next step after current risk" class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                                <p class="text-[11px] font-bold uppercase tracking-widest text-blue-800">Next step · Allocation comparison</p>
+                                <p class="mt-1 text-sm font-bold text-slate-800">See how reweighting selected holdings changes these results.</p>
+                            </div>
+                            <button type="button" onclick="preparePortfolioOptimiser()" class="rounded-lg bg-blue-700 px-3 py-2 text-xs font-black text-white hover:bg-blue-800">Open Portfolio Optimiser →</button>
+                        </div>
+                    </section>
 
                     <section id="risk-comparison" hidden aria-labelledby="risk-comparison-title" class="min-w-0 rounded-xl border border-indigo-200 bg-indigo-50/50 p-3 sm:p-4">
                         <div class="flex flex-wrap items-start justify-between gap-2">
@@ -111,7 +135,10 @@
                                 <h3 id="risk-comparison-title" class="font-black text-gray-900">Current vs proposed allocation</h3>
                                 <p id="risk-comparison-basket" class="mt-1 text-xs leading-relaxed text-slate-600"></p>
                             </div>
-                            <button id="remove-risk-comparison" type="button" onclick="removeAllocationComparison()" class="rounded-md border border-indigo-200 bg-white px-2.5 py-1 text-xs font-bold text-indigo-700 hover:bg-indigo-50">Remove proposal</button>
+                            <div class="flex flex-wrap gap-2">
+                                <button id="run-comparison-btn" type="submit" form="risk-form" class="rounded-md bg-indigo-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-indigo-800 disabled:opacity-60">Run comparison</button>
+                                <button id="remove-risk-comparison" type="button" onclick="removeAllocationComparison()" class="rounded-md border border-indigo-200 bg-white px-2.5 py-1 text-xs font-bold text-indigo-700 hover:bg-indigo-50">Remove proposal</button>
+                            </div>
                         </div>
                         <p id="risk-comparison-weights" class="mt-2 text-xs text-slate-700"></p>
                         <p id="risk-comparison-status" role="status" class="mt-2 text-xs font-semibold text-indigo-900"></p>
@@ -124,29 +151,38 @@
                         </div>
                     </section>
 
-                    <div class="grid quant-risk-charts">
-                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0"><div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-2"><div><h3 class="font-black text-lg text-gray-900">Model Comparison</h3><p class="text-xs text-gray-500">Same portfolio, different risk assumptions.</p></div><div class="flex items-center gap-2"><span id="model-gap" class="text-xs font-bold bg-gray-100 rounded-full px-3 py-1 text-gray-600">--</span><button type="button" onclick="toggleModal('modal-risk-lab-guide')" class="text-gray-400 hover:text-blue-600 transition" title="How to interpret this chart">ⓘ</button></div></div><div id="model-chart" class="quant-risk-chart"></div></div>
-                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0"><div class="flex items-start justify-between gap-3 border-b border-gray-100 pb-2 mb-2"><div><h3 class="font-black text-lg text-gray-900">MC P&amp;L Distribution</h3><p class="text-xs text-gray-500">Losses beyond the VaR threshold form the tail.</p></div><button type="button" onclick="toggleModal('modal-risk-lab-guide')" class="text-gray-400 hover:text-blue-600 transition mt-1" title="How to interpret this chart">ⓘ</button></div><div id="pnl-chart" class="quant-risk-chart"></div></div>
-                        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0 quant-risk-detail">
-                            <div class="border-b border-gray-100 pb-2 mb-2">
-                                <div class="flex flex-wrap items-center justify-between gap-2">
-                                    <div class="flex items-center gap-2 min-w-0">
-                                        <h3 id="risk-detail-title" class="font-black text-lg text-gray-900">Risk Contribution</h3>
-                                        <button type="button" onclick="toggleModal('modal-risk-lab-guide')" class="text-gray-400 hover:text-blue-600 transition shrink-0" title="Learn how to interpret Market Risk Lab">ⓘ</button>
+                    <div id="risk-diagnostics" hidden class="space-y-3">
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div class="bg-gray-900 text-white rounded-xl p-4 shadow-lg relative overflow-hidden min-h-[76px]"><div class="absolute top-0 right-0 -mt-6 -mr-6 w-20 h-20 bg-blue-500 rounded-full opacity-20 blur-2xl"></div><div class="flex justify-between items-start z-10 relative"><p class="text-[10px] font-black text-gray-400 uppercase tracking-widest" id="mc-var-label">MC VaR</p><button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-white transition cursor-pointer" title="Learn about VaR">ⓘ</button></div><h3 id="mc-var" class="text-3xl font-black mt-2 z-10 relative">—</h3></div>
+                            <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-h-[76px]"><div class="flex justify-between items-start"><p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">MC Expected Shortfall</p><button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-red-500 transition cursor-pointer" title="Learn about Expected Shortfall">ⓘ</button></div><h3 id="mc-es" class="text-3xl font-black text-red-600 mt-2">—</h3></div>
+                            <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-h-[76px]"><div class="flex justify-between items-start"><p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Historical VaR</p><button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer" title="Learn about Historical VaR">ⓘ</button></div><h3 id="hist-var" class="text-3xl font-black mt-2">—</h3></div>
+                            <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-h-[76px]"><div class="flex justify-between items-start"><p class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Historical ES</p><button type="button" onclick="toggleModal('modal-risk-metrics')" class="text-gray-400 hover:text-blue-600 transition cursor-pointer" title="Learn about Historical ES">ⓘ</button></div><h3 id="hist-es" class="text-3xl font-black mt-2">—</h3></div>
+                        </div>
+
+                        <div class="grid quant-risk-charts">
+                            <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0"><div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-2"><div><h3 class="font-black text-lg text-gray-900">Model Comparison</h3><p class="text-xs text-gray-500">Same portfolio, different risk assumptions.</p></div><div class="flex items-center gap-2"><span id="model-gap" class="text-xs font-bold bg-gray-100 rounded-full px-3 py-1 text-gray-600">--</span><button type="button" onclick="toggleModal('modal-risk-lab-guide')" class="text-gray-400 hover:text-blue-600 transition" title="How to interpret this chart">ⓘ</button></div></div><div id="model-chart" class="quant-risk-chart"></div></div>
+                            <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0"><div class="flex items-start justify-between gap-3 border-b border-gray-100 pb-2 mb-2"><div><h3 class="font-black text-lg text-gray-900">MC P&amp;L Distribution</h3><p class="text-xs text-gray-500">Losses beyond the VaR threshold form the tail.</p></div><button type="button" onclick="toggleModal('modal-risk-lab-guide')" class="text-gray-400 hover:text-blue-600 transition mt-1" title="How to interpret this chart">ⓘ</button></div><div id="pnl-chart" class="quant-risk-chart"></div></div>
+                            <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm min-w-0 quant-risk-detail">
+                                <div class="border-b border-gray-100 pb-2 mb-2">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <h3 id="risk-detail-title" class="font-black text-lg text-gray-900">Risk Contribution</h3>
+                                            <button type="button" onclick="toggleModal('modal-risk-lab-guide')" class="text-gray-400 hover:text-blue-600 transition shrink-0" title="Learn how to interpret Market Risk Lab">ⓘ</button>
+                                        </div>
+                                        <div class="flex shrink-0 rounded-lg bg-gray-100 p-1 text-[10px] font-black uppercase tracking-wide">
+                                            <button id="risk-tab-attribution" type="button" onclick="showRiskDetail('attribution')" class="px-2 py-1.5 rounded-md bg-white text-blue-700 shadow-sm">Contrib</button>
+                                            <button id="risk-tab-greeks" type="button" onclick="showRiskDetail('greeks')" class="px-2 py-1.5 rounded-md text-gray-500">Greeks</button>
+                                            <button id="risk-tab-stress" type="button" onclick="showRiskDetail('stress')" class="px-2 py-1.5 rounded-md text-gray-500">Stress</button>
+                                            <button id="risk-tab-correlation" type="button" onclick="showRiskDetail('correlation')" class="px-2 py-1.5 rounded-md text-gray-500">Corr</button>
+                                        </div>
                                     </div>
-                                    <div class="flex shrink-0 rounded-lg bg-gray-100 p-1 text-[10px] font-black uppercase tracking-wide">
-                                        <button id="risk-tab-attribution" type="button" onclick="showRiskDetail('attribution')" class="px-2 py-1.5 rounded-md bg-white text-blue-700 shadow-sm">Contrib</button>
-                                        <button id="risk-tab-greeks" type="button" onclick="showRiskDetail('greeks')" class="px-2 py-1.5 rounded-md text-gray-500">Greeks</button>
-                                        <button id="risk-tab-stress" type="button" onclick="showRiskDetail('stress')" class="px-2 py-1.5 rounded-md text-gray-500">Stress</button>
-                                        <button id="risk-tab-correlation" type="button" onclick="showRiskDetail('correlation')" class="px-2 py-1.5 rounded-md text-gray-500">Corr</button>
-                                    </div>
+                                    <p id="risk-detail-subtitle" class="text-xs text-gray-500 mt-1.5 leading-relaxed whitespace-normal">Run an analysis to decompose portfolio VaR.</p>
                                 </div>
-                                <p id="risk-detail-subtitle" class="text-xs text-gray-500 mt-1.5 leading-relaxed whitespace-normal">Run an analysis to decompose portfolio VaR.</p>
+                                <div id="risk-attribution-view"><div id="risk-contribution-chart" class="quant-risk-chart"></div></div>
+                                <div id="derivatives-view" class="hidden"><div id="derivatives-chart" class="quant-risk-chart"></div></div>
+                                <div id="stress-view" class="hidden"><div id="stress-chart" class="quant-risk-chart"></div></div>
+                                <div id="correlation-view" class="hidden"><div id="corr-chart" class="quant-risk-chart"></div></div>
                             </div>
-                            <div id="risk-attribution-view"><div id="risk-contribution-chart" class="quant-risk-chart"></div></div>
-                            <div id="derivatives-view" class="hidden"><div id="derivatives-chart" class="quant-risk-chart"></div></div>
-                            <div id="stress-view" class="hidden"><div id="stress-chart" class="quant-risk-chart"></div></div>
-                            <div id="correlation-view" class="hidden"><div id="corr-chart" class="quant-risk-chart"></div></div>
                         </div>
                     </div>
                 </div>
@@ -1776,7 +1812,7 @@
                 const proposed = applyAllocation(current, currentAllocation);
                 comparisonAllocation = {...currentAllocation};
                 error.hidden = true;
-                document.getElementById('risk-comparison').hidden = false;
+                syncRiskWorkflow();
                 document.getElementById('risk-comparison-results').hidden = true;
                 document.getElementById('risk-comparison-basket').textContent =
                     `Reweights ${Object.keys(comparisonAllocation).join(', ')} within their combined allocation. Other holdings keep their weights.`;
@@ -1799,10 +1835,17 @@
                 }).join(' · ');
         }
 
+        function syncRiskWorkflow() {
+            document.getElementById('risk-workflow').classList.toggle('order-first', !latestRiskData || Boolean(comparisonAllocation));
+            document.getElementById('risk-start').hidden = Boolean(latestRiskData || comparisonAllocation);
+            document.getElementById('risk-next-step').hidden = !latestRiskData || Boolean(comparisonAllocation);
+            document.getElementById('risk-comparison').hidden = !comparisonAllocation;
+        }
+
         function removeAllocationComparison() {
             comparisonAllocation = null;
-            document.getElementById('risk-comparison').hidden = true;
-            document.getElementById('run-btn').textContent = 'Run Risk Analysis';
+            syncRiskWorkflow();
+            document.getElementById('run-btn').textContent = latestRiskData ? 'Run Risk Analysis' : 'Run baseline analysis';
         }
 
         async function requestPortfolioRisk(payload) {
@@ -1851,9 +1894,11 @@
             banner.className = 'mb-3 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2.5 text-[11px] font-bold text-blue-800 leading-relaxed';
             banner.textContent = 'Importing live SethiPortfolio positions…';
             form.parentNode.insertBefore(banner, form);
+            const controls = ['run-btn', 'run-baseline-btn', 'open-portfolio-optimiser'].map(id => document.getElementById(id));
+            controls.forEach(control => { control.disabled = true; });
 
             try {
-                const res = await fetch(`https://sethistock-api.onrender.com/api/portfolio/${encodeURIComponent(slug)}`);
+                const res = await fetch(`https://sethistock-api.onrender.com/api/portfolio/${encodeURIComponent(slug)}`, {signal:AbortSignal.timeout(30000)});
                 if (!res.ok) throw new Error(`Portfolio request failed (${res.status})`);
                 const payload = await res.json();
                 const snapshot = payload.snapshot || {};
@@ -1868,6 +1913,8 @@
                     Number(((Number(h.weight_pct) / investedWeight) * 100).toFixed(4))
                 ]);
                 renderPositions(activePositions);
+                document.getElementById('risk-start-holdings').textContent = 'Review the holdings imported from SethiPortfolio.';
+                document.getElementById('risk-import-link').remove();
 
                 const riskyCapital = Number(snapshot.portfolio_value || 0) * investedWeight / 100;
                 const valueInput = document.getElementById('portfolio-value');
@@ -1880,6 +1927,8 @@
                 console.error('SethiPortfolio import failed:', error);
                 banner.textContent = `SethiPortfolio import failed: ${error.message}`;
                 banner.className = 'mb-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2.5 text-[11px] font-bold text-red-700 leading-relaxed';
+            } finally {
+                controls.forEach(control => { control.disabled = false; });
             }
         }
 
@@ -1894,20 +1943,23 @@
             const btn = document.getElementById('run-btn');
             if (btn.disabled) return;
             const error = document.getElementById('risk-error');
+            const showError = message => {
+                error.textContent = message;
+                error.classList.remove('hidden');
+                if (e.submitter && e.submitter !== btn) error.focus();
+            };
             error.classList.add('hidden');
 
             const positions = readRiskPositions();
 
             if (positions.length < 2 || positions.length > 50) {
-                error.innerText = `Market Risk Lab supports between 2 and 50 assets. Current portfolio: ${positions.length}.`;
-                error.classList.remove('hidden');
+                showError(`Market Risk Lab supports between 2 and 50 assets. Current portfolio: ${positions.length}.`);
                 return;
             }
 
             const totalWeight = positions.reduce((sum, p) => sum + p.weight, 0);
             if (Math.abs(totalWeight - 1) > 0.005) {
-                error.innerText = `Weights total ${(totalWeight * 100).toFixed(1)}%. Must total 100%.`;
-                error.classList.remove('hidden');
+                showError(`Weights total ${(totalWeight * 100).toFixed(1)}%. Must total 100%.`);
                 return;
             }
 
@@ -1924,9 +1976,12 @@
             };
 
             const allocation = comparisonAllocation;
-            const remove = document.getElementById('remove-risk-comparison');
-            btn.disabled = true;
-            remove.disabled = true;
+            const baselineButton = document.getElementById('run-baseline-btn');
+            const comparisonButton = document.getElementById('run-comparison-btn');
+            const runControls = [btn, baselineButton, comparisonButton, document.getElementById('remove-risk-comparison')];
+            runControls.forEach(control => { control.disabled = true; });
+            baselineButton.textContent = 'Running baseline…';
+            comparisonButton.textContent = 'Comparing…';
             btn.innerText = allocation ? 'Comparing portfolio risk…' : 'Calculating portfolio risk…';
 
             try {
@@ -1948,6 +2003,13 @@
                 // Render UI
                 const h = data.models.historical;
                 const m = data.models.monte_carlo;
+                const attribution = data.attribution;
+                if (!attribution || !Array.isArray(attribution.components)) {
+                    throw new Error('Risk attribution data was not returned by the engine.');
+                }
+
+                document.getElementById('risk-diagnostics').hidden = false;
+                document.getElementById('mc-var-label').textContent = `MC ${payload.confidence * 100}% VaR`;
                 document.getElementById('mc-var').innerText = formatMoney(m.var_loss);
                 document.getElementById('mc-es').innerText = formatMoney(m.expected_shortfall_loss);
                 document.getElementById('hist-var').innerText = formatMoney(h.var_loss);
@@ -1961,11 +2023,6 @@
                 Plotly.newPlot('pnl-chart', [{ x: data.distribution.monte_carlo_pnl_sample, type: 'histogram', marker: {color: '#6366f1'}, nbinsx: 45 }], { margin: { t: 10, r: 10, l: 45, b: 35 }, yaxis: { gridcolor: '#f3f4f6' }, shapes: [{ type: 'line', x0: -m.var_loss, x1: -m.var_loss, y0: 0, y1: 1, yref: 'paper', line: { dash: 'dash', width: 2, color: '#ef4444' } }], paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { displayModeBar: false, responsive: true });
 
                 latestRiskData = data;
-                const attribution = data.attribution;
-                if (!attribution || !Array.isArray(attribution.components)) {
-                    throw new Error('Risk attribution data was not returned by the engine.');
-                }
-
                 const components = attribution.components;
                 const contributionColors = components.map(c => c.component_var < 0 ? '#10b981' : '#2563eb');
                 Plotly.newPlot('risk-contribution-chart', [{
@@ -2024,14 +2081,16 @@
                 }
 
                 if (proposed) renderAllocationComparison(data, proposed, payload);
+                syncRiskWorkflow();
+                if (e.submitter === baselineButton) document.getElementById('risk-next-step').focus();
             } catch (err) {
-                error.innerText = err.message;
-                error.classList.remove('hidden');
+                showError(err.message);
                 if (allocation) document.getElementById('risk-comparison-status').textContent = 'Comparison unavailable. Check the Risk Lab inputs and try again.';
             } finally {
-                btn.disabled = false;
-                remove.disabled = false;
-                btn.innerText = allocation ? 'Compare Portfolio Risk' : 'Run Risk Analysis';
+                runControls.forEach(control => { control.disabled = false; });
+                baselineButton.textContent = 'Run baseline analysis';
+                comparisonButton.textContent = 'Run comparison';
+                btn.innerText = allocation ? 'Compare Portfolio Risk' : (latestRiskData ? 'Run Risk Analysis' : 'Run baseline analysis');
             }
         });
 

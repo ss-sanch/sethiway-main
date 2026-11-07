@@ -50,18 +50,26 @@
         </header>
 
 
-        <nav aria-labelledby="quant-map-title" class="mx-auto mb-5 max-w-6xl">
+        <nav aria-labelledby="quant-map-title" class="mx-auto mb-5 max-w-4xl">
             <div class="mb-2 flex items-center gap-3">
                 <h2 id="quant-map-title" class="shrink-0 text-[10px] font-black uppercase tracking-[0.15em] text-slate-600">Portfolio risk workflow</h2>
                 <span aria-hidden="true" class="h-px flex-1 bg-slate-200"></span>
             </div>
-            <ol class="grid list-none gap-3 md:grid-cols-[1fr_1.35fr_1fr] md:gap-6">
-                <li class="relative min-w-0">
-                    <a href="#risk-parameters" class="flex h-full items-center gap-2.5 rounded-xl border border-blue-200 border-l-4 border-l-blue-500 bg-blue-50/70 px-3 py-2.5 transition hover:bg-blue-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">
+            <ol class="grid list-none gap-10 md:grid-cols-2 md:gap-16">
+                <li class="relative min-w-0 rounded-xl border border-blue-200 border-l-4 border-l-blue-500 bg-blue-50/70">
+                    <div class="flex items-center gap-2.5 px-3 pb-1 pt-2.5">
                         <span aria-hidden="true" class="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-blue-100 text-xs font-black text-blue-800">01</span>
-                        <span><strong class="block text-sm text-slate-900">Measure current risk</strong><span class="block text-xs text-slate-600">Run a baseline for your holdings.</span></span>
-                    </a>
-                    <svg aria-hidden="true" class="pointer-events-none absolute -bottom-3 left-4 h-3 w-3 rotate-90 text-slate-500 md:-right-5 md:left-auto md:top-1/2 md:h-4 md:w-4 md:-translate-y-1/2 md:rotate-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8h11M9 4l4 4-4 4"/></svg>
+                        <span><strong class="block text-sm text-slate-900">Measure and compare risk</strong><span class="block text-xs text-slate-600">Run a baseline, then assess your proposed weights.</span></span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-1.5 px-3 pb-2">
+                        <a href="#risk-parameters" class="rounded-full border border-blue-200 bg-white px-2 py-1 text-[10px] font-bold leading-tight text-blue-800 hover:border-blue-400 hover:bg-blue-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">Measure current risk</a>
+                        <a href="#risk-workflow" class="rounded-full border border-blue-200 bg-white px-2 py-1 text-[10px] font-bold leading-tight text-blue-800 hover:border-blue-400 hover:bg-blue-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">Compare both portfolios</a>
+                    </div>
+                    <svg aria-hidden="true" class="pointer-events-none absolute -bottom-9 left-1/2 h-8 w-9 -translate-x-1/2 rotate-90 md:-right-[58px] md:bottom-auto md:left-auto md:top-1/2 md:w-[50px] md:translate-x-0 md:-translate-y-1/2 md:rotate-0" viewBox="0 0 54 40" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path class="text-indigo-600" stroke="currentColor" d="M3 15Q27 0 51 15m-8-1 8 1-4-7"/>
+                        <path class="text-blue-600" stroke="currentColor" d="M51 25Q27 40 3 25m8 1-8-1 4 7"/>
+                    </svg>
+                    <span class="sr-only">Use current risk to build a proposal, then return to compare and repeat.</span>
                 </li>
                 <li class="relative min-w-0 rounded-xl border border-indigo-200 border-l-4 border-l-indigo-500 bg-indigo-50/70">
                     <button id="workflow-open-optimiser" type="button" onclick="preparePortfolioOptimiser()" class="flex w-full items-center gap-2.5 rounded-t-lg px-3 pb-1 pt-2.5 text-left transition hover:bg-indigo-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-600 disabled:opacity-60">
@@ -79,13 +87,6 @@
                             Strategy Backtest
                         </a>
                     </div>
-                    <svg aria-hidden="true" class="pointer-events-none absolute -bottom-3 left-4 h-3 w-3 rotate-90 text-slate-500 md:-right-5 md:left-auto md:top-1/2 md:h-4 md:w-4 md:-translate-y-1/2 md:rotate-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8h11M9 4l4 4-4 4"/></svg>
-                </li>
-                <li class="min-w-0">
-                    <a href="#risk-workflow" class="flex h-full items-center gap-2.5 rounded-xl border border-teal-200 border-l-4 border-l-teal-500 bg-teal-50/70 px-3 py-2.5 transition hover:bg-teal-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-600">
-                        <span aria-hidden="true" class="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-teal-100 text-xs font-black text-teal-800">03</span>
-                        <span><strong class="block text-sm text-slate-900">Compare both portfolios</strong><span class="block text-xs text-slate-600">See current and proposed risk side by side.</span></span>
-                    </a>
                 </li>
             </ol>
         </nav>

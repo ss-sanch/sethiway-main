@@ -36,7 +36,7 @@
         .section-overview { padding: 1rem 1.25rem; border: 1px solid #dbeafe; border-radius: .75rem; background: #eff6ff; color: #1e3a8a; font-size: .875rem; line-height: 1.65; }
         .section-overview strong { display: block; margin-bottom: .25rem; color: #1d4ed8; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; }
         .section-column { min-width: 0; }
-        #performance.section-intro { margin-top: 0; }
+        #performance.section-intro { margin-top: 0; padding-top: .75rem; }
         @media (max-width: 767px) { .section-intro { grid-template-columns: 1fr; gap: .75rem; } .section-intro h2 { grid-row: 1; } }
         .portfolio-identity { text-align: center; background: linear-gradient(180deg, #fffbeb 0, #fff 10rem); border-top: 3px solid #d4a02c; }
         .portfolio-identity select { text-align: center; text-align-last: center; }
@@ -86,22 +86,6 @@
             <!-- ABOVE-THE-FOLD PORTFOLIO HERO -->
             <div id="performance" class="section-intro">
                 <h2>Performance</h2>
-                <aside class="section-overview" aria-labelledby="portfolio-brief-title">
-                    <div class="flex flex-wrap items-baseline justify-between gap-x-4">
-                        <strong id="portfolio-brief-title">Portfolio Brief</strong>
-                        <p id="portfolio-brief-date" class="text-xs text-blue-800">Latest month</p>
-                    </div>
-                    <div class="grid gap-x-6 gap-y-2 lg:grid-cols-2">
-                        <div>
-                            <a href="#benchmark" onclick="setRange('1M'); setBenchmark('sp500')" class="text-xs font-bold text-blue-700 hover:underline" title="Each day is measured as the change in the cumulative return gap. The day groups add up to the gap for the full period.">When it gained or lost ground</a>
-                            <p id="portfolio-brief-benchmark">Loading performance…</p>
-                        </div>
-                        <div>
-                            <a href="#attribution" onclick="setRange('1M')" class="text-xs font-bold text-blue-700 hover:underline">How broad the move was</a>
-                            <p id="portfolio-brief-drivers">Loading attribution…</p>
-                        </div>
-                    </div>
-                </aside>
             </div>
             <section class="grid grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)] gap-4 items-stretch">
                 <!-- PORTFOLIO IDENTITY -->
@@ -111,7 +95,7 @@
                             <option>Fundamental Portfolio</option>
                         </select>
                         <span class="text-[10px] font-bold uppercase tracking-wider text-gray-600 bg-white border border-gray-200 rounded-full px-2.5 py-1">Public Portfolio</span>
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-2.5 py-1">Live Portfolio Data</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-100 rounded-full px-2.5 py-1">GBP Base Currency</span>
                     </div>
                     <h2 id="portfolio-name" class="text-2xl font-black tracking-tight text-gray-900">Fundamental Portfolio</h2>
                     <div class="mt-3">
@@ -127,7 +111,7 @@
                         <div class="rounded-xl bg-gray-50 border border-gray-100 px-3.5 py-3"><p class="identity-label uppercase font-bold">Since</p><p id="since-date" class="text-xl font-black mt-0.5 text-gray-900">Loading…</p></div>
                     </div>
 
-                    <div class="mt-auto pt-5"><span id="data-status" class="text-xs text-gray-500 leading-relaxed">Notional portfolio · GBP base currency</span></div>
+                    <div class="mt-auto pt-5"><span id="data-status" role="status" class="text-xs text-gray-500 leading-relaxed">Loading portfolio data…</span></div>
                 </div>
 
                 <!-- PERFORMANCE HERO -->
@@ -183,6 +167,23 @@
                         <button data-range="SI" onclick="setRange('SI', this)" class="range-btn px-3 py-1.5 rounded-md bg-white text-blue-700 shadow-sm">Since Inception</button>
                     </div>
                 </div>
+
+                <aside class="section-overview mb-5" aria-labelledby="portfolio-brief-title">
+                    <div class="flex flex-wrap items-baseline justify-between gap-x-4">
+                        <strong id="portfolio-brief-title">Portfolio Brief</strong>
+                        <p id="portfolio-brief-date" class="text-xs text-blue-800">Latest month</p>
+                    </div>
+                    <div class="grid gap-x-6 gap-y-2 lg:grid-cols-2">
+                        <div>
+                            <a href="#benchmark" onclick="setRange('1M'); setBenchmark('sp500')" class="text-xs font-bold text-blue-700 hover:underline" title="Each day is measured as the change in the cumulative return gap. The day groups add up to the gap for the full period.">When it gained or lost ground</a>
+                            <p id="portfolio-brief-benchmark">Loading performance…</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-blue-700">How broad the move was</p>
+                            <p id="portfolio-brief-drivers">Loading attribution…</p>
+                        </div>
+                    </div>
+                </aside>
 
                 <div class="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-5">
                     <div class="rounded-xl bg-gray-900 text-white p-4"><p class="text-[10px] uppercase tracking-widest font-black text-gray-400">Period Return</p><p id="attribution-return" class="text-2xl font-black mt-1">—</p><p id="attribution-period" class="text-[10px] text-gray-400 mt-1">—</p></div>
@@ -689,6 +690,8 @@
 <script>
     const API_BASE = 'https://sethistock-api.onrender.com/api/portfolio';
     const PORTFOLIO_SLUG = 'fundamental';
+    const PORTFOLIO_CACHE_KEY = `sethiPortfolio:core:v1:${PORTFOLIO_SLUG}`;
+    const PORTFOLIO_CACHE_TTL = 5 * 60 * 1000;
     let portfolioData = { dates: [], portfolio: [], sp500: [], nasdaq: [], vwrl: [] };
     let attributionData = { periods: {} };
     let exposureData = null;
@@ -696,6 +699,7 @@
     let riskAnalyticsData = null;
     let rebalanceSimulationData = null;
     let portfolioSnapshot = null;
+    let portfolioRefreshing = false;
     let journalEntries = [];
     let attributionLoaded = false;
     let attributionRequest = null;
@@ -1563,6 +1567,7 @@
     async function loadAttributionOnDemand() {
         if (attributionLoaded) return;
         if (!attributionRequest) {
+            document.getElementById('portfolio-brief-drivers').textContent = 'Loading attribution…';
             attributionRequest = fetch(`${API_BASE}/${PORTFOLIO_SLUG}/attribution`).then(async response => {
                 if (!response.ok) {
                     let detail = `Attribution request failed (${response.status})`;
@@ -1592,7 +1597,7 @@
                 if (!fxAnalyticsData) await loadFxAnalytics();
                 else renderFxHistory();
             } else if (tab === 'whatif') {
-                if (portfolioSnapshot) initRebalanceEditor(portfolioSnapshot);
+                if (portfolioSnapshot && !portfolioRefreshing) initRebalanceEditor(portfolioSnapshot);
                 else document.getElementById('rebalance-status').textContent = 'Loading the current portfolio before the simulator can be initialised…';
             }
         } finally {
@@ -1675,6 +1680,7 @@
                 if (portfolioData.dates.length && attributionLoaded) renderAttribution();
             } catch (error) {
                 console.error('SethiPortfolio attribution lazy load failed:', error);
+                document.getElementById('portfolio-brief-drivers').textContent = 'Attribution temporarily unavailable.';
                 const reconciliation = document.getElementById('attribution-reconciliation');
                 if (reconciliation) reconciliation.textContent = `Attribution API: ${error.message || 'temporarily unavailable'}`;
             }
@@ -2428,54 +2434,125 @@
         setTimeout(() => { progress.style.display = 'none'; bar.style.width = '6%'; }, 350);
     }
 
-    async function loadPortfolio() {
-        startLoadingState();
+    function hasPortfolioData(payload, performance) {
+        const info = payload?.portfolio;
+        const snapshot = payload?.snapshot;
+        return typeof info?.name === 'string' && Number.isFinite(info.initial_capital) && info.initial_capital > 0
+            && Number.isFinite(snapshot?.portfolio_value) && Array.isArray(snapshot.holdings)
+            && snapshot.holdings.every(holding => Number.isFinite(holding?.weight_pct) && Number.isFinite(holding.quantity))
+            && Array.isArray(performance?.dates) && Array.isArray(performance.portfolio)
+            && performance.portfolio.length === performance.dates.length
+            && performance.benchmarks && typeof performance.benchmarks === 'object'
+            && ['^SP500TR', 'QQQ', 'VWRL.L'].every(symbol => {
+                const series = performance.benchmarks[symbol];
+                return !series || (Array.isArray(series.values) && series.values.length === performance.dates.length);
+            });
+    }
+
+    function readPortfolioCache() {
         try {
+            const saved = JSON.parse(localStorage.getItem(PORTFOLIO_CACHE_KEY));
+            if (Number.isFinite(saved?.savedAt) && saved.savedAt > 0 && saved.savedAt <= Date.now()
+                && hasPortfolioData(saved.payload, saved.performance) && saved.performance.dates.length) {
+                return saved;
+            }
+        } catch (_) {
+            // A storage restriction or invalid entry must not block the data requests.
+        }
+        return null;
+    }
+
+    function showPortfolioData(portfolioPayload, performance) {
+        const info = portfolioPayload.portfolio, snapshot = portfolioPayload.snapshot;
+        portfolioSnapshot = snapshot;
+        const sp500 = performance.benchmarks['^SP500TR']?.values || [];
+        const nasdaq = performance.benchmarks['QQQ']?.values || [];
+        const vwrl = performance.benchmarks['VWRL.L']?.values || [];
+        portfolioData = {dates:performance.dates || [], portfolio:performance.portfolio || [], sp500, nasdaq, vwrl, baseCurrency:performance.base_currency || snapshot.base_currency || 'GBP'};
+
+        document.getElementById('portfolio-name').textContent = info.name;
+        document.getElementById('portfolio-description').textContent = info.description || '';
+        document.getElementById('portfolio-value').textContent = fmtGBP(snapshot.portfolio_value);
+        const totalReturn = (snapshot.portfolio_value / info.initial_capital - 1) * 100;
+        document.getElementById('total-return').textContent = fmtPct(totalReturn);
+        document.getElementById('total-return').className = `text-xl font-black mt-0.5 ${totalReturn >= 0 ? 'text-emerald-700' : 'text-red-600'}`;
+        document.getElementById('since-date').textContent = new Date(`${info.inception_date}T00:00:00`).toLocaleDateString('en-GB',{month:'short',year:'numeric'});
+        const benchmarkValue = sp500.at(-1);
+        document.getElementById('vs-sp500').textContent = Number.isFinite(benchmarkValue)
+            ? fmtPp(totalReturn - (benchmarkValue - 100))
+            : '—';
+        document.getElementById('holdings-status').textContent = `Priced ${new Date(snapshot.pricing_timestamp).toLocaleString('en-GB')}`;
+
+        renderPerformance();
+        renderHoldings(snapshot);
+        renderPortfolioBrief();
+    }
+
+    async function loadPortfolio() {
+        const status = document.getElementById('data-status');
+        let saved = readPortfolioCache();
+        if (saved) {
+            try {
+                showPortfolioData(saved.payload, saved.performance);
+            } catch (error) {
+                console.warn('SethiPortfolio saved data could not be displayed:', error);
+                saved = null;
+            }
+        }
+
+        const savedAt = saved && new Date(saved.savedAt).toLocaleString('en-GB', {
+            dateStyle:'medium', timeStyle:'short', timeZone:'Europe/London'
+        });
+        if (saved && Date.now() - saved.savedAt < PORTFOLIO_CACHE_TTL) {
+            status.textContent = `Saved data · checked ${savedAt} UK time`;
+            if (currentPortfolioLabTab) ensurePortfolioLabData(currentPortfolioLabTab);
+            return;
+        }
+
+        portfolioRefreshing = true;
+        if (saved) status.textContent = `Saved data from ${savedAt} UK time · checking for updates…`;
+        else startLoadingState();
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 35000);
+        try {
+            const options = {signal:controller.signal};
             const [portfolioRes, performanceRes] = await Promise.all([
-                fetch(`${API_BASE}/${PORTFOLIO_SLUG}`),
-                fetch(`${API_BASE}/${PORTFOLIO_SLUG}/performance`)
+                fetch(`${API_BASE}/${PORTFOLIO_SLUG}`, options),
+                fetch(`${API_BASE}/${PORTFOLIO_SLUG}/performance`, options)
             ]);
             if (!portfolioRes.ok || !performanceRes.ok) throw new Error('Core portfolio data request failed.');
-            const [portfolioPayload, performance] = await Promise.all([portfolioRes.json(), performanceRes.json()]);
-            const info = portfolioPayload.portfolio, snapshot = portfolioPayload.snapshot;
-            portfolioSnapshot = snapshot;
-            const sp500 = performance.benchmarks['^SP500TR']?.values || [];
-            const nasdaq = performance.benchmarks['QQQ']?.values || [];
-            const vwrl = performance.benchmarks['VWRL.L']?.values || [];
-            portfolioData = {dates:performance.dates || [], portfolio:performance.portfolio || [], sp500, nasdaq, vwrl, baseCurrency:performance.base_currency || snapshot.base_currency || 'GBP'};
-
-            document.getElementById('portfolio-name').textContent = info.name;
-            document.getElementById('portfolio-description').textContent = info.description || '';
-            document.getElementById('portfolio-value').textContent = fmtGBP(snapshot.portfolio_value);
-            const totalReturn = (snapshot.portfolio_value / info.initial_capital - 1) * 100;
-            document.getElementById('total-return').textContent = fmtPct(totalReturn);
-            document.getElementById('total-return').className = `text-xl font-black mt-0.5 ${totalReturn >= 0 ? 'text-emerald-700' : 'text-red-600'}`;
-            document.getElementById('since-date').textContent = new Date(`${info.inception_date}T00:00:00`).toLocaleDateString('en-GB',{month:'short',year:'numeric'});
-            const spReturn = sp500.length ? sp500.at(-1)-100 : 0;
-            document.getElementById('vs-sp500').textContent = fmtPp(totalReturn-spReturn);
-            document.getElementById('holdings-status').textContent = `Priced ${new Date(snapshot.pricing_timestamp).toLocaleString('en-GB')}`;
-
-            renderPerformance();
-            renderHoldings(snapshot);
-            renderPortfolioBrief();
-            if (portfolioData.dates.length >= 2) {
-                loadAttributionOnDemand().catch(() => {
-                    document.getElementById('portfolio-brief-drivers').textContent = 'Attribution temporarily unavailable.';
-                });
-            } else if (!attributionLoaded) {
-                document.getElementById('portfolio-brief-drivers').textContent = 'Attribution unavailable.';
+            const [payload, performance] = await Promise.all([portfolioRes.json(), performanceRes.json()]);
+            if (!hasPortfolioData(payload, performance) || (saved && !performance.dates.length)) {
+                throw new Error('Core portfolio data was incomplete.');
             }
 
-            if (currentPortfolioLabTab) ensurePortfolioLabData(currentPortfolioLabTab);
+            showPortfolioData(payload, performance);
+            const checkedAt = Date.now();
+            status.textContent = `Data checked ${new Date(checkedAt).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit', timeZone:'Europe/London'})} UK time`;
+            try {
+                if (performance.dates.length) {
+                    localStorage.setItem(PORTFOLIO_CACHE_KEY, JSON.stringify({savedAt:checkedAt, payload, performance}));
+                }
+            } catch (_) {
+                // The current view stays usable when storage is full or disabled.
+            }
         } catch (error) {
             console.error('SethiPortfolio core load failed:', error);
-            document.getElementById('portfolio-brief-benchmark').textContent = 'Performance temporarily unavailable.';
-            document.getElementById('portfolio-brief-drivers').textContent = 'Attribution temporarily unavailable.';
-            document.getElementById('data-status').textContent = 'Live data temporarily unavailable · please retry shortly';
-            document.getElementById('performance-chart').innerHTML = '<div class="h-full flex items-center justify-center text-sm text-gray-400">Unable to load live portfolio data.</div>';
-            document.getElementById('holdings-table').innerHTML = '<tr><td colspan="6" class="px-5 py-8 text-center text-gray-400">Unable to load holdings.</td></tr>';
+            if (saved) {
+                status.textContent = `Showing saved data from ${savedAt} UK time · update unavailable`;
+            } else {
+                document.getElementById('portfolio-brief-benchmark').textContent = 'Performance temporarily unavailable.';
+                status.textContent = 'Live data temporarily unavailable · please retry shortly';
+                document.getElementById('performance-chart').innerHTML = '<div class="h-full flex items-center justify-center text-sm text-gray-400">Unable to load live portfolio data.</div>';
+                document.getElementById('holdings-table').innerHTML = '<tr><td colspan="6" class="px-5 py-8 text-center text-gray-400">Unable to load holdings.</td></tr>';
+            }
         } finally {
-            finishLoadingState();
+            clearTimeout(timeout);
+            controller.abort();
+            portfolioRefreshing = false;
+            if (!saved) finishLoadingState();
+            if (currentPortfolioLabTab) ensurePortfolioLabData(currentPortfolioLabTab);
         }
     }
 

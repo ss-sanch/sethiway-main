@@ -7,34 +7,12 @@ function resizeQuantPlots(container) {
 }
 
 (() => {
-    const workspaces = [...document.querySelectorAll('.quant-workspace')];
-    const links = [...document.querySelectorAll('.site-header a[href^="#section-"], .quant-mobile-workspaces a')];
-    const defaultWorkspace = new URLSearchParams(location.search).get('portfolio')?.trim()
-        ? document.getElementById('section-var')
-        : workspaces[0];
-
-    function showWorkspace(event) {
-        const hashTarget = document.getElementById(location.hash.slice(1));
-        const selected = hashTarget?.closest('.quant-workspace') || defaultWorkspace;
-        workspaces.forEach(workspace => {
-            workspace.hidden = workspace !== selected;
-        });
-        links.forEach(link => {
-            if (link.hash === '#' + selected.id) link.setAttribute('aria-current', 'location');
-            else link.removeAttribute('aria-current');
-        });
-        if (event) {
-            if (hashTarget && hashTarget !== selected && selected.contains(hashTarget)) {
-                hashTarget.scrollIntoView({ behavior: 'instant' });
-            } else {
-                window.scrollTo({ top: 0, behavior: 'instant' });
-            }
-        }
-        resizeQuantPlots(selected);
+    const portfolio = new URLSearchParams(location.search).get('portfolio')?.trim();
+    if (portfolio && !location.hash) {
+        window.addEventListener('load', () => {
+            if (!location.hash) document.getElementById('section-var').scrollIntoView({ behavior: 'instant' });
+        }, { once: true });
     }
-
-    showWorkspace();
-    window.addEventListener('hashchange', showWorkspace);
 
     const resultButtons = [...document.querySelectorAll('[data-quant-result]')];
     resultButtons.forEach(button => {

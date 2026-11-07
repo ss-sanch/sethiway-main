@@ -91,18 +91,14 @@
                         <strong id="portfolio-brief-title">Portfolio Brief</strong>
                         <p id="portfolio-brief-date" class="text-xs text-blue-800">Latest month</p>
                     </div>
-                    <div class="grid gap-x-4 gap-y-2 md:grid-cols-3">
+                    <div class="grid gap-x-6 gap-y-2 lg:grid-cols-2">
                         <div>
-                            <a href="#benchmark" onclick="setRange('1M'); setBenchmark('sp500')" class="text-xs font-bold text-blue-700 hover:underline">Return vs S&amp;P 500</a>
-                            <p id="portfolio-brief-return">Loading performance…</p>
+                            <a href="#benchmark" onclick="setRange('1M'); setBenchmark('sp500')" class="text-xs font-bold text-blue-700 hover:underline" title="Each day is measured as the change in the cumulative return gap. The day groups add up to the gap for the full period.">When it gained or lost ground</a>
+                            <p id="portfolio-brief-benchmark">Loading performance…</p>
                         </div>
                         <div>
-                            <a href="#attribution" onclick="setRange('1M')" class="text-xs font-bold text-blue-700 hover:underline">Return drivers</a>
+                            <a href="#attribution" onclick="setRange('1M')" class="text-xs font-bold text-blue-700 hover:underline">How broad the move was</a>
                             <p id="portfolio-brief-drivers">Loading attribution…</p>
-                        </div>
-                        <div>
-                            <a href="#holdings" class="text-xs font-bold text-blue-700 hover:underline">Largest holding</a>
-                            <p id="portfolio-brief-holding">Loading holdings…</p>
                         </div>
                     </div>
                 </aside>
@@ -737,64 +733,83 @@
         return idx < 0 ? 0 : idx;
     }
 
+    function describeBenchmarkGap(portfolio, benchmark, currency) {
+        if (portfolio.length < 2 || portfolio.length !== benchmark.length
+            || ![...portfolio, ...benchmark].every(value => Number.isFinite(value) && value > 0)) {
+            return 'Benchmark breakdown unavailable for these dates.';
+        }
+
+        const up = {label:'up', change:0, count:0};
+        const down = {label:'down', change:0, count:0};
+        const flat = {label:'flat', change:0, count:0};
+        for (let i = 1; i < portfolio.length; i++) {
+            const benchmarkMove = benchmark[i] - benchmark[i - 1];
+            const day = benchmarkMove > 0 ? up : benchmarkMove < 0 ? down : flat;
+            // Changes in the gap are measured from common starting dates and sum to the period's excess return.
+            day.change += ((portfolio[i] - portfolio[i - 1]) / portfolio[0] - benchmarkMove / benchmark[0]) * 100;
+            day.count++;
+        }
+
+        const ranked = [down, up, flat].filter(day => day.count)
+            .sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
+        const impact = day => {
+            if (Math.abs(day.change) < 0.005) return 'barely moved the gap';
+            const points = Math.abs(day.change).toFixed(2);
+            return day.change > 0 ? `added ${points}pp to relative performance` : `cost the portfolio ${points}pp relative to the benchmark`;
+        };
+        const [main, ...otherDays] = ranked;
+        return [
+            `S&P 500 ${main.label} days in ${currency} ${impact(main)}.`,
+            ...otherDays.filter(day => day.label !== 'flat' || Math.abs(day.change) >= 0.005)
+                .map(day => `${day.label[0].toUpperCase()}${day.label.slice(1)} days ${impact(day)}.`)
+        ].join(' ');
+    }
+
+    function describeHoldingBreadth(period) {
+        const positions = (period.components || [])
+            .filter(row => row.symbol && Number.isFinite(row.contribution_pp));
+        const gains = positions.filter(row => row.contribution_pp > 0);
+        const losses = positions.filter(row => row.contribution_pp < 0);
+        const total = rows => rows.reduce((sum, row) => sum + Math.abs(row.contribution_pp), 0);
+        const gainTotal = total(gains);
+        const lossTotal = total(losses);
+        if (!gainTotal && !lossTotal) return 'No positions contributed to the move.';
+
+        const wasGain = gainTotal >= lossTotal;
+        const movers = (wasGain ? gains : losses).sort((a, b) => Math.abs(b.contribution_pp) - Math.abs(a.contribution_pp));
+        const direction = wasGain ? 'gains' : 'losses';
+        const breadth = `${movers.length} of ${positions.length} positions ${wasGain ? 'helped returns' : 'detracted from returns'}.`;
+        if (movers.length === 1) return `${breadth} ${movers[0].symbol} contributed ${fmtPp(movers[0].contribution_pp)}.`;
+
+        const leaders = movers.slice(0, 2);
+        const share = Math.round(100 * total(leaders) / (wasGain ? gainTotal : lossTotal));
+        const offset = (wasGain ? lossTotal : gainTotal) > 0 ? `, before ${wasGain ? 'losses' : 'gains'} elsewhere` : '';
+        return `${breadth} ${leaders.map(row => row.symbol).join(' and ')} accounted for ${share}% of position ${direction}${offset}.`;
+    }
+
     function renderPortfolioBrief() {
         if (!portfolioSnapshot) return;
-        const {dates, portfolio, sp500} = portfolioData;
+        const {dates, portfolio, sp500, baseCurrency} = portfolioData;
         const start = rangeStartIndex('1M');
-        const end = dates.length - 1;
         const startDate = dates[start];
-        const endDate = dates[end];
+        const endDate = dates.at(-1);
         const dateEl = document.getElementById('portfolio-brief-date');
-        const returnEl = document.getElementById('portfolio-brief-return');
+        const benchmarkEl = document.getElementById('portfolio-brief-benchmark');
         const driversEl = document.getElementById('portfolio-brief-drivers');
-        const holdingEl = document.getElementById('portfolio-brief-holding');
-        const returnFor = series => {
-            const first = series[start];
-            const last = series[end];
-            return start < end && Number.isFinite(first) && first > 0 && Number.isFinite(last)
-                ? (last / first - 1) * 100
-                : null;
-        };
 
-        const portfolioReturn = returnFor(portfolio);
-        const benchmarkReturn = returnFor(sp500);
-        if (portfolioReturn !== null) {
-            dateEl.textContent = `${prettyDate(startDate)} to ${prettyDate(endDate)}`;
-            returnEl.textContent = benchmarkReturn === null
-                ? `Portfolio ${fmtPct(portfolioReturn)} · benchmark unavailable`
-                : `${fmtPct(portfolioReturn)} vs ${fmtPct(benchmarkReturn)} · ${fmtPp(portfolioReturn - benchmarkReturn)}`;
-        } else {
-            dateEl.textContent = endDate ? `As of ${prettyDate(endDate)}` : 'Latest month';
-            returnEl.textContent = 'Monthly performance unavailable.';
-        }
+        dateEl.textContent = startDate && startDate !== endDate
+            ? `${prettyDate(startDate)} to ${prettyDate(endDate)}`
+            : endDate ? `As of ${prettyDate(endDate)}` : 'Latest month';
+        benchmarkEl.textContent = portfolio.length === dates.length && sp500.length === dates.length
+            ? describeBenchmarkGap(portfolio.slice(start), sp500.slice(start), baseCurrency)
+            : 'Benchmark breakdown unavailable for these dates.';
 
         if (attributionLoaded) {
             const period = attributionData?.periods?.['1M'];
-            if (portfolioReturn !== null && period?.start_date === startDate && period?.end_date === endDate) {
-                const ranked = (period.components || [])
-                    .filter(row => row.symbol && Number.isFinite(row.contribution_pp) && Math.abs(row.contribution_pp) >= 0.005)
-                    .sort((a, b) => b.contribution_pp - a.contribution_pp);
-                const best = ranked[0];
-                const worst = ranked.at(-1);
-                const drivers = [
-                    best?.contribution_pp > 0 ? `${best.symbol} ${fmtPp(best.contribution_pp)}` : null,
-                    worst?.contribution_pp < 0 ? `${worst.symbol} ${fmtPp(worst.contribution_pp)}` : null
-                ].filter(Boolean);
-                driversEl.textContent = drivers.join(' · ') || 'No material holding contributions.';
-            } else {
-                driversEl.textContent = 'Attribution unavailable for these dates.';
-            }
-        }
-
-        const holding = (portfolioSnapshot?.holdings || [])
-            .filter(row => row.symbol && Number.isFinite(row.weight_pct) && row.weight_pct > 0)
-            .sort((a, b) => b.weight_pct - a.weight_pct)[0];
-        holdingEl.textContent = holding
-            ? `${holding.symbol} · ${holding.weight_pct.toFixed(1)}% of portfolio`
-            : 'No invested holdings.';
-        const pricedAt = Date.parse(portfolioSnapshot?.pricing_timestamp);
-        if (holding && Number.isFinite(pricedAt)) {
-            holdingEl.title = `Holdings snapshot calculated ${new Date(pricedAt).toLocaleString('en-GB', {timeZone:'Europe/London'})} UK time`;
+            driversEl.textContent = period && startDate && startDate !== endDate
+                && period.start_date === startDate && period.end_date === endDate
+                ? describeHoldingBreadth(period)
+                : 'Attribution unavailable for these dates.';
         }
     }
 
@@ -2427,7 +2442,7 @@
             const sp500 = performance.benchmarks['^SP500TR']?.values || [];
             const nasdaq = performance.benchmarks['QQQ']?.values || [];
             const vwrl = performance.benchmarks['VWRL.L']?.values || [];
-            portfolioData = {dates:performance.dates || [], portfolio:performance.portfolio || [], sp500, nasdaq, vwrl};
+            portfolioData = {dates:performance.dates || [], portfolio:performance.portfolio || [], sp500, nasdaq, vwrl, baseCurrency:performance.base_currency || snapshot.base_currency || 'GBP'};
 
             document.getElementById('portfolio-name').textContent = info.name;
             document.getElementById('portfolio-description').textContent = info.description || '';
@@ -2454,9 +2469,8 @@
             if (currentPortfolioLabTab) ensurePortfolioLabData(currentPortfolioLabTab);
         } catch (error) {
             console.error('SethiPortfolio core load failed:', error);
-            document.getElementById('portfolio-brief-return').textContent = 'Performance temporarily unavailable.';
+            document.getElementById('portfolio-brief-benchmark').textContent = 'Performance temporarily unavailable.';
             document.getElementById('portfolio-brief-drivers').textContent = 'Attribution temporarily unavailable.';
-            document.getElementById('portfolio-brief-holding').textContent = 'Holdings temporarily unavailable.';
             document.getElementById('data-status').textContent = 'Live data temporarily unavailable · please retry shortly';
             document.getElementById('performance-chart').innerHTML = '<div class="h-full flex items-center justify-center text-sm text-gray-400">Unable to load live portfolio data.</div>';
             document.getElementById('holdings-table').innerHTML = '<tr><td colspan="6" class="px-5 py-8 text-center text-gray-400">Unable to load holdings.</td></tr>';

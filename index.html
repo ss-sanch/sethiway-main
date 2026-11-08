@@ -12,6 +12,7 @@
         @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
     </style>
     <link rel="stylesheet" href="sethiway-header.css?v=1">
+    <script src="sethiway-members.js" defer></script>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased">
 
@@ -29,7 +30,7 @@
                 <button type="button" class="site-header__button site-header__menu" popovertarget="site-header-menu">
                     <span class="site-header__menu-label">Menu</span>
                 </button>
-                <button type="button" onclick="openAdminModal()" class="site-header__button site-header__primary">Sign In</button>
+                <a href="account.html" data-member-link class="site-header__button site-header__primary">Sign In</a>
             </div>
             <div id="site-header-menu" class="site-header__panel" popover aria-label="SethiWay navigation links"
                 onclick="if (event.target.closest('a, button')) this.hidePopover()">
@@ -587,6 +588,8 @@
         window.location.href = 'admin.html';
     });
 
+    if (window.location.hash === '#owner-tools') openAdminModal();
+
     const launcherForm = document.getElementById('stock-launcher');
     const launcherTicker = document.getElementById('launcher-ticker');
     const launcherError = document.getElementById('launcher-error');
@@ -713,6 +716,7 @@
     const hubWatchlistItems = document.getElementById('hub-watchlist-items');
 
     function getHubWatchlist() {
+        if (window.SethiWayMembers) return window.SethiWayMembers.readWatchlist().slice(0, 6);
         try {
             const saved = JSON.parse(localStorage.getItem('sethiWatchlist') || '[]');
             if (!Array.isArray(saved)) return [];
@@ -747,6 +751,7 @@
     }
 
     renderHubWatchlist();
+    window.addEventListener('sethiway:member-change', renderHubWatchlist);
     window.addEventListener('storage', event => {
         if (event.key === 'sethiWatchlist') renderHubWatchlist();
     });

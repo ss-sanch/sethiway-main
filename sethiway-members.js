@@ -7,8 +7,8 @@
     const guestKey = 'sethiWatchlist';
     const syncKey = 'sethiway-member-watchlist-change';
     const watchlistTable = 'sethiway_member_watchlist';
-    const ownerView = location.pathname.endsWith('/account.html')
-        && ['owner', 'preview'].includes(new URLSearchParams(location.search).get('view'));
+    const ownerView = location.pathname.endsWith('/admin.html') || (location.pathname.endsWith('/account.html')
+        && ['owner', 'preview'].includes(new URLSearchParams(location.search).get('view')));
     const tickerPattern = /^[A-Z0-9.^=-]{1,20}$/;
 
     let clientPromise;
@@ -159,6 +159,7 @@
 
     window.SethiWayMembers = {
         connect, readWatchlist, guestTickers, setTicker, importGuestWatchlist,
+        hasStoredSession: () => Boolean(readStorage(sessionKey)),
         get session() { return session; },
         get watchlistError() { return accountError; }
     };

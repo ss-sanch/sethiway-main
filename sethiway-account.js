@@ -81,7 +81,7 @@
         }
         renderedUser = user?.id;
         const version = ++displayVersion;
-        for (const id of ['auth-panel', 'workspace', 'owner-panel', 'owner-link']) $(id).hidden = true;
+        for (const id of ['auth-panel', 'workspace', 'owner-link']) $(id).hidden = true;
         if (!user || mode === 'recovery') {
             $('auth-panel').hidden = false;
             message(needsOwner ? 'Sign in with the owner account to continue.' : '');
@@ -103,28 +103,17 @@
             $('owner-link').hidden = false;
             return;
         }
-        if (isPreview) {
-            $('member-identity').textContent = 'Demo member';
-            $('preview-controls').hidden = false;
-            $('leave-preview').hidden = false;
-            $('sign-out').hidden = true;
-            $('workspace').hidden = false;
-            message('');
-            renderWatchlist();
+        if (!isPreview) {
+            location.replace('admin.html');
             return;
         }
-        const { data, error: metricsError } = await client.rpc('sethiway_owner_metrics');
-        if (version !== displayVersion) return;
-        if (metricsError || !data) {
-            message('The dashboard could not load. Refresh to try again.');
-            return;
-        }
-        for (const [key, value] of Object.entries(data)) {
-            const field = $(key.replaceAll('_', '-'));
-            if (field && Number.isFinite(value)) field.textContent = value.toLocaleString('en-GB');
-        }
-        $('owner-panel').hidden = false;
+        $('member-identity').textContent = 'Demo member';
+        $('preview-controls').hidden = false;
+        $('leave-preview').hidden = false;
+        $('sign-out').hidden = true;
+        $('workspace').hidden = false;
         message('');
+        renderWatchlist();
     }
 
     function handleDisplayError() {

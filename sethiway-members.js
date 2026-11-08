@@ -1,182 +1,124 @@
 (() => {
     'use strict';
 
-    const url = 'https://gqqftksplktxfrilltsx.supabase.co';
-    const publishableKey = 'sb_publishable_zjKjFfN1wTq9ocpje09Z1A_xgLe0UiK';
-    const sessionKey = 'sethiway-member-session';
-    const guestKey = 'sethiWatchlist';
-    const syncKey = 'sethiway-member-watchlist-change';
-    const watchlistTable = 'sethiway_member_watchlist';
-    const ownerView = location.pathname.endsWith('/admin.html') || (location.pathname.endsWith('/account.html')
-        && ['owner', 'preview'].includes(new URLSearchParams(location.search).get('view')));
-    const tickerPattern = /^[A-Z0-9.^=-]{1,20}$/;
+    // This replacement exists only on the visual review branch.
+    if (!['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) return;
 
-    let clientPromise;
-    let session = null;
-    let memberTickers = [];
-    let accountError = null;
-    let refreshVersion = 0;
-
-    const readStorage = key => {
-        try { return localStorage.getItem(key); } catch { return null; }
+    const roleKey = 'sethiway-visual-review-role';
+    const roles = ['member', 'owner'];
+    const storedRole = sessionStorage.getItem(roleKey);
+    let role = roles.includes(storedRole) ? storedRole : null;
+    const notify = () => window.dispatchEvent(new Event('sethiway:member-change'));
+    const userSession = () => role ? {
+        user: { id: role, email: role + '@example.test' },
+        access_token: 'local-visual-review-' + role
+    } : null;
+    const watchlistKey = () => 'sethiway-visual-tickers-' + (role || 'guest');
+    const readWatchlist = () => JSON.parse(sessionStorage.getItem(watchlistKey())
+        || (role ? '["MSFT","VWRP.L"]' : '[]'));
+    const setRole = next => {
+        role = next;
+        if (next) sessionStorage.setItem(roleKey, next);
+        else sessionStorage.removeItem(roleKey);
+        notify();
     };
 
-    function guestTickers() {
-        try {
-            const items = JSON.parse(readStorage(guestKey) || '[]');
-            return Array.isArray(items) ? [...new Set(items.filter(item => typeof item === 'string' && tickerPattern.test(item)))] : [];
-        } catch {
-            return [];
-        }
-    }
-
-    function notify() {
-        window.dispatchEvent(new Event('sethiway:member-change'));
-    }
-
-    function readWatchlist() {
-        return session ? [...memberTickers] : guestTickers();
-    }
-
-    async function refreshWatchlist() {
-        if (!session || ownerView) return;
-        const accountId = session.user.id;
-        const version = ++refreshVersion;
-        const client = await connect();
-        if (session?.user.id !== accountId || version !== refreshVersion) return;
-        const { data, error } = await client.from(watchlistTable).select('ticker')
-            .eq('user_id', accountId).order('created_at').order('ticker');
-        if (session?.user.id !== accountId || version !== refreshVersion) return;
-        accountError = error ? 'Your saved tickers are temporarily unavailable.' : null;
-        if (!error) memberTickers = data.map(row => row.ticker);
-        notify();
-    }
-
-    function acceptSession(next, authEvent) {
-        if (next?.user.is_anonymous) next = null;
-        const changed = next?.user.id !== session?.user.id;
-        session = next;
-        if (changed) {
-            memberTickers = [];
-            accountError = null;
-            refreshVersion++;
-        }
-        if (authEvent === 'PASSWORD_RECOVERY') {
-            window.dispatchEvent(new Event('sethiway:password-recovery'));
-        }
-        if (changed || authEvent === 'INITIAL_SESSION') {
-            notify();
-            if (next) {
-                refreshWatchlist().catch(reportSyncError);
-                connect().then(client => client.rpc('sethiway_record_member_activity'))
-                    .then(({ error }) => { if (error) console.warn('Member activity could not be recorded.'); })
-                    .catch(() => {});
+    const fakeEmail = email => /^[a-z0-9._+-]+@example\.test$/i.test(email);
+    const fakeOnly = email => fakeEmail(email)
+        ? { data: { session: null } }
+        : { error: new Error('Use a sample email ending in @example.test for this preview.') };
+    const client = {
+        auth: {
+            async signInWithPassword({ email, password }) {
+                const requested = email.trim().toLowerCase().split('@')[0];
+                if (!fakeEmail(email) || !roles.includes(requested) || password !== 'demo-password') {
+                    return { error: new Error('Use a sample account.') };
+                }
+                setRole(requested);
+                return { data: { session: userSession() } };
+            },
+            async signUp({ email }) { return fakeOnly(email); },
+            async resetPasswordForEmail(email) { return fakeOnly(email); },
+            async signOut() { setRole(null); return {}; }
+        },
+        async rpc(name) {
+            if (name === 'sethiway_is_owner') return { data: role === 'owner' };
+            if (name === 'sethiway_owner_metrics' && role === 'owner') {
+                return { data: { verified_members: 12, active_members: 3, recorded_browsers: 8 } };
             }
+            return { error: { code: '42501' } };
         }
-    }
-
-    function reportSyncError() {
-        if (!session) return;
-        accountError = 'Your saved tickers are temporarily unavailable.';
-        notify();
-    }
-
-    function connect() {
-        if (!clientPromise) {
-            clientPromise = new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js';
-                script.integrity = 'sha384-uteMfOloLDGt042uDz+xHGF3ym63/WQ6rFq7murQRG8Ih7QrXGEGNtWd8688sb4O';
-                script.crossOrigin = 'anonymous';
-                script.onerror = () => reject(new Error('The account service could not load. Refresh to retry.'));
-                script.onload = async () => {
-                    try {
-                        const client = window.supabase.createClient(url, publishableKey, {
-                            auth: { storageKey: sessionKey, flowType: 'pkce' }
-                        });
-                        const { data, error } = await client.auth.getSession();
-                        if (error && !['session_not_found', 'refresh_token_not_found'].includes(error.code)) throw error;
-                        acceptSession(data.session, 'INITIAL_SESSION');
-                        client.auth.onAuthStateChange((event, next) => {
-                            // Run outside the Auth callback so follow-up queries can use the session.
-                            setTimeout(() => acceptSession(next, event), 0);
-                        });
-                        resolve(client);
-                    } catch (error) {
-                        reject(error);
-                    }
-                };
-                document.head.append(script);
-            });
-        }
-        return clientPromise;
-    }
-
-    async function setTicker(ticker, save) {
-        if (!tickerPattern.test(ticker)) throw new Error('Enter a valid ticker.');
-        if (clientPromise || readStorage(sessionKey)) await connect();
-        const accountId = session?.user.id;
-        if (!accountId) {
-            const tickers = guestTickers().filter(item => item !== ticker);
-            localStorage.setItem(guestKey, JSON.stringify(save ? [...tickers, ticker] : tickers));
-            notify();
-            return;
-        }
-        const client = await connect();
-        if (session?.user.id !== accountId) throw new Error('Your account changed. Try again.');
-        const query = client.from(watchlistTable);
-        const { error } = await (save
-            ? query.upsert({ ticker }, { onConflict: 'user_id,ticker', ignoreDuplicates: true })
-            : query.delete().eq('user_id', accountId).eq('ticker', ticker));
-        if (error) throw new Error('Could not update your watchlist. Try again.');
-        if (session?.user.id === accountId) {
-            memberTickers = memberTickers.filter(item => item !== ticker);
-            if (save) memberTickers.push(ticker);
-            accountError = null;
-            notify();
-            announceChange();
-            await refreshWatchlist();
-        }
-    }
-
-    function announceChange() {
-        try { localStorage.setItem(syncKey, String(Date.now())); } catch { /* optional tab sync */ }
-    }
-
-    async function importGuestWatchlist() {
-        const tickers = guestTickers();
-        if (!session || !tickers.length) return;
-        const accountId = session.user.id;
-        const client = await connect();
-        if (session?.user.id !== accountId) return;
-        const { error } = await client.from(watchlistTable).upsert(tickers.map(ticker => ({ ticker })), {
-            onConflict: 'user_id,ticker', ignoreDuplicates: true
-        });
-        if (error) throw new Error('Could not import your watchlist. Try again.');
-        announceChange();
-        await refreshWatchlist();
-    }
-
-    window.SethiWayMembers = {
-        connect, readWatchlist, guestTickers, setTicker, importGuestWatchlist,
-        hasStoredSession: () => Boolean(readStorage(sessionKey)),
-        get session() { return session; },
-        get watchlistError() { return accountError; }
     };
-    window.addEventListener('storage', event => {
-        if (event.key === guestKey && !session) notify();
-        if (event.key === syncKey && session) refreshWatchlist().catch(reportSyncError);
-    });
-    document.addEventListener('visibilitychange', () => {
-        if (!document.hidden && session) refreshWatchlist().catch(reportSyncError);
-    });
+    window.SethiWayMembers = {
+        get session() { return userSession(); },
+        get watchlistError() { return null; },
+        hasStoredSession: () => Boolean(role),
+        connect: async () => client,
+        readWatchlist,
+        guestTickers: () => [],
+        async setTicker(ticker, save) {
+            if (!/^[A-Z0-9.^=-]{1,20}$/.test(ticker)) throw new Error('Enter a valid ticker.');
+            const tickers = readWatchlist().filter(item => item !== ticker);
+            if (save) tickers.push(ticker);
+            sessionStorage.setItem(watchlistKey(), JSON.stringify(tickers));
+            notify();
+        }
+    };
 
-    function updateAccountLinks() {
+    const fetchLive = window.fetch.bind(window);
+    window.fetch = (input, init) => {
+        const url = new URL(typeof input === 'string' ? input : (input.url || input.href), location.href);
+        if (url.pathname === '/api/admin/telemetry') {
+            const owner = role === 'owner' && new Headers(init?.headers).get('Authorization') === 'Bearer local-visual-review-owner';
+            return Promise.resolve(Response.json(owner ? {
+                total_events: 20,
+                project_breakdown: { SethiStock: 10, SethiMacro: 6, SethiQuant: 4 },
+                top_tickers: [{ ticker: 'MSFT', count: 8 }, { ticker: 'AAPL', count: 6 }],
+                recent_logs: [{ project: 'SethiStock', action: 'search', ticker: 'MSFT', created_at: new Date().toISOString() }],
+                markowitz_logs: [],
+                load_performance: { samples: 3, avg_quote_ms: 450, avg_full_ms: 1400 },
+                recent_stock_loads: [],
+                ticker_loads: []
+            } : {}, { status: owner ? 200 : 403 }));
+        }
+        if (location.pathname.endsWith('/admin.html') && ['/openapi.json', '/api/pillar-jobs'].includes(url.pathname)) {
+            return Promise.resolve(Response.json({}));
+        }
+        if (url.pathname.includes('/api/telemetry') || url.hostname === 'api.web3forms.com') {
+            return Promise.resolve(Response.json({ preview: true }));
+        }
+        const method = String(init?.method || input.method || 'GET').toUpperCase();
+        if (url.origin !== location.origin && !['GET', 'HEAD'].includes(method)) {
+            return Promise.resolve(Response.json({ error: 'External submissions are disabled in the local preview.' }, { status: 403 }));
+        }
+        return fetchLive(input, init);
+    };
+
+    const banner = document.createElement('aside');
+    banner.setAttribute('aria-label', 'Local visual review');
+    banner.style.cssText = 'display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;padding:.8rem 1.25rem;background:#eff6ff;color:#1e3a8a;border-bottom:1px solid #bfdbfe;font:600 14px system-ui';
+    const label = document.createElement('span');
+    label.textContent = 'Local visual review · Sample accounts and metrics';
+    banner.append(label);
+    for (const [next, text, href] of [['member', 'Try as member', 'account.html'], ['owner', 'Try as owner', 'admin.html'], [null, 'Open sign-in form', 'account.html']]) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = text;
+        button.style.cssText = 'padding:.4rem .65rem;background:white;border:1px solid #bfdbfe;border-radius:.4rem;cursor:pointer';
+        button.addEventListener('click', () => {
+            if (next) sessionStorage.setItem(roleKey, next);
+            else sessionStorage.removeItem(roleKey);
+            location.assign(href);
+        });
+        banner.append(button);
+    }
+    document.body.prepend(banner);
+    function updateLinks() {
         document.querySelectorAll('[data-member-link]').forEach(link => {
-            link.textContent = session ? 'My Workspace' : 'Sign In';
+            link.textContent = role ? 'My Workspace' : 'Sign In';
         });
     }
-    window.addEventListener('sethiway:member-change', updateAccountLinks);
+    window.addEventListener('sethiway:member-change', updateLinks);
+    updateLinks();
     notify();
-    if (readStorage(sessionKey)) connect().catch(() => {});
 })();

@@ -6,13 +6,14 @@
     <title>Sethiway | Telemetry Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <script src="sethiway-members.js" defer></script>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased min-h-screen flex flex-col">
 
     <!-- INITIALIZING SCREEN -->
     <div id="loading-screen" class="flex-grow flex flex-col items-center justify-center transition-opacity duration-500">
         <svg class="animate-spin w-10 h-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-        <p class="text-sm font-bold text-gray-500 uppercase tracking-widest">Decrypting Vault...</p>
+        <p class="text-sm font-bold text-gray-500 uppercase tracking-widest">Checking dashboard access…</p>
     </div>
 
     <!-- ERROR SCREEN (IF BYPASS ATTEMPTED) -->
@@ -22,7 +23,8 @@
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z"></path></svg>
             </div>
             <h2 class="text-2xl font-black text-gray-900 mb-2">Access Denied</h2>
-            <p class="text-gray-500 mb-6">You must authenticate through the Sethiway Hub.</p>
+            <p id="admin-access-message" class="text-gray-500 mb-6">Sign in with the SethiWay owner account.</p>
+            <a href="account.html?view=owner" class="inline-flex px-6 py-3 bg-blue-600 text-white font-bold rounded-lg mb-2">Owner sign in</a>
             <a href="index.html" class="px-6 py-3 bg-gray-900 text-white font-bold rounded-lg hover:bg-gray-800 transition">Return to Hub</a>
         </div>
     </div>
@@ -35,8 +37,9 @@
                 <h1 class="text-4xl font-black tracking-tight text-gray-900">Telemetry <span class="text-blue-600">Command Center</span></h1>
                 <p class="text-gray-500 font-semibold uppercase tracking-widest text-sm mt-1">Live Global Analytics</p>
             </div>
-            <div class="flex items-end gap-6">
+            <div class="flex flex-wrap items-end gap-6">
                 <div class="flex flex-col gap-2">
+                    <a id="preview-member-link" href="account.html?view=preview" class="hidden rounded-lg border border-blue-100 bg-blue-50 px-4 py-2 text-center text-sm font-bold text-blue-700">View as member</a>
                     <!-- Refresh Button -->
                     <button onclick="refreshDashboard()" id="refresh-btn" class="flex justify-center items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-bold text-sm transition-colors border border-blue-100 shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
@@ -51,16 +54,27 @@
                 
                 <div class="flex items-end gap-8 text-right border-l border-gray-200 pl-8 ml-4">
                     <div>
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Unique Visitors</p>
-                        <p id="unique-visitors" class="text-4xl font-black text-gray-900">0</p>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Recorded browsers · 30 days</p>
+                        <p id="unique-visitors" class="text-4xl font-black text-gray-900">—</p>
                     </div>
                     <div>
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Visits</p>
-                        <p id="total-events" class="text-4xl font-black text-blue-600">0</p>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Recent events</p>
+                        <p id="total-events" class="text-4xl font-black text-blue-600">—</p>
                     </div>
                 </div>
             </div>
         </div>
+
+        <section id="membership-panel" class="hidden mb-8 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm" aria-labelledby="membership-title">
+            <h2 id="membership-title" class="text-lg font-black">Membership</h2>
+            <dl class="mt-4 grid gap-3 sm:grid-cols-2">
+                <div class="rounded-xl border border-gray-200 p-4"><dt class="text-sm font-semibold text-gray-600">Verified members</dt><dd id="verified-members" class="mt-1 text-3xl font-black">—</dd></div>
+                <div class="rounded-xl border border-gray-200 p-4"><dt class="text-sm font-semibold text-gray-600">Active members · 30 days</dt><dd id="active-members" class="mt-1 text-3xl font-black">—</dd></div>
+            </dl>
+            <p class="mt-3 text-sm text-gray-600">Member counts exclude the owner. Recorded browsers count browser IDs in the available page-view logs.</p>
+        </section>
+        <p id="admin-telemetry-status" role="status" class="hidden mb-4 text-sm font-semibold text-gray-600"></p>
+        <div id="admin-telemetry" class="hidden">
 
         <!-- SERVICE HEALTH -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 mb-8">
@@ -275,43 +289,44 @@
 
         </div>
 
+    </div>
+
     <!-- THE JAVASCRIPT ENGINE -->
     <script>
         const API_BASE = "https://sethistock-api.onrender.com"; 
-        const masterSecret = localStorage.getItem('sethiway_vault_key');
+        const $ = id => document.getElementById(id);
+        let activeUserId;
+        let refreshVersion = 0;
 
-        // Execute immediately on page load
-        window.onload = async () => {
-            if (!masterSecret) {
-                // If they bypassed index.html, block them immediately
-                document.getElementById('loading-screen').classList.add('hidden');
-                document.getElementById('error-screen').classList.remove('hidden');
-                return;
-            }
-            await fetchAndRender();
-        };
-
-        async function fetchAndRender() {
-            try {
-                const res = await fetch(`${API_BASE}/api/admin/telemetry?secret=${encodeURIComponent(masterSecret)}`);
-                
-                if (!res.ok) throw new Error("Unauthorized");
-                
-                const data = await res.json();
-                
-                // Hide loader and smoothly fade in dashboard
-                document.getElementById('loading-screen').classList.add('hidden');
-                document.getElementById('dashboard-screen').classList.remove('hidden');
-                
-                renderDashboard(data);
-                checkServiceHealth();
-            } catch (error) {
-                // If the stored password is wrong or expired
-                document.getElementById('loading-screen').classList.add('hidden');
-                document.getElementById('error-screen').classList.remove('hidden');
-                localStorage.removeItem('sethiway_vault_key');
-            }
+        function accessDenied(message) {
+            $('loading-screen').classList.add('hidden');
+            $('dashboard-screen').classList.add('hidden');
+            $('error-screen').classList.remove('hidden');
+            $('admin-access-message').textContent = message;
         }
+
+        function renderMembership(metrics) {
+            for (const [id, key] of [['verified-members', 'verified_members'], ['active-members', 'active_members'], ['unique-visitors', 'recorded_browsers']]) {
+                $(id).textContent = Number.isFinite(metrics[key]) ? metrics[key].toLocaleString('en-GB') : '—';
+            }
+            $('membership-panel').classList.remove('hidden');
+            $('preview-member-link').classList.remove('hidden');
+        }
+
+        function showDashboard() {
+            $('loading-screen').classList.add('hidden');
+            $('error-screen').classList.add('hidden');
+            $('dashboard-screen').classList.remove('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.addEventListener('sethiway:member-change', () => {
+                const nextUserId = window.SethiWayMembers.session?.user.id;
+                if (nextUserId === activeUserId) return;
+                refreshDashboard();
+            });
+            refreshDashboard();
+        });
 
         const SERVICE_HEALTH_CACHE_KEY = 'sethiwayAdminServiceHealth';
         const SERVICE_HEALTH_CACHE_MS = 5 * 60 * 1000;
@@ -401,32 +416,89 @@
         }
 
         async function refreshDashboard() {
-            if (!masterSecret) return;
-            
-            const textEl = document.getElementById('refresh-text');
-            const btn = document.getElementById('refresh-btn');
-            
-            textEl.innerText = "Syncing...";
-            btn.classList.add('animate-pulse');
-            
+            const version = ++refreshVersion;
+            const members = window.SethiWayMembers;
+            const btn = $('refresh-btn');
+            const textEl = $('refresh-text');
+            const diagnosticStatus = $('admin-telemetry-status');
+            const legacySecret = localStorage.getItem('sethiway_vault_key');
+            let ownerAuthenticated = false;
+            btn.disabled = true;
+            textEl.textContent = 'Refreshing…';
+            $('dashboard-screen').classList.add('hidden');
+            $('error-screen').classList.add('hidden');
+            $('loading-screen').classList.remove('hidden');
+            for (const id of ['membership-panel', 'preview-member-link', 'admin-telemetry', 'admin-telemetry-status']) {
+                $(id).classList.add('hidden');
+            }
+            for (const id of ['verified-members', 'active-members', 'unique-visitors', 'total-events']) {
+                $(id).textContent = '—';
+            }
+
             try {
-                const res = await fetch(`${API_BASE}/api/admin/telemetry?secret=${encodeURIComponent(masterSecret)}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    renderDashboard(data); 
+                let headers;
+                if (members.hasStoredSession() || members.session || !legacySecret) {
+                    const client = await members.connect();
+                    if (version !== refreshVersion) return;
+                    activeUserId = members.session?.user.id;
+                    if (members.session) {
+                        const { data, error } = await client.rpc('sethiway_owner_metrics');
+                        if (version !== refreshVersion) return;
+                        if (error || !data) {
+                            accessDenied(error?.code === '42501' ? 'This dashboard is available to the site owner only.' : 'Owner access could not be checked. Please try again.');
+                            return;
+                        }
+                        ownerAuthenticated = true;
+                        renderMembership(data);
+                        showDashboard();
+                        headers = { Authorization: 'Bearer ' + members.session.access_token };
+                    }
                 }
-            } catch (error) {
-                console.error("Failed to refresh vault data.");
+                if (!headers && legacySecret) headers = { 'X-Admin-Secret': legacySecret };
+                if (!headers) {
+                    accessDenied('Sign in with the SethiWay owner account.');
+                    return;
+                }
+                const res = await fetch(API_BASE + '/api/admin/telemetry', { headers, cache: 'no-store', signal: AbortSignal.timeout(30000) });
+                if (version !== refreshVersion) return;
+                if (!res.ok) {
+                    if (!ownerAuthenticated && [401, 403].includes(res.status)) localStorage.removeItem('sethiway_vault_key');
+                    throw new Error('Diagnostics unavailable');
+                }
+                const data = await res.json();
+                if (version !== refreshVersion) return;
+                $('admin-telemetry').classList.remove('hidden');
+                showDashboard();
+                renderDashboard(data);
+                checkServiceHealth();
+            } catch {
+                if (version !== refreshVersion) return;
+                if (ownerAuthenticated) {
+                    diagnosticStatus.textContent = 'Service diagnostics are temporarily unavailable.';
+                    diagnosticStatus.classList.remove('hidden');
+                } else {
+                    accessDenied('Dashboard access could not be verified. Please sign in again.');
+                }
             } finally {
-                textEl.innerText = "Refresh Data";
-                btn.classList.remove('animate-pulse');
+                if (version === refreshVersion) {
+                    btn.disabled = false;
+                    textEl.textContent = 'Refresh Data';
+                }
             }
         }
 
-        function lockVault() {
-            // Delete the key from memory and redirect to homepage
+        async function lockVault() {
             localStorage.removeItem('sethiway_vault_key');
-            window.location.href = 'index.html';
+            try {
+                if (window.SethiWayMembers.session) {
+                    const client = await window.SethiWayMembers.connect();
+                    const { error } = await client.auth.signOut({ scope: 'local' });
+                    if (error) throw error;
+                }
+                location.replace('index.html');
+            } catch {
+                accessDenied('Could not sign out. Please try again.');
+            }
         }
 
         function formatLoadMs(value) {
@@ -443,8 +515,13 @@
             return 'bg-red-50 text-red-700 border-red-100';
         }
 
+        function escapeAdminText(value) {
+            return String(value).replace(/[&<>"']/g, character => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[character]);
+        }
+
         function renderDashboard(data) {
-            document.getElementById('unique-visitors').innerText = (data.unique_visitors || 0).toLocaleString();
             document.getElementById('total-events').innerText = (data.total_events || 0).toLocaleString();
 
             const perf = data.load_performance || {};
@@ -476,7 +553,7 @@
                     return `
                         <tr class="hover:bg-gray-50 transition">
                             <td class="py-2.5 px-3 font-mono text-[10px] text-gray-500 whitespace-nowrap">${timeStr}</td>
-                            <td class="py-2.5 px-3 font-black text-blue-700">${log.ticker || '--'}</td>
+                            <td class="py-2.5 px-3 font-black text-blue-700">${escapeAdminText(log.ticker || '--')}</td>
                             <td class="py-2.5 px-3 whitespace-nowrap">
                                 ${log.snapshot_hit === true
                                     ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold text-cyan-700 bg-cyan-50">Hit</span><span class="block text-[9px] text-gray-400 mt-1">${formatLoadMs(log.snapshot_ms)}</span>`
@@ -490,7 +567,7 @@
                                 <span class="block text-[9px] text-gray-400 mt-1">${serverWake}</span>
                             </td>
                             <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${sourceClass}">${source}</span></td>
-                            <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${loadStatusBadge(status)}">${status}</span></td>
+                            <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${loadStatusBadge(status)}">${escapeAdminText(status)}</span></td>
                         </tr>
                     `;
                 }).join('') : '<tr><td colspan="9" class="text-center py-8 text-gray-400 italic">No load telemetry yet.</td></tr>';
@@ -501,7 +578,7 @@
             if (tickerLoadsBody) {
                 tickerLoadsBody.innerHTML = tickerLoads.length ? tickerLoads.map(row => `
                     <tr class="hover:bg-gray-50 transition">
-                        <td class="py-2.5 px-3 font-black text-blue-700">${row.ticker}</td>
+                        <td class="py-2.5 px-3 font-black text-blue-700">${escapeAdminText(row.ticker)}</td>
                         <td class="py-2.5 px-3 font-bold text-gray-700">${Number(row.loads || 0)}</td>
                         <td class="py-2.5 px-3 font-semibold text-gray-600">${formatLoadMs(row.avg_quote_ms)}</td>
                         <td class="py-2.5 px-3 font-black text-gray-900">${formatLoadMs(row.avg_full_ms)}</td>
@@ -537,13 +614,13 @@
                     return `
                         <tr class="hover:bg-gray-50 transition">
                             <td class="py-2.5 px-3 font-mono text-[11px] text-gray-500">${timeStr}</td>
-                            <td class="py-2.5 px-3 font-bold text-gray-900">${log.project}</td>
+                            <td class="py-2.5 px-3 font-bold text-gray-900">${escapeAdminText(log.project)}</td>
                             <td class="py-2.5 px-3">
                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold ${log.action === 'search' ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-700'}">
-                                    ${log.action}
+                                    ${escapeAdminText(log.action)}
                                 </span>
                             </td>
-                            <td class="py-2.5 px-3 font-black text-indigo-600">${log.ticker || '--'}</td>
+                            <td class="py-2.5 px-3 font-black text-indigo-600">${escapeAdminText(log.ticker || '--')}</td>
                         </tr>
                     `;
                 }).join('');
@@ -561,7 +638,7 @@
                         let weightsHtml = '';
                         if (log.optimal_weights && typeof log.optimal_weights === 'object') {
                             weightsHtml = Object.entries(log.optimal_weights)
-                                .map(([t, w]) => `<span class="inline-block bg-gray-100 text-gray-800 text-[10px] font-bold px-1.5 py-0.5 rounded mr-1 mb-1">${t}: ${Number(w).toFixed(0)}%</span>`)
+                                .map(([t, w]) => `<span class="inline-block bg-gray-100 text-gray-800 text-[10px] font-bold px-1.5 py-0.5 rounded mr-1 mb-1">${escapeAdminText(t)}: ${Number(w).toFixed(0)}%</span>`)
                                 .join('');
                         } else {
                             weightsHtml = '<span class="text-gray-400 italic">--</span>';
@@ -570,11 +647,11 @@
                         return `
                             <tr class="hover:bg-gray-50 transition">
                                 <td class="py-2.5 px-3 font-mono text-[11px] text-gray-500">${timeStr}</td>
-                                <td class="py-2.5 px-3 font-bold text-gray-900">${log.searched_assets}</td>
-                                <td class="py-2.5 px-3 font-black text-indigo-600">${log.max_sharpe_ratio ?? '--'}</td>
+                                <td class="py-2.5 px-3 font-bold text-gray-900">${escapeAdminText(log.searched_assets)}</td>
+                                <td class="py-2.5 px-3 font-black text-indigo-600">${escapeAdminText(log.max_sharpe_ratio ?? '--')}</td>
                                 <td class="py-2.5 px-3 font-semibold text-gray-700 whitespace-nowrap">
-                                    <span class="text-emerald-600">+${log.expected_return ?? 0}%</span> / 
-                                    <span class="text-red-500">${log.volatility ?? 0}%</span>
+                                    <span class="text-emerald-600">+${escapeAdminText(log.expected_return ?? 0)}%</span> /
+                                    <span class="text-red-500">${escapeAdminText(log.volatility ?? 0)}%</span>
                                 </td>
                                 <td class="py-2.5 px-3">${weightsHtml}</td>
                             </tr>

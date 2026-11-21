@@ -30,17 +30,17 @@
     </div>
 
     <!-- THE LIVE DASHBOARD -->
-    <div id="dashboard-screen" class="hidden flex-grow p-6 md:p-10 max-w-[1600px] mx-auto w-full transition-opacity duration-700">
+    <div id="dashboard-screen" class="hidden flex-grow p-4 md:p-6 max-w-[1760px] mx-auto w-full transition-opacity duration-700">
         <!-- Header -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 border-b border-gray-200 pb-6 gap-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-4 border-b border-gray-200 pb-4 gap-4">
             <div>
                 <h1 class="text-4xl font-black tracking-tight text-gray-900">SethiWay <span class="text-blue-600">Admin</span></h1>
                 <nav aria-label="Admin sections" class="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold text-blue-700">
                     <a href="#overview">Overview</a><a href="#membership-panel">Members</a><a href="#service-health">Service Health</a><a href="#diagnostics">Diagnostics</a>
                 </nav>
             </div>
-            <div class="flex flex-wrap items-end gap-6">
-                <div class="flex flex-col gap-2">
+            <div class="flex flex-wrap items-end gap-3">
+                <div class="flex flex-wrap gap-2">
                     <a id="preview-member-link" href="account.html?view=preview" class="hidden rounded-lg border border-blue-100 bg-blue-50 px-4 py-2 text-center text-sm font-bold text-blue-700">View as member</a>
                     <!-- Refresh Button -->
                     <button onclick="refreshDashboard()" id="refresh-btn" class="flex justify-center items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-bold text-sm transition-colors border border-blue-100 shadow-sm">
@@ -57,9 +57,9 @@
             </div>
         </div>
 
-        <section id="overview" class="scroll-mt-4 mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm" aria-labelledby="overview-title">
+        <section id="overview" class="scroll-mt-4 mb-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm" aria-labelledby="overview-title">
             <h2 id="overview-title" class="text-lg font-black">Overview</h2>
-            <dl class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <dl class="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                 <div class="rounded-xl bg-blue-50 p-4"><dt class="text-sm font-semibold text-gray-700">Verified members</dt><dd id="verified-members" class="mt-1 text-3xl font-black text-blue-800">—</dd></div>
                 <div class="rounded-xl bg-blue-50 p-4"><dt class="text-sm font-semibold text-gray-700">Active members · 30 days</dt><dd id="active-members" class="mt-1 text-3xl font-black text-blue-800">—</dd></div>
                 <div class="rounded-xl bg-gray-50 p-4"><dt class="text-sm font-semibold text-gray-700">Recorded browsers · 30 days</dt><dd id="unique-visitors" class="mt-1 text-3xl font-black">—</dd></div>
@@ -67,16 +67,14 @@
             </dl>
             <p class="mt-3 text-sm text-gray-600">Member counts exclude the owner. Recorded browsers count browser IDs, including signed-out visits.</p>
         </section>
-        <section id="membership-panel" class="hidden scroll-mt-4 mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm" aria-labelledby="membership-title">
+        <div class="mb-4 grid items-stretch gap-3 lg:grid-cols-3">
+        <section id="membership-panel" class="hidden scroll-mt-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm" aria-labelledby="membership-title">
             <h2 id="membership-title" class="text-lg font-black">Members</h2>
             <ul id="recent-members" class="mt-3 divide-y divide-gray-100 text-sm" aria-label="Recent sample sign-ups"></ul>
         </section>
-        <p id="admin-telemetry-status" role="status" class="hidden mb-4 text-sm font-semibold text-gray-600"></p>
-        <div id="admin-telemetry" class="hidden">
-
         <!-- SERVICE HEALTH -->
-        <section id="service-health" aria-labelledby="service-health-title" class="scroll-mt-4 bg-white rounded-2xl shadow-sm border border-gray-200 p-5 mb-6">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <section id="service-health" aria-labelledby="service-health-title" class="scroll-mt-4 bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
+            <div class="flex flex-wrap items-start justify-between gap-2">
                 <div>
                     <h2 id="service-health-title" class="text-lg font-black text-gray-900">Service Health</h2>
                     <p class="text-xs text-gray-400 mt-1">Backends used by the public SethiWay tools.</p>
@@ -86,7 +84,7 @@
                     <button id="service-health-recheck" type="button" onclick="checkServiceHealth(true)" class="px-3 py-2 rounded-lg bg-gray-900 text-white text-xs font-black hover:bg-blue-600 transition">Recheck</button>
                 </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-5">
+            <div class="grid gap-2 mt-3">
                 <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 flex items-center justify-between gap-4">
                     <div><p class="text-sm font-black text-gray-900">SethiMacro</p><p class="text-xs text-gray-400 mt-0.5">Macro data service</p></div>
                     <div class="flex items-center gap-2"><span id="service-macro-dot" class="h-2 w-2 rounded-full bg-gray-300"></span><span id="service-macro-label" class="text-xs font-bold text-gray-500">Waiting</span></div>
@@ -97,6 +95,18 @@
                 </div>
             </div>
         </section>
+
+        <section aria-labelledby="activity-title" class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <h2 id="activity-title" class="text-lg font-black">Activity Snapshot</h2>
+            <dl class="mt-2 divide-y divide-slate-100 text-sm">
+                <div class="flex justify-between gap-2 py-2"><dt class="text-slate-600">Top searched ticker</dt><dd id="summary-ticker" class="font-semibold">—</dd></div>
+                <div class="flex justify-between gap-2 py-2"><dt class="text-slate-600">Average stock load</dt><dd id="summary-load" class="font-semibold">—</dd></div>
+                <div class="flex justify-between gap-2 py-2"><dt class="text-slate-600">Stock load samples</dt><dd id="summary-samples" class="font-semibold">—</dd></div>
+            </dl>
+        </section>
+        </div>
+        <p id="admin-telemetry-status" role="status" class="hidden mb-4 text-sm font-semibold text-gray-600"></p>
+        <div id="admin-telemetry" class="hidden">
 
         <details id="diagnostics" class="scroll-mt-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
         <summary class="mb-4 cursor-pointer text-lg font-black">Diagnostics</summary>
@@ -451,7 +461,7 @@
             for (const id of ['membership-panel', 'preview-member-link', 'admin-telemetry', 'admin-telemetry-status']) {
                 $(id).classList.add('hidden');
             }
-            for (const id of ['verified-members', 'active-members', 'unique-visitors', 'total-events']) {
+            for (const id of ['verified-members', 'active-members', 'unique-visitors', 'total-events', 'summary-ticker', 'summary-load', 'summary-samples']) {
                 $(id).textContent = '—';
             }
 
@@ -542,6 +552,10 @@
         }
 
         function renderDashboard(data) {
+            const summary = data.load_performance || {};
+            $('summary-ticker').textContent = data.top_tickers?.[0]?.ticker || '—';
+            $('summary-load').textContent = Number.isFinite(summary.avg_full_ms) ? (summary.avg_full_ms / 1000).toFixed(2) + ' s' : '—';
+            $('summary-samples').textContent = Number.isFinite(summary.samples) ? summary.samples.toLocaleString('en-GB') : '—';
             document.getElementById('total-events').innerText = (data.total_events || 0).toLocaleString();
 
             const perf = data.load_performance || {};

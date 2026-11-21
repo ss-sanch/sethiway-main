@@ -2,15 +2,16 @@
     'use strict';
 
     const modules = {
-        stocks: 'Stocks',
+        stocks: 'Watchlist',
+        portfolio: 'My Portfolio',
         macro: 'Macro',
         tools: 'Pinned Tools'
     };
     const topics = {
-        inflation: ['Inflation', 'sethimacro.html#chart-inflation'],
-        rates: ['Central bank rates', 'sethimacro.html#chart-cb-rates'],
-        jobs: ['Labour market', 'sethimacro.html#job-market'],
-        currencies: ['Currencies', 'sethimacro.html#currencies']
+        inflation: ['UK inflation', 'sethimacro.html#chart-inflation', 'Example headline · UK price growth slows', 'CPI · 2.6% y/y vs 2.7% prior'],
+        rates: ['US central bank rates', 'sethimacro.html#chart-cb-rates', 'Example headline · Fed leaves rates unchanged', 'Fed target range · 3.75–4.00%'],
+        jobs: ['US labour market', 'sethimacro.html#job-market', 'Example headline · US hiring picks up', 'Non-farm payrolls · +145k vs +125k prior'],
+        currencies: ['Currencies', 'sethimacro.html#currencies', 'Example headline · Sterling strengthens', 'GBP/USD · 1.32']
     };
     const tools = {
         dcf: ['Reverse DCF', 'sethistock.html?ticker=MSFT#valuation'],
@@ -24,14 +25,26 @@
         const list = $(id);
         list.replaceChildren();
         for (const key of selected) {
-            const [label, href] = choices[key];
+            const [label, href, kind, reading] = choices[key];
             const row = document.createElement('li');
             row.className = 'py-2.5';
             const link = document.createElement('a');
             link.className = 'text-sm font-semibold text-blue-700 hover:underline';
             link.textContent = label;
             link.href = href;
+            if (kind) {
+                const context = document.createElement('p');
+                context.className = 'mb-1 text-xs font-medium text-slate-600';
+                context.textContent = kind;
+                row.append(context);
+            }
             row.append(link);
+            if (reading) {
+                const metric = document.createElement('p');
+                metric.className = 'mt-1 text-xs tabular-nums text-slate-700';
+                metric.textContent = reading;
+                row.append(metric);
+            }
             list.append(row);
         }
         if (!selected.length) {
@@ -53,8 +66,15 @@
         return control;
     }
 
+    $('customise-workspace').addEventListener('click', () => {
+        const settings = $('workspace-settings');
+        settings.open = true;
+        settings.querySelector('summary').focus();
+        settings.scrollIntoView({ block: 'start' });
+    });
+
     window.initialiseWorkspace = userId => {
-        const storageKey = 'sethiway-visual-workspace-' + userId;
+        const storageKey = 'sethiway-visual-workspace-v2-' + userId;
         const stored = sessionStorage.getItem(storageKey);
         const prefs = stored ? JSON.parse(stored) : {
             order: Object.keys(modules),
@@ -127,5 +147,6 @@
         }
         renderModules();
         renderOrderControls();
+        window.initialisePreviewPortfolio(userId);
     };
 })();

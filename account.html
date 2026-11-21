@@ -10,7 +10,19 @@
     <link rel="stylesheet" href="sethiway-header.css?v=1">
     <style>
         [hidden] { display: none !important; }
-        #workspace-settings { scroll-margin-top: 5rem; }
+        #workspace-modules[data-editing] { grid-template-columns: minmax(0, 1fr); }
+        #workspace-modules[data-editing] .workspace-primary { grid-row: auto; }
+        #workspace-modules[data-editing] > [data-module] { display: grid; gap: .75rem; align-items: start; }
+        @media (min-width: 768px) {
+            #workspace:has(#workspace-modules[data-editing]) > .workspace-heading {
+                position: sticky;
+                top: 4.5rem;
+                z-index: 10;
+            }
+            #workspace-modules[data-editing] > [data-module] {
+                grid-template-columns: minmax(0, 1fr) clamp(14rem, 24%, 19rem);
+            }
+        }
         @media (min-width: 1100px) {
             #workspace-modules {
                 grid-template-columns: minmax(16rem, 0.95fr) minmax(0, 2fr) minmax(16rem, 0.95fr);
@@ -62,14 +74,14 @@
         </section>
 
         <section id="workspace" hidden>
-            <div class="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-slate-900 px-5 py-5 text-white sm:px-7">
+            <div class="workspace-heading flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-slate-900 px-5 py-5 text-white sm:px-7">
                 <div class="min-w-0">
                     <h1 class="text-3xl font-black tracking-tight sm:text-4xl">My Workspace</h1>
                     <p class="mt-1 text-sm text-slate-300">Your portfolio, watchlist and macro briefing.</p>
                     <p id="member-identity" class="mt-1 break-all text-xs text-slate-400"></p>
                 </div>
                 <div class="flex flex-wrap gap-2">
-                    <button id="customise-workspace" type="button" class="rounded-lg bg-white px-3 py-2 text-sm font-bold text-slate-900 hover:bg-blue-50">Customise workspace</button>
+                    <button id="customise-workspace" type="button" aria-pressed="false" aria-controls="workspace-modules" class="rounded-lg bg-white px-3 py-2 text-sm font-bold text-slate-900 hover:bg-blue-50">Customise workspace</button>
                     <a id="owner-link" href="admin.html" hidden class="rounded-lg border border-slate-500 px-3 py-2 text-sm font-semibold">Owner dashboard</a>
                     <a id="leave-preview" href="admin.html" hidden class="rounded-lg border border-slate-500 px-3 py-2 text-sm font-semibold">Back to Admin</a>
                     <button id="sign-out" type="button" class="rounded-lg border border-slate-500 px-3 py-2 text-sm font-semibold">Sign out</button>
@@ -81,81 +93,113 @@
             </div>
 
             <div id="workspace-modules" class="mt-4 grid items-start gap-4">
-            <section data-module="stocks" class="min-w-0 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <div class="flex flex-wrap items-start justify-between gap-3">
+                <div data-module="stocks" class="min-w-0">
                     <div>
-                        <h2 class="text-lg font-black">Watchlist</h2>
-                        <p class="mt-1 text-xs text-slate-600">Sample quotes · local currency · forward P/E</p>
+                        <section data-module-content class="min-w-0 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                            <div class="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                    <h2 class="text-lg font-black">Watchlist</h2>
+                                    <p class="mt-1 text-xs text-slate-600">Sample quotes · local currency · forward P/E</p>
+                                </div>
+                                <button id="import-watchlist" hidden type="button" class="rounded-lg border border-blue-200 px-3 py-2 text-sm font-bold text-blue-700">Import tickers from this browser</button>
+                            </div>
+                            <ul id="saved-tickers" class="mt-4 divide-y divide-gray-100" aria-label="Saved tickers"></ul>
+                            <p id="empty-watchlist" class="mt-4 text-sm text-gray-600">Your watchlist is empty. Add a ticker here or save one from SethiStock.</p>
+                            <form id="add-ticker" method="post" class="mt-4 flex items-end gap-2">
+                                <label class="grid min-w-0 flex-1 gap-1 text-sm font-semibold">
+                                    Ticker
+                                    <input id="workspace-ticker" type="text" maxlength="20" placeholder="e.g. MSFT" autocomplete="off" spellcheck="false" class="w-full rounded-lg border border-gray-300 px-3 py-2 uppercase" required>
+                                </label>
+                                <button class="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">Add</button>
+                            </form>
+                        </section>
+                        <p data-module-placeholder hidden class="rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-600">Watchlist is hidden in your workspace.</p>
                     </div>
-                    <button id="import-watchlist" hidden type="button" class="rounded-lg border border-blue-200 px-3 py-2 text-sm font-bold text-blue-700">Import tickers from this browser</button>
+                    <aside data-module-settings hidden aria-labelledby="settings-stocks-title" class="rounded-2xl border border-blue-200 bg-blue-50/60 p-4">
+                        <h3 id="settings-stocks-title" class="text-sm font-black text-slate-900">Watchlist settings</h3>
+                        <div data-module-controls class="mt-3"></div>
+
+                    </aside>
                 </div>
-                <ul id="saved-tickers" class="mt-4 divide-y divide-gray-100" aria-label="Saved tickers"></ul>
-                <p id="empty-watchlist" class="mt-4 text-sm text-gray-600">Your watchlist is empty. Add a ticker here or save one from SethiStock.</p>
-                <form id="add-ticker" method="post" class="mt-4 flex items-end gap-2">
-                    <label class="grid min-w-0 flex-1 gap-1 text-sm font-semibold">
-                        Ticker
-                        <input id="workspace-ticker" type="text" maxlength="20" placeholder="e.g. MSFT" autocomplete="off" spellcheck="false" class="w-full rounded-lg border border-gray-300 px-3 py-2 uppercase" required>
-                    </label>
-                    <button class="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">Add</button>
-                </form>
-            </section>
-            <section data-module="portfolio" class="workspace-primary min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6" aria-labelledby="portfolio-title">
-                <div class="flex flex-wrap items-start justify-between gap-3">
-                    <div><h2 id="portfolio-title" class="text-2xl font-black tracking-tight">My Portfolio</h2>
-                    <p id="paper-name" class="mt-1 text-sm text-slate-600"></p><select id="paper-portfolio-select" hidden aria-label="Saved portfolios" class="mt-2 max-w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm"></select></div>
-                    <div class="flex flex-wrap gap-2">
-                        <button id="paper-edit" type="button" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold hover:bg-slate-50">Edit portfolio</button>
-                        <button id="paper-create" type="button" class="rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-800">Create portfolio</button>
+                <div data-module="portfolio" class="min-w-0 workspace-primary">
+                    <div>
+                        <section data-module-content class="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6" aria-labelledby="portfolio-title">
+                            <div class="flex flex-wrap items-start justify-between gap-3">
+                                <div><h2 id="portfolio-title" class="text-2xl font-black tracking-tight">My Portfolio</h2>
+                                <p id="paper-name" class="mt-1 text-sm text-slate-600"></p><select id="paper-portfolio-select" hidden aria-label="Saved portfolios" class="mt-2 max-w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm"></select></div>
+                                <div class="flex flex-wrap gap-2">
+                                    <button id="paper-edit" type="button" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold hover:bg-slate-50">Edit portfolio</button>
+                                    <button id="paper-create" type="button" class="rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-800">Create portfolio</button>
+                                </div>
+                            </div>
+                            <form id="paper-form" hidden class="mt-4 grid gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
+                                <label class="grid gap-1 text-sm font-semibold">Portfolio name<input id="paper-title" required maxlength="40" class="min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2"></label>
+                                <label class="grid gap-1 text-sm font-semibold">Cash in GBP<input id="paper-cash-input" type="number" required min="0" max="100000000" step="0.01" class="min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2"></label>
+                                <div id="paper-positions" class="grid grid-cols-2 gap-2"></div>
+                                <p class="text-xs text-slate-600">Enter the number of shares for each holding. Leave unused positions at zero.</p>
+                                <div class="flex gap-3"><button class="rounded-md bg-blue-700 px-3 py-2 text-sm font-bold text-white">Save portfolio</button><button id="paper-cancel" type="button" class="text-sm font-semibold text-slate-700">Cancel</button></div>
+                            </form>
+                            <p id="paper-confirmation" role="status" class="mt-2 text-sm font-semibold text-emerald-700 empty:hidden"></p>
+                            <dl class="mt-5 grid grid-cols-2 gap-2 md:grid-cols-4">
+                                <div class="rounded-xl bg-slate-900 p-3 text-white"><dt class="text-xs text-slate-300">Paper value</dt><dd id="paper-value" class="mt-1 text-lg font-bold tabular-nums"></dd></div>
+                                <div class="rounded-xl bg-slate-100 p-3"><dt class="text-xs text-slate-600">Modelled return</dt><dd id="paper-return" class="mt-1 text-lg font-bold tabular-nums"></dd></div>
+                                <div class="rounded-xl bg-slate-100 p-3"><dt class="text-xs text-slate-600">Benchmark gap</dt><dd id="paper-excess" class="mt-1 text-lg font-bold tabular-nums"></dd></div>
+                                <div class="rounded-xl bg-slate-100 p-3"><dt class="text-xs text-slate-600">Cash</dt><dd id="paper-cash" class="mt-1 text-lg font-bold tabular-nums"></dd></div>
+                            </dl>
+                            <div class="mt-5 flex flex-wrap items-end justify-between gap-3">
+                                <div><h3 class="font-extrabold">Performance comparison</h3><p class="text-xs text-slate-600">Illustrative six-month series · GBP · starting value 100</p></div>
+                                <label class="grid gap-1 text-xs font-bold text-slate-700">Compare against
+                                    <select id="paper-benchmark" class="max-w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
+                                        <option value="sp500">S&amp;P 500 · sample</option><option value="global">MSCI World · sample</option><option value="founder">SethiPortfolio · sample</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <canvas id="paper-chart" class="mt-3 block h-48 w-full" role="img" aria-label="Illustrative portfolio and benchmark performance"></canvas>
+                            <p id="paper-chart-summary" class="mt-2 text-xs text-slate-700"></p>
+                            <div class="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-4"><h3 class="font-extrabold">Holdings</h3><a href="sethiportfolio.html#performance" class="text-sm font-semibold text-blue-700">View public SethiPortfolio</a></div>
+                            <ul id="paper-holdings" class="mt-2 divide-y divide-slate-100 text-sm"></ul>
+                            <p class="mt-3 text-xs text-slate-600">Sample prices and fixed FX. The chart models the current holdings over sample history. It does not track actual trades or live returns.</p>
+                        </section>
+                        <p data-module-placeholder hidden class="rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-600">My Portfolio is hidden in your workspace.</p>
                     </div>
+                    <aside data-module-settings hidden aria-labelledby="settings-portfolio-title" class="rounded-2xl border border-blue-200 bg-blue-50/60 p-4">
+                        <h3 id="settings-portfolio-title" class="text-sm font-black text-slate-900">My Portfolio settings</h3>
+                        <div data-module-controls class="mt-3"></div>
+
+                    </aside>
                 </div>
-                <form id="paper-form" hidden class="mt-4 grid gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
-                    <label class="grid gap-1 text-sm font-semibold">Portfolio name<input id="paper-title" required maxlength="40" class="min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2"></label>
-                    <label class="grid gap-1 text-sm font-semibold">Cash in GBP<input id="paper-cash-input" type="number" required min="0" max="100000000" step="0.01" class="min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2"></label>
-                    <div id="paper-positions" class="grid grid-cols-2 gap-2"></div>
-                    <p class="text-xs text-slate-600">Enter the number of shares for each holding. Leave unused positions at zero.</p>
-                    <div class="flex gap-3"><button class="rounded-md bg-blue-700 px-3 py-2 text-sm font-bold text-white">Save portfolio</button><button id="paper-cancel" type="button" class="text-sm font-semibold text-slate-700">Cancel</button></div>
-                </form>
-                <p id="paper-confirmation" role="status" class="mt-2 text-sm font-semibold text-emerald-700 empty:hidden"></p>
-                <dl class="mt-5 grid grid-cols-2 gap-2 md:grid-cols-4">
-                    <div class="rounded-xl bg-slate-900 p-3 text-white"><dt class="text-xs text-slate-300">Paper value</dt><dd id="paper-value" class="mt-1 text-lg font-bold tabular-nums"></dd></div>
-                    <div class="rounded-xl bg-slate-100 p-3"><dt class="text-xs text-slate-600">Modelled return</dt><dd id="paper-return" class="mt-1 text-lg font-bold tabular-nums"></dd></div>
-                    <div class="rounded-xl bg-slate-100 p-3"><dt class="text-xs text-slate-600">Benchmark gap</dt><dd id="paper-excess" class="mt-1 text-lg font-bold tabular-nums"></dd></div>
-                    <div class="rounded-xl bg-slate-100 p-3"><dt class="text-xs text-slate-600">Cash</dt><dd id="paper-cash" class="mt-1 text-lg font-bold tabular-nums"></dd></div>
-                </dl>
-                <div class="mt-5 flex flex-wrap items-end justify-between gap-3">
-                    <div><h3 class="font-extrabold">Performance comparison</h3><p class="text-xs text-slate-600">Illustrative six-month series · GBP · starting value 100</p></div>
-                    <label class="grid gap-1 text-xs font-bold text-slate-700">Compare against
-                        <select id="paper-benchmark" class="max-w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
-                            <option value="sp500">S&amp;P 500 · sample</option><option value="global">MSCI World · sample</option><option value="founder">SethiPortfolio · sample</option>
-                        </select>
-                    </label>
+                <div data-module="macro" class="min-w-0 workspace-primary">
+                    <div>
+                        <section data-module-content class="min-w-0 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                            <h2 class="text-lg font-black">Macro Briefing</h2>
+                            <p class="mt-1 text-xs text-slate-600">Sample releases for the topics you follow.</p>
+                            <ul id="macro-topics" class="mt-3 divide-y divide-slate-100"></ul>
+                            <a href="sethimacro.html#macro-intelligence" class="mt-3 inline-block text-sm font-bold text-blue-700">Open SethiMacro</a>
+                        </section>
+                        <p data-module-placeholder hidden class="rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-600">Macro Briefing is hidden in your workspace.</p>
+                    </div>
+                    <aside data-module-settings hidden aria-labelledby="settings-macro-title" class="rounded-2xl border border-blue-200 bg-blue-50/60 p-4">
+                        <h3 id="settings-macro-title" class="text-sm font-black text-slate-900">Macro Briefing settings</h3>
+                        <div data-module-controls class="mt-3"></div>
+                        <fieldset class="mt-4 border-t border-slate-200 pt-3"><legend class="text-sm font-bold">Follow macro topics</legend><div id="macro-controls" class="mt-2 space-y-2"></div></fieldset>
+                    </aside>
                 </div>
-                <canvas id="paper-chart" class="mt-3 block h-48 w-full" role="img" aria-label="Illustrative portfolio and benchmark performance"></canvas>
-                <p id="paper-chart-summary" class="mt-2 text-xs text-slate-700"></p>
-                <div class="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-4"><h3 class="font-extrabold">Holdings</h3><a href="sethiportfolio.html#performance" class="text-sm font-semibold text-blue-700">View public SethiPortfolio</a></div>
-                <ul id="paper-holdings" class="mt-2 divide-y divide-slate-100 text-sm"></ul>
-                <p class="mt-3 text-xs text-slate-600">Sample prices and fixed FX. The chart models the current holdings over sample history. It does not track actual trades or live returns.</p>
-            </section>
-            <section data-module="macro" class="workspace-primary min-w-0 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <h2 class="text-lg font-black">Macro Briefing</h2>
-                <p class="mt-1 text-xs text-slate-600">Sample releases for the topics you follow.</p>
-                <ul id="macro-topics" class="mt-3 divide-y divide-slate-100"></ul>
-                <a href="sethimacro.html#macro-intelligence" class="mt-3 inline-block text-sm font-bold text-blue-700">Open SethiMacro</a>
-            </section>
-            <section data-module="tools" class="min-w-0 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <h2 class="text-xl font-black">Pinned Tools</h2>
-                <p class="mt-1 text-sm text-gray-600">Shortcuts to the tools you use most.</p>
-                <ul id="pinned-tools" class="mt-4 divide-y divide-gray-100"></ul>
-            </section>
+                <div data-module="tools" class="min-w-0">
+                    <div>
+                        <section data-module-content class="min-w-0 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                            <h2 class="text-xl font-black">Pinned Tools</h2>
+                            <p class="mt-1 text-sm text-gray-600">Shortcuts to the tools you use most.</p>
+                            <ul id="pinned-tools" class="mt-4 divide-y divide-gray-100"></ul>
+                        </section>
+                        <p data-module-placeholder hidden class="rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-600">Pinned Tools is hidden in your workspace.</p>
+                    </div>
+                    <aside data-module-settings hidden aria-labelledby="settings-tools-title" class="rounded-2xl border border-blue-200 bg-blue-50/60 p-4">
+                        <h3 id="settings-tools-title" class="text-sm font-black text-slate-900">Pinned Tools settings</h3>
+                        <div data-module-controls class="mt-3"></div>
+                        <fieldset class="mt-4 border-t border-slate-200 pt-3"><legend class="text-sm font-bold">Choose pinned tools</legend><div id="tool-controls" class="mt-2 space-y-2"></div></fieldset>
+                    </aside>
+                </div>
             </div>
-            <details id="workspace-settings" class="mt-5 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <summary class="cursor-pointer font-bold text-blue-700">Workspace settings</summary>
-                <div class="mt-4 grid gap-5 md:grid-cols-3">
-                    <fieldset><legend class="font-bold">Dashboard modules</legend><div id="module-controls" class="mt-2 space-y-2"></div></fieldset>
-                    <fieldset><legend class="font-bold">Follow macro topics</legend><div id="macro-controls" class="mt-2 space-y-2"></div></fieldset>
-                    <fieldset><legend class="font-bold">Pin tools</legend><div id="tool-controls" class="mt-2 space-y-2"></div></fieldset>
-                </div>
-            </details>
         </section>
 
     </main>

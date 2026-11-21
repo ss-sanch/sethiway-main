@@ -4,7 +4,7 @@
     const modules = {
         stocks: 'Watchlist',
         portfolio: 'My Portfolio',
-        macro: 'Macro',
+        macro: 'Macro Briefing',
         tools: 'Pinned Tools'
     };
     const topics = {
@@ -66,13 +66,6 @@
         return control;
     }
 
-    $('customise-workspace').addEventListener('click', () => {
-        const settings = $('workspace-settings');
-        settings.open = true;
-        settings.querySelector('summary').focus();
-        settings.scrollIntoView({ block: 'start' });
-    });
-
     window.initialiseWorkspace = userId => {
         const storageKey = 'sethiway-visual-workspace-v2-' + userId;
         const stored = sessionStorage.getItem(storageKey);
@@ -86,53 +79,66 @@
         const workspace = $('workspace-modules');
         const panels = new Map([...workspace.children].map(panel => [panel.dataset.module, panel]));
 
-        function renderModules() {
-            for (const key of prefs.order) {
-                const panel = panels.get(key);
-                panel.hidden = prefs.hidden.includes(key);
-                workspace.append(panel);
+        const toggle = $('customise-workspace');
+        let editing = false;
+
+        function renderVisibility() {
+            for (const [key, panel] of panels) {
+                const hidden = prefs.hidden.includes(key);
+                panel.hidden = hidden && !editing;
+                panel.querySelector('[data-module-content]').hidden = hidden;
+                panel.querySelector('[data-module-placeholder]').hidden = !hidden || !editing;
+                panel.querySelector('[data-module-settings]').hidden = !editing;
             }
         }
 
+        function renderOrder() {
+            for (const key of prefs.order) workspace.append(panels.get(key));
+        }
+
+        function setEditing(next) {
+            editing = next;
+            workspace.toggleAttribute('data-editing', editing);
+            toggle.setAttribute('aria-pressed', String(editing));
+            toggle.textContent = editing ? 'Done customising' : 'Customise workspace';
+            renderVisibility();
+        }
+
         function renderOrderControls(focusKey, focusOffset) {
-            const container = $('module-controls');
-            container.replaceChildren();
             for (const [index, key] of prefs.order.entries()) {
-                const row = document.createElement('div');
-                row.className = 'flex flex-wrap items-center justify-between gap-2';
-                row.append(checkbox(modules[key], !prefs.hidden.includes(key), checked => {
+                const container = panels.get(key).querySelector('[data-module-controls]');
+                const visibility = checkbox('Show in workspace', !prefs.hidden.includes(key), checked => {
                     prefs.hidden = prefs.hidden.filter(item => item !== key);
                     if (!checked) prefs.hidden.push(key);
                     save();
-                    renderModules();
-                }));
+                    renderVisibility();
+                });
                 const actions = document.createElement('div');
-                actions.className = 'flex gap-1';
-                for (const [offset, label] of [[-1, 'Up'], [1, 'Down']]) {
+                actions.className = 'mt-3 flex flex-wrap gap-2';
+                for (const [offset, label] of [[-1, 'Move up'], [1, 'Move down']]) {
                     const button = document.createElement('button');
                     button.type = 'button';
                     button.textContent = label;
-                    button.setAttribute('aria-label', 'Move ' + modules[key] + ' ' + label.toLowerCase());
-                    button.className = 'rounded-md px-2 py-1 text-sm font-semibold text-blue-700 hover:bg-blue-50 disabled:text-gray-400';
+                    button.setAttribute('aria-label', 'Move ' + modules[key] + (offset < 0 ? ' up' : ' down'));
+                    button.className = 'rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:border-blue-600 disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-400';
                     const target = index + offset;
                     button.disabled = target < 0 || target >= prefs.order.length;
                     button.addEventListener('click', () => {
                         [prefs.order[index], prefs.order[target]] = [prefs.order[target], prefs.order[index]];
                         save();
-                        renderModules();
-                        renderOrderControls(key, target + offset < 0 || target + offset >= prefs.order.length ? -offset : offset);
+                        renderOrder();
+                        renderOrderControls(key, prefs.order[target + offset] ? offset : -offset);
                     });
                     actions.append(button);
                     if (focusKey === key && focusOffset === offset) requestAnimationFrame(() => button.focus());
                 }
-                row.append(actions);
-                container.append(row);
+                container.replaceChildren(visibility, actions);
             }
         }
 
         for (const [key, choices, controls, list, empty] of [
-            ['topics', topics, 'macro-controls', 'macro-topics', 'Choose macro topics under Customise workspace.'],
-            ['tools', tools, 'tool-controls', 'pinned-tools', 'Choose tools under Customise workspace.']
+            ['topics', topics, 'macro-controls', 'macro-topics', 'Choose topics in Macro Briefing settings.'],
+            ['tools', tools, 'tool-controls', 'pinned-tools', 'Choose tools in Pinned Tools settings.']
         ]) {
             const draw = () => renderLinks(list, choices, prefs[key], empty);
             $(controls).replaceChildren(...Object.entries(choices).map(([id, [label]]) =>
@@ -145,8 +151,10 @@
             ));
             draw();
         }
-        renderModules();
+        renderOrder();
         renderOrderControls();
+        toggle.onclick = () => setEditing(!editing);
+        setEditing(false);
         window.initialisePreviewPortfolio(userId);
     };
 })();

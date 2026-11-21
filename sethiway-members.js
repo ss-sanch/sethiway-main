@@ -18,7 +18,7 @@
     } : null;
     const watchlistKey = () => 'sethiway-visual-tickers-' + (role || 'guest');
     const readWatchlist = () => JSON.parse(sessionStorage.getItem(watchlistKey())
-        || (role ? '["MSFT","VWRP.L"]' : '[]'));
+        || (role ? '["MSFT","VWRP.L","AAPL","NVDA","AZN.L","GOOGL","JPM"]' : '[]'));
     const setRole = next => {
         role = next;
         if (next) sessionStorage.setItem(roleKey, next);

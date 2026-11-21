@@ -7,6 +7,8 @@
         ['AAPL', { name: 'Apple', price: 241.73, currency: 'USD', change: -0.42, pe: 28.6, path: [100, 104, 101, 106, 108, 106, 111] }],
         ['NVDA', { name: 'NVIDIA', price: 152.39, currency: 'USD', change: 1.71, pe: 34.8, path: [100, 111, 107, 118, 115, 123, 129] }],
         ['VWRP.L', { name: 'Vanguard FTSE All-World', price: 119.84, currency: 'GBP', change: 0.24, pe: null, path: [100, 102, 105, 102, 108, 109, 111] }],
+        ['GOOGL', { name: 'Alphabet', price: 189.32, currency: 'USD', change: 0.63, pe: 21.4, path: [100, 103, 105, 110, 107, 113, 117] }],
+        ['JPM', { name: 'JPMorgan Chase', price: 270.18, currency: 'USD', change: -0.18, pe: 14.1, path: [100, 104, 108, 106, 111, 115, 114] }],
         ['AZN.L', { name: 'AstraZeneca', price: 118.42, currency: 'GBP', change: -0.31, pe: 17.1, path: [100, 99, 101, 105, 103, 107, 108] }]
     ]);
     const benchmarks = {
@@ -66,7 +68,7 @@
         const state = stored ? JSON.parse(stored) : {
             selected: 0,
             benchmark: 'sp500',
-            portfolios: [{ name: 'Example portfolio', cash: 1250, positions: { 'MSFT': 12, 'VWRP.L': 34, 'AAPL': 8 } }]
+            portfolios: [{ name: 'Example portfolio', cash: 1250, positions: { 'MSFT': 12, 'VWRP.L': 34, 'AAPL': 8, 'AZN.L': 20, 'JPM': 9 } }]
         };
         const form = $('paper-form');
         const select = $('paper-portfolio-select');
@@ -101,7 +103,7 @@
             $('paper-chart-summary').textContent = values[0]
                 ? 'Blue · My Portfolio ' + signed(gain, '%') + '   |   Dashed · ' + benchmark.label + ' ' + signed(benchmarkGain, '%')
                 : 'Add a holding or cash to compare this portfolio.';
-            const rows = holdings.map(({ ticker, shares, value }) => {
+            const rows = holdings.sort((a, b) => b.value - a.value).map(({ ticker, shares, value }) => {
                 const row = document.createElement('li');
                 row.className = 'flex items-center justify-between gap-3 py-2';
                 const link = document.createElement('a');
@@ -110,7 +112,7 @@
                 link.textContent = ticker;
                 const details = document.createElement('span');
                 details.className = 'text-right tabular-nums text-slate-700';
-                details.textContent = shares.toLocaleString('en-GB') + ' shares · ' + gbp.format(value);
+                details.textContent = shares.toLocaleString('en-GB') + ' shares · ' + gbp.format(value) + ' · ' + (100 * value / values.at(-1)).toFixed(1) + '%';
                 row.append(link, details);
                 return row;
             });

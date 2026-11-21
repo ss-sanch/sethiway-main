@@ -17,7 +17,8 @@
         dcf: ['Reverse DCF', 'sethistock.html?ticker=MSFT#valuation'],
         risk: ['Market Risk Lab', 'sethiquant.html#section-var'],
         attribution: ['Portfolio Attribution', 'sethiportfolio.html#attribution'],
-        options: ['Options Valuation', 'sethiquant.html#section-options']
+        options: ['Options Valuation', 'sethiquant.html#section-options'],
+        backtest: ['Strategy Backtest', 'sethiquant.html#section-backtest']
     };
     const $ = id => document.getElementById(id);
 
@@ -72,8 +73,8 @@
         const prefs = stored ? JSON.parse(stored) : {
             order: Object.keys(modules),
             hidden: [],
-            topics: ['inflation', 'rates'],
-            tools: ['dcf', 'risk']
+            topics: ['inflation', 'rates', 'jobs', 'currencies'],
+            tools: ['dcf', 'risk', 'attribution', 'options', 'backtest']
         };
         const save = () => sessionStorage.setItem(storageKey, JSON.stringify(prefs));
         const workspace = $('workspace-modules');
@@ -101,20 +102,21 @@
             workspace.toggleAttribute('data-editing', editing);
             toggle.setAttribute('aria-pressed', String(editing));
             toggle.textContent = editing ? 'Done customising' : 'Customise workspace';
+            $('workspace-edit-hint').hidden = !editing;
             renderVisibility();
         }
 
         function renderOrderControls(focusKey, focusOffset) {
             for (const [index, key] of prefs.order.entries()) {
                 const container = panels.get(key).querySelector('[data-module-controls]');
-                const visibility = checkbox('Show in workspace', !prefs.hidden.includes(key), checked => {
+                const visibility = checkbox('Show card', !prefs.hidden.includes(key), checked => {
                     prefs.hidden = prefs.hidden.filter(item => item !== key);
                     if (!checked) prefs.hidden.push(key);
                     save();
                     renderVisibility();
                 });
                 const actions = document.createElement('div');
-                actions.className = 'mt-3 flex flex-wrap gap-2';
+                actions.className = 'flex flex-wrap gap-1';
                 for (const [offset, label] of [[-1, 'Move up'], [1, 'Move down']]) {
                     const button = document.createElement('button');
                     button.type = 'button';

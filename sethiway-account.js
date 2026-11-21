@@ -10,7 +10,7 @@
     const $ = id => document.getElementById(id);
     const status = $('account-status');
     const authForm = $('auth-form');
-    const sample = ['MSFT', 'VWRP.L', 'AAPL'];
+    const sample = ['MSFT', 'VWRP.L', 'AAPL', 'NVDA', 'AZN.L', 'GOOGL', 'JPM'];
 
     let mode = 'signin';
     let client;
@@ -107,7 +107,7 @@
         }
         renderedUser = user?.id;
         const version = ++displayVersion;
-        for (const id of ['auth-panel', 'workspace', 'owner-link']) $(id).hidden = true;
+        for (const id of ['auth-panel', 'workspace', 'owner-link', 'sign-out']) $(id).hidden = true;
         if (!user || mode === 'recovery') {
             $('auth-panel').hidden = false;
             message(needsOwner ? 'Sign in with the owner account to continue.' : '');
@@ -117,6 +117,7 @@
         if (!needsOwner) {
             $('member-identity').textContent = user.email || 'Signed in';
             $('workspace').hidden = false;
+            $('sign-out').hidden = false;
             renderWatchlist();
             initialiseWorkspace(user.id);
         }

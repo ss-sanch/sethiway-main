@@ -10,18 +10,14 @@
     <link rel="stylesheet" href="sethiway-header.css?v=1">
     <style>
         [hidden] { display: none !important; }
-        #workspace-modules[data-editing] { grid-template-columns: minmax(0, 1fr); }
-        #workspace-modules[data-editing] .workspace-primary { grid-row: auto; }
-        #workspace-modules[data-editing] > [data-module] { display: grid; gap: .75rem; align-items: start; }
-        @media (min-width: 768px) {
-            #workspace:has(#workspace-modules[data-editing]) > .workspace-heading {
-                position: sticky;
-                top: 4.5rem;
-                z-index: 10;
-            }
-            #workspace-modules[data-editing] > [data-module] {
-                grid-template-columns: minmax(0, 1fr) clamp(14rem, 24%, 19rem);
-            }
+        #workspace-modules[data-editing] > [data-module] {
+            border-radius: 1rem;
+            box-shadow: 0 0 0 1px #93c5fd;
+        }
+        #workspace-modules[data-editing] [data-module-content] {
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+            border-top: 0;
         }
         @media (min-width: 1100px) {
             #workspace-modules {
@@ -43,6 +39,7 @@
             </a>
             <div class="site-header__actions">
                 <a href="index.html" class="site-header__button site-header__primary">Back to Hub</a>
+                <button id="sign-out" type="button" hidden class="site-header__button">Sign out</button>
             </div>
         </div>
     </nav>
@@ -74,28 +71,32 @@
         </section>
 
         <section id="workspace" hidden>
-            <div class="workspace-heading flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-slate-900 px-5 py-5 text-white sm:px-7">
-                <div class="min-w-0">
-                    <h1 class="text-3xl font-black tracking-tight sm:text-4xl">My Workspace</h1>
-                    <p class="mt-1 text-sm text-slate-300">Your portfolio, watchlist and macro briefing.</p>
-                    <p id="member-identity" class="mt-1 break-all text-xs text-slate-400"></p>
+            <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+                <div class="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <h1 class="text-2xl font-black tracking-tight">My Workspace</h1>
+                    <p id="member-identity" class="break-all text-xs text-slate-600"></p>
                 </div>
                 <div class="flex flex-wrap gap-2">
-                    <button id="customise-workspace" type="button" aria-pressed="false" aria-controls="workspace-modules" class="rounded-lg bg-white px-3 py-2 text-sm font-bold text-slate-900 hover:bg-blue-50">Customise workspace</button>
-                    <a id="owner-link" href="admin.html" hidden class="rounded-lg border border-slate-500 px-3 py-2 text-sm font-semibold">Owner dashboard</a>
-                    <a id="leave-preview" href="admin.html" hidden class="rounded-lg border border-slate-500 px-3 py-2 text-sm font-semibold">Back to Admin</a>
-                    <button id="sign-out" type="button" class="rounded-lg border border-slate-500 px-3 py-2 text-sm font-semibold">Sign out</button>
+                    <a id="owner-link" href="admin.html" hidden class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold">Owner dashboard</a>
+                    <a id="leave-preview" href="admin.html" hidden class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold">Back to Admin</a>
+                    <button id="customise-workspace" type="button" aria-pressed="false" aria-controls="workspace-modules" class="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-bold text-blue-800 hover:bg-blue-50 aria-pressed:bg-blue-700 aria-pressed:text-white">Customise workspace</button>
                 </div>
             </div>
+            <p id="workspace-edit-hint" hidden class="mt-2 text-sm text-slate-600">Use the controls on each card to show, hide or move it. Changes save as you go.</p>
             <div id="preview-controls" hidden class="mt-4 flex flex-wrap items-center gap-3 rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-900">
                 <p><strong>Member preview.</strong> Changes apply to this demo only.</p>
                 <button id="empty-preview" type="button" class="font-semibold underline">Show empty state</button>
             </div>
 
-            <div id="workspace-modules" class="mt-4 grid items-start gap-4">
+            <div id="workspace-modules" class="mt-3 grid items-start gap-3">
                 <div data-module="stocks" class="min-w-0">
+                    <section data-module-settings hidden aria-labelledby="settings-stocks-title" class="rounded-t-2xl border-b border-blue-100 bg-blue-50 px-3 py-2">
+                        <h3 id="settings-stocks-title" class="text-xs font-bold text-blue-900">Watchlist</h3>
+                        <div data-module-controls class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1"></div>
+
+                    </section>
                     <div>
-                        <section data-module-content class="min-w-0 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                        <section data-module-content class="min-w-0 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
                             <div class="flex flex-wrap items-start justify-between gap-3">
                                 <div>
                                     <h2 class="text-lg font-black">Watchlist</h2>
@@ -115,13 +116,13 @@
                         </section>
                         <p data-module-placeholder hidden class="rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-600">Watchlist is hidden in your workspace.</p>
                     </div>
-                    <aside data-module-settings hidden aria-labelledby="settings-stocks-title" class="rounded-2xl border border-blue-200 bg-blue-50/60 p-4">
-                        <h3 id="settings-stocks-title" class="text-sm font-black text-slate-900">Watchlist settings</h3>
-                        <div data-module-controls class="mt-3"></div>
-
-                    </aside>
                 </div>
                 <div data-module="portfolio" class="min-w-0 workspace-primary">
+                    <section data-module-settings hidden aria-labelledby="settings-portfolio-title" class="rounded-t-2xl border-b border-blue-100 bg-blue-50 px-3 py-2">
+                        <h3 id="settings-portfolio-title" class="text-xs font-bold text-blue-900">My Portfolio</h3>
+                        <div data-module-controls class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1"></div>
+
+                    </section>
                     <div>
                         <section data-module-content class="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6" aria-labelledby="portfolio-title">
                             <div class="flex flex-wrap items-start justify-between gap-3">
@@ -140,7 +141,7 @@
                                 <div class="flex gap-3"><button class="rounded-md bg-blue-700 px-3 py-2 text-sm font-bold text-white">Save portfolio</button><button id="paper-cancel" type="button" class="text-sm font-semibold text-slate-700">Cancel</button></div>
                             </form>
                             <p id="paper-confirmation" role="status" class="mt-2 text-sm font-semibold text-emerald-700 empty:hidden"></p>
-                            <dl class="mt-5 grid grid-cols-2 gap-2 md:grid-cols-4">
+                            <dl class="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
                                 <div class="rounded-xl bg-slate-900 p-3 text-white"><dt class="text-xs text-slate-300">Paper value</dt><dd id="paper-value" class="mt-1 text-lg font-bold tabular-nums"></dd></div>
                                 <div class="rounded-xl bg-slate-100 p-3"><dt class="text-xs text-slate-600">Modelled return</dt><dd id="paper-return" class="mt-1 text-lg font-bold tabular-nums"></dd></div>
                                 <div class="rounded-xl bg-slate-100 p-3"><dt class="text-xs text-slate-600">Benchmark gap</dt><dd id="paper-excess" class="mt-1 text-lg font-bold tabular-nums"></dd></div>
@@ -154,7 +155,7 @@
                                     </select>
                                 </label>
                             </div>
-                            <canvas id="paper-chart" class="mt-3 block h-48 w-full" role="img" aria-label="Illustrative portfolio and benchmark performance"></canvas>
+                            <canvas id="paper-chart" class="mt-3 block h-40 w-full" role="img" aria-label="Illustrative portfolio and benchmark performance"></canvas>
                             <p id="paper-chart-summary" class="mt-2 text-xs text-slate-700"></p>
                             <div class="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-4"><h3 class="font-extrabold">Holdings</h3><a href="sethiportfolio.html#performance" class="text-sm font-semibold text-blue-700">View public SethiPortfolio</a></div>
                             <ul id="paper-holdings" class="mt-2 divide-y divide-slate-100 text-sm"></ul>
@@ -162,15 +163,15 @@
                         </section>
                         <p data-module-placeholder hidden class="rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-600">My Portfolio is hidden in your workspace.</p>
                     </div>
-                    <aside data-module-settings hidden aria-labelledby="settings-portfolio-title" class="rounded-2xl border border-blue-200 bg-blue-50/60 p-4">
-                        <h3 id="settings-portfolio-title" class="text-sm font-black text-slate-900">My Portfolio settings</h3>
-                        <div data-module-controls class="mt-3"></div>
-
-                    </aside>
                 </div>
                 <div data-module="macro" class="min-w-0 workspace-primary">
+                    <section data-module-settings hidden aria-labelledby="settings-macro-title" class="rounded-t-2xl border-b border-blue-100 bg-blue-50 px-3 py-2">
+                        <h3 id="settings-macro-title" class="text-xs font-bold text-blue-900">Macro Briefing</h3>
+                        <div data-module-controls class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1"></div>
+                        <details class="mt-1"><summary class="cursor-pointer text-xs font-semibold text-blue-800">Follow macro topics</summary><div id="macro-controls" class="mt-2 space-y-2"></div></details>
+                    </section>
                     <div>
-                        <section data-module-content class="min-w-0 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                        <section data-module-content class="min-w-0 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
                             <h2 class="text-lg font-black">Macro Briefing</h2>
                             <p class="mt-1 text-xs text-slate-600">Sample releases for the topics you follow.</p>
                             <ul id="macro-topics" class="mt-3 divide-y divide-slate-100"></ul>
@@ -178,26 +179,21 @@
                         </section>
                         <p data-module-placeholder hidden class="rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-600">Macro Briefing is hidden in your workspace.</p>
                     </div>
-                    <aside data-module-settings hidden aria-labelledby="settings-macro-title" class="rounded-2xl border border-blue-200 bg-blue-50/60 p-4">
-                        <h3 id="settings-macro-title" class="text-sm font-black text-slate-900">Macro Briefing settings</h3>
-                        <div data-module-controls class="mt-3"></div>
-                        <fieldset class="mt-4 border-t border-slate-200 pt-3"><legend class="text-sm font-bold">Follow macro topics</legend><div id="macro-controls" class="mt-2 space-y-2"></div></fieldset>
-                    </aside>
                 </div>
                 <div data-module="tools" class="min-w-0">
+                    <section data-module-settings hidden aria-labelledby="settings-tools-title" class="rounded-t-2xl border-b border-blue-100 bg-blue-50 px-3 py-2">
+                        <h3 id="settings-tools-title" class="text-xs font-bold text-blue-900">Pinned Tools</h3>
+                        <div data-module-controls class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1"></div>
+                        <details class="mt-1"><summary class="cursor-pointer text-xs font-semibold text-blue-800">Choose pinned tools</summary><div id="tool-controls" class="mt-2 space-y-2"></div></details>
+                    </section>
                     <div>
-                        <section data-module-content class="min-w-0 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                        <section data-module-content class="min-w-0 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
                             <h2 class="text-xl font-black">Pinned Tools</h2>
                             <p class="mt-1 text-sm text-gray-600">Shortcuts to the tools you use most.</p>
                             <ul id="pinned-tools" class="mt-4 divide-y divide-gray-100"></ul>
                         </section>
                         <p data-module-placeholder hidden class="rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-600">Pinned Tools is hidden in your workspace.</p>
                     </div>
-                    <aside data-module-settings hidden aria-labelledby="settings-tools-title" class="rounded-2xl border border-blue-200 bg-blue-50/60 p-4">
-                        <h3 id="settings-tools-title" class="text-sm font-black text-slate-900">Pinned Tools settings</h3>
-                        <div data-module-controls class="mt-3"></div>
-                        <fieldset class="mt-4 border-t border-slate-200 pt-3"><legend class="text-sm font-bold">Choose pinned tools</legend><div id="tool-controls" class="mt-2 space-y-2"></div></fieldset>
-                    </aside>
                 </div>
             </div>
         </section>

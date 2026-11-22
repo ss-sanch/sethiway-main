@@ -1,15 +1,14 @@
-# Member accounts preview
+# SethiWay member beta
 
-The first release adds email accounts, a synced ticker watchlist and member metrics and a member preview in the existing admin dashboard. The member preview uses sample data and stays inside My Workspace. The existing admin page stays at `admin.html`. The public portfolio and separate portfolio editing tools keep their current routes and access controls.
+The beta uses Supabase email authentication and stores watchlists, workspace preferences and paper portfolios per account. Member watchlist quotes use SethiStock's cached public snapshots. Macro topics link to the relevant SethiMacro pages. The paper portfolio still uses labelled illustrative prices, FX and benchmark returns. The owner-only member preview is separate from real saved member records.
 
-## Before opening registration
+## Deploy the beta
 
-1. The member UI lives in the existing SethiWay site. Verify that the configured Supabase project serves the existing site and that `public.traffic_logs` has `visitor_id`, `action` and `created_at`.
-2. Configure email confirmation, an email delivery provider, the site URL and the two callback URLs. Allow the deployed `account.html` URL and its `?recovery=1` variant. Test both email journeys on the deployed origin.
-3. Apply the migration after reviewing the existing API grants and policies. Deploy the matching SethiStock backend change before the frontend so the current admin page can load diagnostics with the owner session or the existing vault credential. In the SQL editor, insert the verified owner's Auth user ID into `sethiway_members_private.owner_account (user_id)`. This is a single-row table and is only writable by a privileged database operator.
-4. Test two independent member accounts, an owner account and a signed-out browser. Confirm that the owner totals exclude the owner, ordinary members cannot access the owner RPC, and switching accounts clears the previous member's saved tickers.
-5. Review legacy API grants before opening registration, particularly `markowitz_telemetry`, which currently has row-level security disabled in production. The portfolio editing tools still use the existing vault credential.
+1. Review changes in both repositories' `account-workspace-beta` branches. The frontend expects the member-account migration and the owner-session telemetry endpoint. Keep a record of both deployed revisions before rollout.
+2. Configure the official SethiWay origin and the account and recovery redirect URLs in Supabase Auth. Keep public registration disabled in Auth for the private beta. Provision the owner and test member by invitation when the site and email delivery are ready.
+3. Review the existing grants on `traffic_logs` and `markowitz_telemetry` before rollout. The optimiser currently writes telemetry directly from the browser. Preserve that write path when restricting reads, or migrate ingestion to the backend before removing its write permissions.
+4. Apply the member accounts migration. Assign the confirmed owner's Auth user ID to the single row in `sethiway_members_private.owner_account` through the database admin path. Deploy the SethiStock backend, then the frontend. The existing telemetry login continues to accept its legacy credential during rollout.
+5. Confirm the invite and password-reset links on the official origin. Verify a member can save stocks and settings, see them in a second browser, and cannot access Admin or another account's rows. Verify the owner can open member metrics and diagnostics. Confirm the public hub and guest stock tools still work.
+6. If a frontend rollback is needed, redeploy the saved pre-beta frontend. Retain the account tables so saved data survives the rollback.
 
-Verified members are current confirmed accounts other than the owner. Active members are verified accounts with a signed-in visit on one of the past 30 UTC calendar days. Recorded browsers are distinct IDs in existing page-view logs over a rolling 30-day window. Historical browser IDs do not distinguish members from guests and existing page-view coverage varies by tool.
-
-To roll back the frontend, redeploy the saved pre-accounts ref. Retain the member tables during a frontend rollback so existing member data stays available for a later redeploy.
+Verified members are confirmed non-anonymous accounts excluding the owner. Active members are verified accounts with a signed-in visit on one of the past 30 UTC calendar days. Recorded browsers are distinct IDs in page-view logs and include signed-out visits.

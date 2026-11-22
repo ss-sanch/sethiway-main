@@ -62,13 +62,13 @@
         }
     }
 
-    window.initialisePreviewPortfolio = userId => {
+    window.initialisePreviewPortfolio = (userId, storage, reportSave) => {
         const storageKey = 'sethiway-visual-portfolios-' + userId;
-        const stored = sessionStorage.getItem(storageKey);
-        const state = stored ? JSON.parse(stored) : {
+        const stored = storage ? storage.get('paper_portfolios') : JSON.parse(sessionStorage.getItem(storageKey) || 'null');
+        const state = stored || {
             selected: 0,
             benchmark: 'sp500',
-            portfolios: [{ name: 'Example portfolio', cash: 1250, positions: { 'MSFT': 12, 'VWRP.L': 34, 'AAPL': 8, 'AZN.L': 20, 'JPM': 9 } }]
+            portfolios: storage ? [{ name: 'My paper portfolio', cash: 0, positions: {} }] : [{ name: 'Example portfolio', cash: 1250, positions: { 'MSFT': 12, 'VWRP.L': 34, 'AAPL': 8, 'AZN.L': 20, 'JPM': 9 } }]
         };
         const form = $('paper-form');
         const select = $('paper-portfolio-select');
@@ -77,7 +77,10 @@
         const positionInputs = new Map();
         let creating = false;
         let paths;
-        const save = () => sessionStorage.setItem(storageKey, JSON.stringify(state));
+        const save = () => {
+            if (storage) reportSave(storage.save('paper_portfolios', state), 'paper_portfolios');
+            else sessionStorage.setItem(storageKey, JSON.stringify(state));
+        };
 
         function render() {
             const portfolio = state.portfolios[state.selected];

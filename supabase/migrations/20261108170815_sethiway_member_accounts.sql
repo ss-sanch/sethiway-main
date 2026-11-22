@@ -28,6 +28,27 @@ create policy watchlist_add on public.sethiway_member_watchlist for insert to au
 create policy watchlist_remove on public.sethiway_member_watchlist for delete to authenticated
     using (user_id = (select auth.uid()) and (select auth.jwt() ->> 'is_anonymous') = 'false');
 
+-- Each member owns two bounded workspace documents. Revision checks in the
+-- client preserve saved edits when another browser has already written.
+create table public.sethiway_member_workspace (
+    user_id uuid not null references auth.users(id) on delete cascade,
+    kind text not null check (kind in ('layout', 'paper_portfolios')),
+    payload jsonb not null check (jsonb_typeof(payload) = 'object' and octet_length(payload::text) <= 65536),
+    revision integer not null default 1 check (revision > 0),
+    primary key (user_id, kind)
+);
+alter table public.sethiway_member_workspace enable row level security;
+revoke all on public.sethiway_member_workspace from public, anon, authenticated;
+grant select, insert (user_id, kind, payload), update (payload, revision)
+    on public.sethiway_member_workspace to authenticated;
+create policy workspace_read on public.sethiway_member_workspace for select to authenticated
+    using (user_id = (select auth.uid()) and (select auth.jwt() ->> 'is_anonymous') = 'false');
+create policy workspace_add on public.sethiway_member_workspace for insert to authenticated
+    with check (user_id = (select auth.uid()) and (select auth.jwt() ->> 'is_anonymous') = 'false');
+create policy workspace_update on public.sethiway_member_workspace for update to authenticated
+    using (user_id = (select auth.uid()) and (select auth.jwt() ->> 'is_anonymous') = 'false')
+    with check (user_id = (select auth.uid()) and (select auth.jwt() ->> 'is_anonymous') = 'false');
+
 create table public.sethiway_member_activity (
     user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
     activity_day date not null default (now() at time zone 'UTC')::date,

@@ -18,6 +18,28 @@
     let renderedUser;
     let displayVersion = 0;
     let previewTickers = [...sample];
+    let renderedTickers;
+    let quoteVersion = 0;
+    let marketQuotes = new Map();
+    let quoteStatus = 'No snapshot available';
+    const pendingSaves = new Set();
+    const saveErrors = new Map();
+
+    function reportSave(task, kind) {
+        const status = $('workspace-save-status');
+        const version = displayVersion;
+        pendingSaves.add(task);
+        status.textContent = 'Saving workspace…';
+        task.then(() => {
+            if (version === displayVersion) saveErrors.delete(kind);
+        }, error => {
+            if (version === displayVersion) saveErrors.set(kind, error.message);
+        }).finally(() => {
+            pendingSaves.delete(task);
+            if (version === displayVersion) status.textContent = [...saveErrors.values()][0]
+                || (pendingSaves.size ? 'Saving workspace…' : 'Workspace saved.');
+        });
+    }
 
     function message(text) {
         status.textContent = text || '';
@@ -28,7 +50,6 @@
         mode = next;
         const labels = {
             signin: ['Sign in to SethiWay', 'Save stocks, follow macro topics and pin your favourite tools.', 'Sign in'],
-            signup: ['Create a SethiWay account', 'Verify your email to start saving tickers.', 'Create account'],
             forgot: ['Reset your password', 'We’ll email you a password reset link.', 'Send reset link'],
             recovery: ['Choose a new password', 'Use at least eight characters.', 'Update password']
         };
@@ -40,8 +61,8 @@
         $('account-email').required = next !== 'recovery';
         $('password-field').hidden = next === 'forgot';
         $('account-password').required = next !== 'forgot';
-        $('account-password').autocomplete = ['signup', 'recovery'].includes(next) ? 'new-password' : 'current-password';
-        $('account-password').minLength = ['signup', 'recovery'].includes(next) ? 8 : 0;
+        $('account-password').autocomplete = next === 'recovery' ? 'new-password' : 'current-password';
+        $('account-password').minLength = next === 'recovery' ? 8 : 0;
         $('account-password').value = '';
         $('auth-links').hidden = next === 'recovery';
         document.querySelectorAll('[data-auth-mode]').forEach(link => {
@@ -49,9 +70,27 @@
         });
     }
 
-    function renderWatchlist() {
+    function renderWatchlist(force = false) {
         if ($('workspace').hidden) return;
         const tickers = isPreview ? previewTickers : members.readWatchlist();
+        const tickerKey = JSON.stringify(tickers);
+        if (!isPreview && !force && tickerKey !== renderedTickers) {
+            renderedTickers = tickerKey;
+            marketQuotes = new Map();
+            quoteStatus = 'Loading quote…';
+            const version = ++quoteVersion;
+            if (tickers.length) members.readMarketSnapshots(tickers).then(quotes => {
+                if (version !== quoteVersion) return;
+                marketQuotes = quotes;
+                quoteStatus = 'No snapshot available';
+                renderWatchlist(true);
+            }).catch(() => {
+                if (version !== quoteVersion) return;
+                quoteStatus = 'Quotes temporarily unavailable';
+                renderWatchlist(true);
+            });
+        }
+        $('watchlist-description').textContent = isPreview ? 'Sample quotes · local currency · forward P/E' : 'SethiStock snapshots · quoted units · P/E';
         $('empty-watchlist').hidden = tickers.length > 0;
         $('import-watchlist').hidden = isPreview || !members.guestTickers().some(ticker => !tickers.includes(ticker));
         $('saved-tickers').replaceChildren(...tickers.map(ticker => {
@@ -70,10 +109,12 @@
             const identity = document.createElement('div');
             identity.className = 'min-w-0';
             identity.append(link);
-            const quote = window.SethiWayPreviewQuotes.get(ticker);
+            const quote = isPreview ? window.SethiWayPreviewQuotes.get(ticker) : marketQuotes.get(ticker);
             const name = document.createElement('p');
             name.className = 'truncate text-xs text-slate-600';
-            name.textContent = quote?.name || 'No sample quote';
+            name.textContent = isPreview ? quote?.name || 'No sample quote' : quote?.updatedAt
+                ? 'Quote · ' + new Date(quote.updatedAt).toLocaleString('en-GB', { timeZone: 'UTC', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' UTC'
+                : quoteStatus;
             identity.append(name);
             const right = document.createElement('div');
             right.className = 'flex shrink-0 items-start gap-1.5';
@@ -82,12 +123,14 @@
                 metrics.className = 'text-right tabular-nums';
                 const price = document.createElement('p');
                 price.className = 'text-sm font-bold text-slate-900';
-                price.textContent = new Intl.NumberFormat('en-GB', { style: 'currency', currency: quote.currency }).format(quote.price);
+                price.textContent = new Intl.NumberFormat('en-GB', quote.currency
+                    ? { style: 'currency', currency: quote.currency }
+                    : { maximumFractionDigits: 2 }).format(quote.price);
                 const detail = document.createElement('p');
                 detail.className = 'text-xs text-slate-600';
                 const change = document.createElement('span');
                 change.className = quote.change >= 0 ? 'font-semibold text-emerald-700' : 'font-semibold text-red-700';
-                change.textContent = (quote.change > 0 ? '+' : '') + quote.change.toFixed(2) + '%';
+                change.textContent = Number.isFinite(quote.change) ? (quote.change > 0 ? '+' : '') + quote.change.toFixed(2) + '%' : '—';
                 detail.append(change, ' · ', quote.pe === null ? '—' : quote.pe.toFixed(1) + '×');
                 metrics.append(price, detail);
                 right.append(metrics);
@@ -106,8 +149,12 @@
             return;
         }
         renderedUser = user?.id;
+        renderedTickers = undefined;
+        quoteVersion++;
+        saveErrors.clear();
+        marketQuotes = new Map();
         const version = ++displayVersion;
-        for (const id of ['auth-panel', 'workspace', 'owner-link', 'sign-out']) $(id).hidden = true;
+        for (const id of ['auth-panel', 'workspace', 'owner-link', 'sign-out', 'workspace-retry']) $(id).hidden = true;
         if (!user || mode === 'recovery') {
             $('auth-panel').hidden = false;
             message(needsOwner ? 'Sign in with the owner account to continue.' : '');
@@ -116,10 +163,25 @@
         message(needsOwner ? 'Checking owner access…' : '');
         if (!needsOwner) {
             $('member-identity').textContent = user.email || 'Signed in';
-            $('workspace').hidden = false;
             $('sign-out').hidden = false;
+            message('Loading your workspace…');
+            let storage;
+            try {
+                storage = await members.openWorkspaceStorage(user.id);
+            } catch (error) {
+                if (version === displayVersion) {
+                    renderedUser = null;
+                    message(error.message);
+                    $('workspace-retry').hidden = false;
+                }
+                return;
+            }
+            if (version !== displayVersion || members.session?.user.id !== user.id) return;
+            $('workspace').hidden = false;
+            message('');
+            $('workspace-save-status').textContent = '';
             renderWatchlist();
-            initialiseWorkspace(user.id);
+            initialiseWorkspace(user.id, storage, reportSave);
         }
         const { data: owner, error } = await client.rpc('sethiway_is_owner');
         if (version !== displayVersion) return;
@@ -192,18 +254,13 @@
             let result;
             if (submittedMode === 'signin') {
                 result = await client.auth.signInWithPassword({ email, password });
-            } else if (submittedMode === 'signup') {
-                result = await client.auth.signUp({ email, password, options: { emailRedirectTo: accountUrl } });
             } else if (submittedMode === 'forgot') {
                 result = await client.auth.resetPasswordForEmail(email, { redirectTo: accountUrl + '?recovery=1' });
             } else {
                 result = await client.auth.updateUser({ password });
             }
             if (result.error) throw result.error;
-            if (submittedMode === 'signup' && !result.data.session) {
-                setMode('signin');
-                message('Check your email for a verification link, then sign in.');
-            } else if (submittedMode === 'forgot') {
+            if (submittedMode === 'forgot') {
                 setMode('signin');
                 message('If an account exists for that address, you’ll receive a reset link.');
             } else if (submittedMode === 'recovery') {
@@ -219,13 +276,20 @@
         }
     });
 
+    $('workspace-retry').addEventListener('click', () => displayAccount().catch(handleDisplayError));
     $('sign-out').addEventListener('click', async () => {
+        $('sign-out').disabled = true;
+        $('workspace').inert = true;
         try {
+            await Promise.allSettled([...pendingSaves]);
             const { error } = await client.auth.signOut({ scope: 'local' });
             if (error) throw error;
             location.replace(accountUrl);
         } catch {
             message('Could not sign out. Try again.');
+        } finally {
+            $('sign-out').disabled = false;
+            $('workspace').inert = false;
         }
     });
     $('import-watchlist').addEventListener('click', async () => {

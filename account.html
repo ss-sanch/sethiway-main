@@ -46,6 +46,7 @@
 
     <main class="mx-auto max-w-[1680px] px-4 py-5 sm:px-6 lg:px-8">
         <p id="account-status" role="status" class="text-sm font-semibold text-gray-600 empty:hidden">Loading account…</p>
+        <button id="workspace-retry" type="button" hidden class="mt-3 rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-bold text-blue-800">Retry workspace</button>
         <noscript><p>Enable JavaScript to access your SethiWay account.</p></noscript>
 
         <section id="auth-panel" hidden class="mx-auto max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -63,7 +64,6 @@
                 <button id="auth-submit" class="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">Sign in</button>
             </form>
             <div id="auth-links" class="mt-4 flex flex-wrap gap-4 text-sm font-semibold text-blue-700">
-                <button type="button" data-auth-mode="signup">Create free account</button>
                 <button type="button" data-auth-mode="forgot">Forgot password?</button>
                 <button type="button" data-auth-mode="signin" hidden>Back to sign in</button>
             </div>
@@ -82,6 +82,7 @@
                     <button id="customise-workspace" type="button" aria-pressed="false" aria-controls="workspace-modules" class="rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-bold text-blue-800 hover:bg-blue-50 aria-pressed:bg-blue-700 aria-pressed:text-white">Customise workspace</button>
                 </div>
             </div>
+            <p id="workspace-save-status" role="status" class="mt-2 text-sm text-slate-700 empty:hidden"></p>
             <p id="workspace-edit-hint" hidden class="mt-2 text-sm text-slate-600">Use the controls on each card to show, hide or move it. Changes save as you go.</p>
             <div id="preview-controls" hidden class="mt-4 flex flex-wrap items-center gap-3 rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-900">
                 <p><strong>Member preview.</strong> Changes apply to this demo only.</p>
@@ -100,7 +101,7 @@
                             <div class="flex flex-wrap items-start justify-between gap-3">
                                 <div>
                                     <h2 class="text-lg font-black">Watchlist</h2>
-                                    <p class="mt-1 text-xs text-slate-600">Sample quotes · local currency · forward P/E</p>
+                                    <p id="watchlist-description" class="mt-1 text-xs text-slate-600">Sample quotes · local currency · forward P/E</p>
                                 </div>
                                 <button id="import-watchlist" hidden type="button" class="rounded-lg border border-blue-200 px-3 py-2 text-sm font-bold text-blue-700">Import tickers from this browser</button>
                             </div>
@@ -173,7 +174,7 @@
                     <div>
                         <section data-module-content class="min-w-0 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
                             <h2 class="text-lg font-black">Macro Briefing</h2>
-                            <p class="mt-1 text-xs text-slate-600">Sample releases for the topics you follow.</p>
+                            <p id="macro-description" class="mt-1 text-xs text-slate-600"></p>
                             <ul id="macro-topics" class="mt-3 divide-y divide-slate-100"></ul>
                             <a href="sethimacro.html#macro-intelligence" class="mt-3 inline-block text-sm font-bold text-blue-700">Open SethiMacro</a>
                         </section>

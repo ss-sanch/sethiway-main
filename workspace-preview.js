@@ -67,16 +67,19 @@
         return control;
     }
 
-    window.initialiseWorkspace = userId => {
+    window.initialiseWorkspace = (userId, storage, reportSave) => {
         const storageKey = 'sethiway-visual-workspace-v2-' + userId;
-        const stored = sessionStorage.getItem(storageKey);
-        const prefs = stored ? JSON.parse(stored) : {
+        const stored = storage ? storage.get('layout') : JSON.parse(sessionStorage.getItem(storageKey) || 'null');
+        const prefs = stored || {
             order: Object.keys(modules),
             hidden: [],
             topics: ['inflation', 'rates', 'jobs', 'currencies'],
             tools: ['dcf', 'risk', 'attribution', 'options', 'backtest']
         };
-        const save = () => sessionStorage.setItem(storageKey, JSON.stringify(prefs));
+        const save = () => {
+            if (storage) reportSave(storage.save('layout', prefs), 'layout');
+            else sessionStorage.setItem(storageKey, JSON.stringify(prefs));
+        };
         const workspace = $('workspace-modules');
         const panels = new Map([...workspace.children].map(panel => [panel.dataset.module, panel]));
 
@@ -138,8 +141,10 @@
             }
         }
 
+        $('macro-description').textContent = storage ? 'Open the SethiMacro releases and indicators you follow.' : 'Sample releases for the topics you follow.';
+        const macroTopics = storage ? Object.fromEntries(Object.entries(topics).map(([key, item]) => [key, item.slice(0, 2)])) : topics;
         for (const [key, choices, controls, list, empty] of [
-            ['topics', topics, 'macro-controls', 'macro-topics', 'Choose topics in Macro Briefing settings.'],
+            ['topics', macroTopics, 'macro-controls', 'macro-topics', 'Choose topics in Macro Briefing settings.'],
             ['tools', tools, 'tool-controls', 'pinned-tools', 'Choose tools in Pinned Tools settings.']
         ]) {
             const draw = () => renderLinks(list, choices, prefs[key], empty);
@@ -157,6 +162,6 @@
         renderOrderControls();
         toggle.onclick = () => setEditing(!editing);
         setEditing(false);
-        window.initialisePreviewPortfolio(userId);
+        window.initialisePreviewPortfolio(userId, storage, reportSave);
     };
 })();

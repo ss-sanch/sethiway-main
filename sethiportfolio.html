@@ -43,6 +43,7 @@
         .portfolio-identity .identity-label { font-size: .6875rem; letter-spacing: .08em; color: #64748b; }
     </style>
     <link rel="stylesheet" href="sethiway-header.css?v=1">
+    <script src="sethiway-members.js" defer></script>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
 
@@ -1400,10 +1401,7 @@
     });
 
     function readSharedWatchlist() {
-        try {
-            const saved = JSON.parse(localStorage.getItem('sethiWatchlist') || '[]');
-            return Array.isArray(saved) ? saved.filter(Boolean).map(t => String(t).toUpperCase()) : [];
-        } catch (_) { return []; }
+        return window.SethiWayMembers?.readWatchlist() || [];
     }
 
     function renderPortfolioWatchlist() {
@@ -1416,7 +1414,8 @@
     }
 
     window.addEventListener('storage', event => { if (event.key === 'sethiWatchlist') renderPortfolioWatchlist(); });
-    renderPortfolioWatchlist();
+    window.addEventListener('sethiway:member-change', renderPortfolioWatchlist);
+    document.addEventListener('DOMContentLoaded', renderPortfolioWatchlist);
 
     function renderHoldings(snapshot) {
         const holdings = snapshot.holdings || [];

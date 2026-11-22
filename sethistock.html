@@ -15,6 +15,7 @@
         @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
     </style>
     <link rel="stylesheet" href="sethiway-header.css?v=1">
+    <script src="sethiway-members.js" defer></script>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased pb-20">
 
@@ -95,9 +96,10 @@
                     <div>
                         <div class="flex items-center space-x-4">
                             <h2 id="display-ticker" class="text-5xl font-black tracking-tighter">AAPL</h2>
-                            <button id="watchlist-btn" onclick="toggleWatchlist()" class="px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full border border-gray-200 text-gray-400 hover:text-yellow-500 hover:border-yellow-500 transition-colors">☆ Save</button>
+                            <button id="watchlist-btn" aria-describedby="stock-watchlist-status" onclick="toggleWatchlist()" class="px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full border border-gray-200 text-gray-400 hover:text-yellow-500 hover:border-yellow-500 transition-colors">☆ Save</button>
                             <button type="button" onclick="openPortfolioAdminFromStock()" class="px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:border-blue-300 transition-colors" title="Send this ticker to the protected SethiPortfolio admin page">＋ Add to Portfolio</button>
                         </div>
+                            <p id="stock-watchlist-status" role="status" class="text-xs font-semibold text-red-600"></p>
                         <div class="flex items-center gap-2 mt-1 flex-wrap">
                             <p id="market-data-label" class="text-sm font-bold text-gray-400 uppercase tracking-widest">Live Market Data</p>
                             <span id="market-data-status" class="hidden inline-flex items-center gap-1.5 px-2 py-1 rounded-full border text-[9px] font-black uppercase tracking-wider"></span>
@@ -757,7 +759,14 @@
         const SNAPSHOT_API_URL = "https://gqqftksplktxfrilltsx.supabase.co/rest/v1/sethistock_public_snapshots";
         const SNAPSHOT_API_KEY = "sb_publishable_zjKjFfN1wTq9ocpje09Z1A_xgLe0UiK";
         let state = { ticker: "", period: "1y", interval: "1d", type: "line", fcf: 0, shares: 0, price: 0, stats: null, chartData: null };
-        let watchlist = JSON.parse(localStorage.getItem('sethiWatchlist')) || [];
+        let watchlist = [];
+        function refreshStockWatchlist() {
+            watchlist = window.SethiWayMembers.readWatchlist();
+            renderWatchlist();
+            updateWatchlistBtn();
+        }
+        window.addEventListener('sethiway:member-change', refreshStockWatchlist);
+        document.addEventListener('DOMContentLoaded', refreshStockWatchlist);
         let chartRequestId = 0;
         let chartAbortController = null;
         let analysisAbortController = null;
@@ -1238,13 +1247,20 @@
             document.getElementById('search-btn').click();
         }
 
-        function toggleWatchlist() {
-            if(!state.ticker) return;
-            if(watchlist.includes(state.ticker)) { watchlist = watchlist.filter(t => t !== state.ticker); } 
-            else { watchlist.push(state.ticker); }
-            localStorage.setItem('sethiWatchlist', JSON.stringify(watchlist));
-            renderWatchlist();
-            updateWatchlistBtn();
+        async function toggleWatchlist() {
+            const button = document.getElementById('watchlist-btn');
+            if (!state.ticker || button.disabled) return;
+            const status = document.getElementById('stock-watchlist-status');
+            button.disabled = true;
+            status.textContent = '';
+            try {
+                await window.SethiWayMembers.setTicker(state.ticker, !watchlist.includes(state.ticker));
+            } catch (error) {
+                status.textContent = error.message || 'Could not update your watchlist.';
+            } finally {
+                button.disabled = false;
+                refreshStockWatchlist();
+            }
         }
 
         function openPortfolioAdminFromStock() {

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>My Workspace | SethiWay</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="sethiway-header.css?v=1">
+    <style>[hidden] { display: none !important; }</style>
+    <script src="sethiway-members.js" defer></script>
+    <script src="sethiway-account.js" defer></script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased">
+    <nav class="site-header" aria-label="SethiWay navigation">
+        <div class="site-header__row">
+            <a href="index.html" class="site-header__brand" aria-label="SethiWay home">
+                <img src="logo.png" alt="" width="40" height="40">
+            </a>
+            <div class="site-header__actions">
+                <a href="index.html" class="site-header__button site-header__primary">Back to Hub</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="mx-auto max-w-4xl px-5 py-10">
+        <p id="account-status" role="status" class="mb-4 text-sm font-semibold text-gray-600">Loading account…</p>
+        <noscript><p>Enable JavaScript to access your SethiWay account.</p></noscript>
+
+        <section id="auth-panel" hidden class="mx-auto max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h1 id="auth-title" class="text-2xl font-black">Sign in to SethiWay</h1>
+            <p id="auth-intro" class="mt-2 text-sm text-gray-600">Find your saved tickers on any device.</p>
+            <form id="auth-form" method="post" class="mt-5 grid gap-3">
+                <label id="email-field" class="grid gap-1 text-sm font-semibold">
+                    Email address
+                    <input id="account-email" type="email" autocomplete="email" maxlength="254" class="rounded-lg border border-gray-300 px-3 py-2" required>
+                </label>
+                <label id="password-field" class="grid gap-1 text-sm font-semibold">
+                    Password
+                    <input id="account-password" type="password" autocomplete="current-password" maxlength="128" class="rounded-lg border border-gray-300 px-3 py-2" required>
+                </label>
+                <button id="auth-submit" class="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">Sign in</button>
+            </form>
+            <div id="auth-links" class="mt-4 flex flex-wrap gap-4 text-sm font-semibold text-blue-700">
+                <button type="button" data-auth-mode="signup">Create an account</button>
+                <button type="button" data-auth-mode="forgot">Forgot password?</button>
+                <button type="button" data-auth-mode="signin" hidden>Back to sign in</button>
+            </div>
+            <p class="mt-4 text-xs text-gray-600">See the <a class="underline" href="privacy.html">privacy notice</a>.</p>
+        </section>
+
+        <section id="workspace" hidden>
+            <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                    <h1 class="text-3xl font-black">My Workspace</h1>
+                    <p id="member-identity" class="mt-1 break-all text-sm text-gray-600"></p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <a id="owner-link" href="admin.html" hidden class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-bold">Owner dashboard</a>
+                    <a id="leave-preview" href="admin.html" hidden class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-bold">Back to owner dashboard</a>
+                    <button id="sign-out" type="button" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-bold">Sign out</button>
+                </div>
+            </div>
+            <div id="preview-controls" hidden class="mt-4 flex flex-wrap items-center gap-3 rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-900">
+                <p><strong>Member preview.</strong> Changes apply to this demo only.</p>
+                <button id="empty-preview" type="button" class="font-semibold underline">Show empty state</button>
+            </div>
+
+            <section class="mt-5 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <h2 class="text-xl font-black">Saved tickers</h2>
+                        <p class="mt-1 text-sm text-gray-600">Reopen a company in SethiStock.</p>
+                    </div>
+                    <button id="import-watchlist" hidden type="button" class="rounded-lg border border-blue-200 px-3 py-2 text-sm font-bold text-blue-700">Import tickers from this browser</button>
+                </div>
+                <ul id="saved-tickers" class="mt-4 divide-y divide-gray-100" aria-label="Saved tickers"></ul>
+                <p id="empty-watchlist" class="mt-4 text-sm text-gray-600">Your watchlist is empty. Add a ticker here or save one from SethiStock.</p>
+                <form id="add-ticker" method="post" class="mt-4 flex flex-wrap items-end gap-2">
+                    <label class="grid gap-1 text-sm font-semibold">
+                        Ticker
+                        <input id="workspace-ticker" type="text" maxlength="20" placeholder="e.g. MSFT" autocomplete="off" spellcheck="false" class="rounded-lg border border-gray-300 px-3 py-2 uppercase" required>
+                    </label>
+                    <button class="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">Add ticker</button>
+                </form>
+            </section>
+        </section>
+
+    </main>
+</body>
+</html>

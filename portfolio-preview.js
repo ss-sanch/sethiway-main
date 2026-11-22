@@ -3,27 +3,109 @@
 
     const $ = id => document.getElementById(id);
     const quotes = new Map([
-        ['MSFT', { name: 'Microsoft', price: 428.60, currency: 'USD', change: 0.86, pe: 31.2, path: [100, 101, 106, 104, 110, 113, 115] }],
-        ['AAPL', { name: 'Apple', price: 241.73, currency: 'USD', change: -0.42, pe: 28.6, path: [100, 104, 101, 106, 108, 106, 111] }],
-        ['NVDA', { name: 'NVIDIA', price: 152.39, currency: 'USD', change: 1.71, pe: 34.8, path: [100, 111, 107, 118, 115, 123, 129] }],
-        ['VWRP.L', { name: 'Vanguard FTSE All-World', price: 119.84, currency: 'GBP', change: 0.24, pe: null, path: [100, 102, 105, 102, 108, 109, 111] }],
-        ['GOOGL', { name: 'Alphabet', price: 189.32, currency: 'USD', change: 0.63, pe: 21.4, path: [100, 103, 105, 110, 107, 113, 117] }],
-        ['JPM', { name: 'JPMorgan Chase', price: 270.18, currency: 'USD', change: -0.18, pe: 14.1, path: [100, 104, 108, 106, 111, 115, 114] }],
-        ['AZN.L', { name: 'AstraZeneca', price: 118.42, currency: 'GBP', change: -0.31, pe: 17.1, path: [100, 99, 101, 105, 103, 107, 108] }]
+        ['MSFT', { name: 'Microsoft', price: 428.60, currency: 'USD', change: 0.86, pe: 31.2 }],
+        ['AAPL', { name: 'Apple', price: 241.73, currency: 'USD', change: -0.42, pe: 28.6 }],
+        ['NVDA', { name: 'NVIDIA', price: 152.39, currency: 'USD', change: 1.71, pe: 34.8 }],
+        ['VWRP.L', { name: 'Vanguard FTSE All-World', price: 119.84, currency: 'GBP', change: 0.24, pe: null }],
+        ['GOOGL', { name: 'Alphabet', price: 189.32, currency: 'USD', change: 0.63, pe: 21.4 }],
+        ['JPM', { name: 'JPMorgan Chase', price: 270.18, currency: 'USD', change: -0.18, pe: 14.1 }],
+        ['AZN.L', { name: 'AstraZeneca', price: 118.42, currency: 'GBP', change: -0.31, pe: 17.1 }]
     ]);
     const benchmarks = {
-        sp500: { label: 'S&P 500', path: [100, 103, 105, 103, 106, 110, 112] },
-        global: { label: 'MSCI World', path: [100, 102, 104, 102, 106, 108, 110] },
-        founder: { label: 'SethiPortfolio sample', path: [100, 104, 107, 104, 109, 113, 116] }
+        sp500: { ticker: 'SPY', label: 'S&P 500 (SPY)', currency: 'USD' },
+        founder: { ticker: 'SethiPortfolio', label: 'SethiPortfolio', currency: 'GBP' }
     };
+    const fxTicker = 'USDGBP=X';
+    // The chart feed quotes AZN.L in pence and VWRP.L in pounds.
+    const londonPence = new Set(['AZN.L']);
+    const api = 'https://sethistock-api.onrender.com/api/';
+    const dayMs = 86400000;
     const gbp = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 });
+    const dateLabel = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
     const signed = (value, unit) => (value > 0 ? '+' : '') + value.toFixed(1) + unit;
-    const mark = quote => quote.price * (quote.currency === 'USD' ? 0.76 : 1);
     let resizeChart;
+    let activeRequest;
+    const historyCache = new Map();
 
     window.SethiWayPreviewQuotes = quotes;
 
-    function drawChart(canvas, portfolioPath, benchmarkPath) {
+    async function readHistory(ticker, signal) {
+        const cached = historyCache.get(ticker);
+        if (cached && Date.now() < cached.expires) return cached.rows;
+        try {
+            const isFounder = ticker === benchmarks.founder.ticker;
+            const path = isFounder ? 'portfolio/fundamental/performance'
+                : 'chart/' + encodeURIComponent(ticker) + '?period=1y&interval=1d';
+            const response = await fetch(api + path, {
+                signal: AbortSignal.any([signal, AbortSignal.timeout(35000)])
+            });
+            if (!response.ok) throw new Error();
+            const data = await response.json();
+            if (isFounder && data.base_currency !== 'GBP') throw new Error();
+            const { dates } = data;
+            const closes = isFounder ? data.portfolio : data.closes;
+            if (!Array.isArray(dates) || !Array.isArray(closes) || dates.length !== closes.length) throw new Error();
+            const today = new Date().toISOString().slice(0, 10);
+            const divisor = londonPence.has(ticker) ? 100 : 1;
+            const byDate = new Map();
+            dates.forEach((date, index) => {
+                const day = typeof date === 'string' ? date.slice(0, 10) : '';
+                const close = closes[index];
+                if (/^\d{4}-\d{2}-\d{2}$/.test(day) && day < today && Number.isFinite(close) && close > 0) {
+                    byDate.set(day, close / divisor);
+                }
+            });
+            const rows = [...byDate].sort(([a], [b]) => a.localeCompare(b));
+            if (rows.length < 2) throw new Error();
+            historyCache.set(ticker, { rows, expires: Date.now() + 300000 });
+            return rows;
+        } catch {
+            return null;
+        }
+    }
+
+    function comparisonSources(benchmark, holdings) {
+        const symbols = holdings.map(({ ticker }) => ticker);
+        if (benchmark.currency === 'USD' || symbols.some(ticker => quotes.get(ticker).currency === 'USD')) symbols.push(fxTicker);
+        return symbols;
+    }
+
+    function comparePortfolio(cash, holdings, histories, benchmark, sources) {
+        const latest = [benchmark.ticker, ...sources].map(ticker => histories.get(ticker).at(-1)[0]).sort()[0];
+        const start = new Date(latest);
+        const day = start.getUTCDate();
+        start.setUTCDate(1);
+        start.setUTCMonth(start.getUTCMonth() - 6);
+        const monthEnd = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 0));
+        start.setUTCDate(Math.min(day, monthEnd.getUTCDate()));
+        const cutoff = start.toISOString().slice(0, 10);
+        const cursors = new Map(sources.map(ticker => [ticker, 0]));
+        let points = [];
+        for (const [date, benchmarkClose] of histories.get(benchmark.ticker)) {
+            if (date < cutoff) continue;
+            if (date > latest) break;
+            const prices = new Map();
+            for (const ticker of sources) {
+                const series = histories.get(ticker);
+                let index = cursors.get(ticker);
+                while (series[index + 1]?.[0] <= date) index++;
+                cursors.set(ticker, index);
+                const [asOf, price] = series[index];
+                if (asOf <= date && Date.parse(date) - Date.parse(asOf) <= 7 * dayMs) prices.set(ticker, price);
+            }
+            if (prices.size !== sources.length) {
+                points = [];
+                continue;
+            }
+            const fx = prices.get(fxTicker);
+            const holdingValues = holdings.map(({ ticker, shares }) => shares * prices.get(ticker) * (quotes.get(ticker).currency === 'USD' ? fx : 1));
+            const value = cash + holdingValues.reduce((sum, holdingValue) => sum + holdingValue, 0);
+            points.push({ date, value, benchmark: benchmarkClose * (benchmark.currency === 'USD' ? fx : 1), holdingValues });
+        }
+        return points.length >= 2 ? points : null;
+    }
+
+    function drawChart(canvas, portfolioPath, benchmarkPath, dates) {
         const { width, height } = canvas.getBoundingClientRect();
         if (!width || !height) return;
         const scale = window.devicePixelRatio || 1;
@@ -50,8 +132,9 @@
             ctx.stroke();
             ctx.fillText(value.toFixed(0), 1, y(value) + 3);
         }
-        ctx.fillText('Start', x(0), height - 2);
-        ctx.fillText('Month 6', width - 52, height - 2);
+        ctx.fillText(dateLabel.format(new Date(dates[0])), x(0), height - 2);
+        ctx.textAlign = 'right';
+        ctx.fillText(dateLabel.format(new Date(dates.at(-1))), x(dates.length - 1), height - 2);
         for (const [path, colour, dash] of [[benchmarkPath, '#64748b', [5, 4]], [portfolioPath, '#1d4ed8', []]]) {
             ctx.beginPath();
             ctx.strokeStyle = colour;
@@ -82,31 +165,9 @@
             else sessionStorage.setItem(storageKey, JSON.stringify(state));
         };
 
-        function render() {
-            const portfolio = state.portfolios[state.selected];
-            select.replaceChildren(...state.portfolios.map(({ name }, index) => new Option(name, index)));
-            select.value = String(state.selected);
-            select.hidden = state.portfolios.length < 2;
-            $('paper-name').textContent = portfolio.name;
-            comparator.value = state.benchmark;
-            const benchmark = benchmarks[state.benchmark];
-            const holdings = Object.entries(portfolio.positions).map(([ticker, shares]) => ({
-                ticker, shares, quote: quotes.get(ticker), value: shares * mark(quotes.get(ticker))
-            }));
-            const values = benchmark.path.map((_, i) => portfolio.cash + holdings.reduce((sum, holding) => (
-                sum + holding.value * holding.quote.path[i] / holding.quote.path.at(-1)
-            ), 0));
-            const path = values[0] ? values.map(value => value / values[0] * 100) : null;
-            const gain = path ? path.at(-1) - 100 : 0;
-            const benchmarkGain = benchmark.path.at(-1) - 100;
-            $('paper-value').textContent = gbp.format(values.at(-1));
-            $('paper-cash').textContent = gbp.format(portfolio.cash);
-            $('paper-return').textContent = values[0] ? signed(gain, '%') : '—';
-            $('paper-excess').textContent = values[0] ? signed(gain - benchmarkGain, ' pp') : '—';
-            $('paper-chart-summary').textContent = values[0]
-                ? 'Blue · My Portfolio ' + signed(gain, '%') + '   |   Dashed · ' + benchmark.label + ' ' + signed(benchmarkGain, '%')
-                : 'Add a holding or cash to compare this portfolio.';
-            const rows = holdings.sort((a, b) => b.value - a.value).map(({ ticker, shares, value }) => {
+        function renderHoldings(holdings, point) {
+            const rows = holdings.map(({ ticker, shares }, index) => ({ ticker, shares, value: point?.holdingValues[index] }))
+                .sort((a, b) => (b.value ?? 0) - (a.value ?? 0)).map(({ ticker, shares, value }) => {
                 const row = document.createElement('li');
                 row.className = 'flex items-center justify-between gap-3 py-2';
                 const link = document.createElement('a');
@@ -115,15 +176,67 @@
                 link.textContent = ticker;
                 const details = document.createElement('span');
                 details.className = 'text-right tabular-nums text-slate-700';
-                details.textContent = shares.toLocaleString('en-GB') + ' shares · ' + gbp.format(value) + ' · ' + (100 * value / values.at(-1)).toFixed(1) + '%';
+                details.textContent = shares.toLocaleString('en-GB') + ' shares';
+                if (value !== undefined) details.textContent += ' · ' + gbp.format(value) + ' · ' + (100 * value / point.value).toFixed(1) + '%';
                 row.append(link, details);
                 return row;
             });
             $('paper-holdings').replaceChildren(...rows);
             if (!rows.length) $('paper-holdings').append(Object.assign(document.createElement('li'), { textContent: 'No holdings yet.', className: 'text-slate-600' }));
-            canvas.hidden = !path;
-            paths = path ? [path, benchmark.path] : null;
-            if (paths) drawChart(canvas, ...paths);
+        }
+
+        async function render() {
+            activeRequest?.abort();
+            const request = new AbortController();
+            activeRequest = request;
+            const portfolio = state.portfolios[state.selected];
+            select.replaceChildren(...state.portfolios.map(({ name }, index) => new Option(name, index)));
+            select.value = String(state.selected);
+            select.hidden = state.portfolios.length < 2;
+            $('paper-name').textContent = portfolio.name;
+            const benchmark = Object.hasOwn(benchmarks, state.benchmark) ? benchmarks[state.benchmark] : benchmarks.sp500;
+            comparator.value = benchmark === benchmarks.founder ? 'founder' : 'sp500';
+            const holdings = Object.entries(portfolio.positions).map(([ticker, shares]) => ({ ticker, shares }));
+            canvas.hidden = true;
+            paths = null;
+            $('paper-retry').hidden = true;
+            $('paper-value').textContent = holdings.length ? '—' : gbp.format(portfolio.cash);
+            $('paper-cash').textContent = gbp.format(portfolio.cash);
+            $('paper-return').textContent = '—';
+            $('paper-excess').textContent = '—';
+            const summary = $('paper-chart-summary');
+            renderHoldings(holdings);
+            if (!holdings.length && !portfolio.cash) {
+                summary.textContent = 'Add a holding or cash to compare this portfolio.';
+                return;
+            }
+            summary.textContent = 'Loading historical performance…';
+            const sources = comparisonSources(benchmark, holdings);
+            const tickers = [benchmark.ticker, ...sources];
+            const histories = new Map(await Promise.all(tickers.map(async ticker => [ticker, await readHistory(ticker, request.signal)])));
+            if (request.signal.aborted) return;
+            const missing = tickers.filter(ticker => !histories.get(ticker));
+            const points = missing.length ? null : comparePortfolio(portfolio.cash, holdings, histories, benchmark, sources);
+            if (!points) {
+                summary.textContent = missing.length ? 'Historical data unavailable for ' + missing.join(', ') + '.' : 'There is too little overlapping history to compare these holdings.';
+                $('paper-retry').hidden = false;
+                return;
+            }
+            const first = points[0];
+            const last = points.at(-1);
+            const portfolioPath = points.map(point => 100 * point.value / first.value);
+            const benchmarkPath = points.map(point => 100 * point.benchmark / first.benchmark);
+            const gain = portfolioPath.at(-1) - 100;
+            const benchmarkGain = benchmarkPath.at(-1) - 100;
+            $('paper-value').textContent = gbp.format(last.value);
+            $('paper-return').textContent = signed(gain, '%');
+            $('paper-excess').textContent = signed(gain - benchmarkGain, ' pp');
+            summary.textContent = 'My Portfolio ' + signed(gain, '%') + ' · ' + benchmark.label + ' ' + signed(benchmarkGain, '%') + ' · As of ' + dateLabel.format(new Date(last.date));
+            canvas.setAttribute('aria-label', 'Paper portfolio and ' + benchmark.label + ' performance in GBP');
+            renderHoldings(holdings, last);
+            canvas.hidden = false;
+            paths = [portfolioPath, benchmarkPath, points.map(point => point.date)];
+            drawChart(canvas, ...paths);
         }
 
         $('paper-positions').replaceChildren(...[...quotes.keys()].map(ticker => {
@@ -187,6 +300,7 @@
             save();
             render();
         };
+        $('paper-retry').onclick = render;
         resizeChart?.disconnect();
         resizeChart = new ResizeObserver(() => {
             if (paths) drawChart(canvas, ...paths);

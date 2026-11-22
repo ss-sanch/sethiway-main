@@ -5,7 +5,11 @@ The beta uses Supabase email authentication and stores watchlists, workspace pre
 ## Deploy the beta
 
 1. Review changes in both repositories' `account-workspace-beta` branches. The frontend expects the member-account migration and the owner-session telemetry endpoint. Keep a record of both deployed revisions before rollout.
-2. Configure the official SethiWay origin and the account and recovery redirect URLs in Supabase Auth. Keep public registration disabled in Auth for the private beta. Provision the owner and test member by invitation when the site and email delivery are ready.
+2. Set the Supabase Auth Site URL to `https://sethiway.com` and allow `https://sethiway.com/account.html` and `https://sethiway.com/account.html?recovery=1` as redirect URLs. Disable public registration. Set up Auth email delivery and use the following link in the Invite user template, which lets recipients choose their password even when they open the link in another browser:
+
+   ```html
+   <a href="https://sethiway.com/account.html#type=invite&amp;token_hash={{ .TokenHash }}">Accept your SethiWay invite</a>
+   ```
 3. Review the existing grants on `traffic_logs` and `markowitz_telemetry` before rollout. The optimiser currently writes telemetry directly from the browser. Preserve that write path when restricting reads, or migrate ingestion to the backend before removing its write permissions.
 4. Apply the member accounts migration. Assign the confirmed owner's Auth user ID to the single row in `sethiway_members_private.owner_account` through the database admin path. Deploy the SethiStock backend, then the frontend. The existing telemetry login continues to accept its legacy credential during rollout.
 5. Confirm the invite and password-reset links on the official origin. Verify a member can save stocks and settings, see them in a second browser, and cannot access Admin or another account's rows. Verify the owner can open member metrics and diagnostics. Confirm the public hub and guest stock tools still work.

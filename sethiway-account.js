@@ -7,6 +7,9 @@
     const isPreview = view === 'preview';
     const needsOwner = isPreview || view === 'owner';
     const accountUrl = new URL('account.html', location.href).href;
+    const inviteParams = new URLSearchParams(location.hash.slice(1));
+    let inviteToken = inviteParams.get('type') === 'invite' ? inviteParams.get('token_hash') : null;
+    if (inviteToken) history.replaceState(history.state, '', accountUrl);
     const $ = id => document.getElementById(id);
     const status = $('account-status');
     const authForm = $('auth-form');
@@ -14,6 +17,7 @@
 
     let mode = 'signin';
     let client;
+    let invitedAccountId;
     let busy = false;
     let renderedUser;
     let displayVersion = 0;
@@ -48,23 +52,25 @@
 
     function setMode(next) {
         mode = next;
+        const settingPassword = next === 'recovery' || next === 'invite';
         const labels = {
             signin: ['Sign in to SethiWay', 'Save stocks, follow macro topics and pin your favourite tools.', 'Sign in'],
             forgot: ['Reset your password', 'We’ll email you a password reset link.', 'Send reset link'],
-            recovery: ['Choose a new password', 'Use at least eight characters.', 'Update password']
+            recovery: ['Choose a new password', 'Use at least eight characters.', 'Update password'],
+            invite: ['Accept your SethiWay invite', 'Choose a password with at least eight characters.', 'Accept invite']
         };
         const [title, intro, button] = labels[next];
         $('auth-title').textContent = title;
         $('auth-intro').textContent = intro;
         $('auth-submit').textContent = button;
-        $('email-field').hidden = next === 'recovery';
-        $('account-email').required = next !== 'recovery';
+        $('email-field').hidden = settingPassword;
+        $('account-email').required = !settingPassword;
         $('password-field').hidden = next === 'forgot';
         $('account-password').required = next !== 'forgot';
-        $('account-password').autocomplete = next === 'recovery' ? 'new-password' : 'current-password';
-        $('account-password').minLength = next === 'recovery' ? 8 : 0;
+        $('account-password').autocomplete = settingPassword ? 'new-password' : 'current-password';
+        $('account-password').minLength = settingPassword ? 8 : 0;
         $('account-password').value = '';
-        $('auth-links').hidden = next === 'recovery';
+        $('auth-links').hidden = settingPassword;
         document.querySelectorAll('[data-auth-mode]').forEach(link => {
             link.hidden = next === 'signin' ? link.dataset.authMode === 'signin' : link.dataset.authMode !== 'signin';
         });
@@ -155,7 +161,7 @@
         marketQuotes = new Map();
         const version = ++displayVersion;
         for (const id of ['auth-panel', 'workspace', 'owner-link', 'sign-out', 'workspace-retry']) $(id).hidden = true;
-        if (!user || mode === 'recovery') {
+        if (!user || mode === 'recovery' || mode === 'invite') {
             $('auth-panel').hidden = false;
             message(needsOwner ? 'Sign in with the owner account to continue.' : '');
             return;
@@ -257,13 +263,25 @@
             } else if (submittedMode === 'forgot') {
                 result = await client.auth.resetPasswordForEmail(email, { redirectTo: accountUrl + '?recovery=1' });
             } else {
+                if (submittedMode === 'invite') {
+                    if (inviteToken) {
+                        const confirmation = await client.auth.verifyOtp({ token_hash: inviteToken, type: 'invite' });
+                        if (confirmation.error) throw confirmation.error;
+                        invitedAccountId = confirmation.data?.session?.user?.id;
+                        inviteToken = null;
+                    }
+                    const { data, error } = await client.auth.getSession();
+                    if (error || !invitedAccountId || data?.session?.user?.id !== invitedAccountId) {
+                        throw new Error('Your invite session has ended. Request a new invite.');
+                    }
+                }
                 result = await client.auth.updateUser({ password });
             }
             if (result.error) throw result.error;
             if (submittedMode === 'forgot') {
                 setMode('signin');
                 message('If an account exists for that address, you’ll receive a reset link.');
-            } else if (submittedMode === 'recovery') {
+            } else if (submittedMode === 'recovery' || submittedMode === 'invite') {
                 location.replace(accountUrl);
             }
         } catch (error) {
@@ -317,7 +335,7 @@
         renderWatchlist();
     });
 
-    setMode('signin');
+    setMode(inviteToken ? 'invite' : 'signin');
     window.addEventListener('sethiway:password-recovery', () => {
         setMode('recovery');
         renderedUser = null;
